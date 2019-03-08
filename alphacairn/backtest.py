@@ -22,3 +22,8 @@ def parse_bars(stream):
     return bars
 
 
+def load_bars(path):
+    with open(path, newline="") as stream:
+        return parse_bars(stream)
+
+
