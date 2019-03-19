@@ -14,4 +14,9 @@ def bars(closes):
 
 
 class BacktestTests(unittest.TestCase):
-    pass
+    def test_current_close_cannot_change_current_trade(self):
+        left = simulate(bars([100, 110, 120]), lookback=2)
+        right = simulate(bars([100, 110, 1]), lookback=2)
+        self.assertEqual(left["trades"], right["trades"])
+        self.assertEqual(left["trades"][0]["date"], "2020-01-03")
+
