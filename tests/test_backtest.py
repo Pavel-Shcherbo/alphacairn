@@ -20,3 +20,8 @@ class BacktestTests(unittest.TestCase):
         self.assertEqual(left["trades"], right["trades"])
         self.assertEqual(left["trades"][0]["date"], "2020-01-03")
 
+    def test_future_extension_does_not_change_past(self):
+        short = simulate(bars([100, 110, 120, 90]), lookback=2)
+        long = simulate(bars([100, 110, 120, 90, 80, 200]), lookback=2)
+        self.assertEqual(short["equity"], long["equity"][:4])
+
