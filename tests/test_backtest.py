@@ -35,3 +35,16 @@ class BacktestTests(unittest.TestCase):
         loss = simulate(bars([100, 50]), fee_bps=0, slippage_bps=0, buy_and_hold=True)
         self.assertEqual(loss["max_drawdown"], 0.5)
 
+    def test_reject_invalid_prices_dates_and_costs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "bars.csv"
+            for content in [
+                "date,open,close\n2020-01-01,nan,10\n2020-01-02,1,2",
+                "date,open,close\n2020-01-02,1,2\n2020-01-01,1,2",
+            ]:
+                path.write_text(content)
+                with self.assertRaises(ValueError):
+                    load_bars(path)
+        for cost in [math.nan, -1, 10000]:
+            with self.assertRaises(ValueError):
+                simulate(bars([100, 100]), fee_bps=cost)
