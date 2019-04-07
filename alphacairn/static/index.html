@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Strategy research with explicit assumptions"
+    />
+    <title>Alphacairn workbench</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body class="">
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">Alphacairn</div>
+        <p class="caption">Strategy research with explicit assumptions</p>
+        <nav aria-label="Workspace">
+          <a href="#research">Research</a><a href="#trades">Trade ledger</a
+          ><a href="#method">Method</a>
+        </nav>
+        <footer>Local workbench<br />Development build</footer>
+      </aside>
+      <main class="workspace">
+        <div class="topline">
+          <span>Strategy research with explicit assumptions</span
+          ><span class="context">Local environment</span>
+        </div>
+        <div id="error" class="error" role="alert" hidden></div>
+        <header class="pagehead" id="research">
+          <div>
+            <h1>Trend signal study</h1>
+            <p>Compare a lagged moving-average rule with buy-and-hold</p>
+          </div>
+          <div class="actions">
+            <button id="export">Export result</button
+            ><button id="run" class="primary">Run study</button>
+          </div>
+        </header>
+        <section class="study">
+          <aside class="panel">
+            <div class="panelhead"><h2>Study settings</h2></div>
+            <div class="panelbody settings">
+              <label
+                >Lookback, bars<input
+                  id="lookback"
+                  type="number"
+                  value="20"
+                  min="1"
+                  max="19999" /></label
+              ><label
+                >Fee per trade, bps<input
+                  id="fee"
+                  type="number"
+                  value="10"
+                  min="0"
+                  max="9999"
+                  step="1" /></label
+              ><label
+                >Slippage, bps<input
+                  id="slippage"
+                  type="number"
+                  value="5"
+                  min="0"
+                  max="9999"
+                  step="1" /></label
+              ><label class="filelabel"
+                >Import daily bars<input
+                  id="file"
+                  type="file"
+                  accept=".csv,text/csv"
+              /></label>
+              <p id="source" class="notice">
+                Loading synthetic control fixture
+              </p>
+              <p class="notice">
+                CSV columns: date, open, close. Dates must be unique and
+                increasing.
+              </p>
+            </div>
+          </aside>
+          <div class="panel">
+            <div class="panelhead">
+              <h2>Portfolio equity</h2>
+              <div class="legend">
+                <span><i class="swatch"></i>Strategy</span
+                ><span><i class="swatch baseline"></i>Buy-and-hold</span>
+              </div>
+            </div>
+            <div class="panelbody">
+              <p id="period" class="notice">Run a study to calculate equity</p>
+              <svg
+                id="chart"
+                viewBox="0 0 880 320"
+                role="img"
+                aria-label="Strategy and baseline portfolio equity"
+              ></svg>
+            </div>
+            <div class="metrics">
+              <div><span>Total return</span><strong id="return">—</strong></div>
+              <div>
+                <span>Maximum drawdown</span><strong id="drawdown">—</strong>
+              </div>
+              <div>
+                <span>Transaction fees</span><strong id="fees">—</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="section panel" id="trades">
+          <div class="panelhead">
+            <h2>Trade ledger</h2>
+            <span id="tradecount" class="muted">Not calculated</span>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Side</th>
+                  <th class="number">Quantity</th>
+                  <th class="number">Fill price</th>
+                  <th class="number">Fee</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="section" id="method">
+          <h2>Timing and assumptions</h2>
+          <p class="secondary">
+            The strategy uses information through the previous close and trades
+            at the next open. Positions are long-only and fractional. Fees and
+            slippage are fixed inputs. The final position is marked to market,
+            not liquidated. The bundled series is synthetic and demonstrates the
+            calculation; it is not evidence of market performance.
+          </p>
+          <p id="hash" class="mono notice"></p>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
