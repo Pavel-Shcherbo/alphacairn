@@ -15,3 +15,30 @@ def example():
     }
 
 
+def evaluate(params):
+    content = params.get("csv", example()["csv"])
+    if not isinstance(content, str):
+        raise ValueError("csv must be text")
+    bars = parse_bars(io.StringIO(content))
+    if len(bars) > 20000:
+        raise ValueError("The local workbench supports at most 20,000 bars per run")
+    options = {
+        "fee_bps": float(params.get("fee_bps", 10)),
+        "slippage_bps": float(params.get("slippage_bps", 5)),
+    }
+    lookback = params.get("lookback", 20)
+    if type(lookback) is not int or lookback >= len(bars):
+        raise ValueError("lookback must be an integer smaller than the number of bars")
+    return {
+        "data_sha256": hashlib.sha256(content.encode()).hexdigest(),
+        "bars": len(bars),
+        "start": bars[0]["date"],
+        "end": bars[-1]["date"],
+        "strategy": simulate(bars, lookback=lookback, **options),
+        "baseline": simulate(bars, buy_and_hold=True, **options),
+        "parameters": {"lookback": lookback, **options},
+    }
+
+
+if __name__ == "__main__":
+    serve(evaluate, example, 8412)
