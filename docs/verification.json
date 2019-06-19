@@ -1,0 +1,18 @@
+{
+  "verified_at": "2026-11-04T01:18:31.895624+00:00",
+  "scope": "Current local core, not the full product scope or the 20,000-SLOC acceptance",
+  "unit_tests": 4,
+  "unit_passed": true,
+  "cli_passed": true,
+  "source_hashes": {
+    "alphacairn/__init__.py": "b2eda89c8f2b58fae50ede3f281e86e45e34fd9ad33500ce3c2eabf08e1f525d",
+    "alphacairn/__main__.py": "b0246a3d986e9cff4cae4768f04f0c171e17f55dd4ad03c7efc58de4c4e173a3",
+    "alphacairn/backtest.py": "92f910989cc2b1b4a4a0f37b42a126db88a9696e5c83a8a3910ad3aba740d462",
+    "alphacairn/httpapp.py": "aeae90d384d4ce2451d73504885e5d9da679f48768f34f50fda39f9ef24907a6",
+    "alphacairn/static/app.js": "be72be43af6c818b5d9b1d9478d28c2fa3bb560da599acd4d05d44231c036003",
+    "alphacairn/static/index.html": "c4c25796681b4b29b38550083eae90e5b6e4fb900d98aab2781340c7fab63b3b",
+    "alphacairn/static/style.css": "6142abc21d205d35ed04a085c3ed9a863653535b048f1d4ee7d79ab25d50cfed",
+    "alphacairn/web.py": "cb598154e134efd88aa96af06708c439d7fcad71a78f36f3131aa7ce5b64296f"
+  },
+  "full_portfolio_acceptance": false
+}
