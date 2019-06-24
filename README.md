@@ -12,7 +12,7 @@ python3 -m alphacairn.web
 
 Open http://127.0.0.1:8412. No third-party runtime packages are required.
 The workbench is a local development application, not a hosted multi-user service.
-Run it from the checkout: bundled examples are not yet distributed in an installed package.
+Bundled examples are included in the wheel. Runtime state is stored outside the installed package.
 
 ## Workbench preview
 
@@ -32,6 +32,24 @@ Loads validated daily CSV bars, simulates a long-only moving-average signal with
 ## Boundaries
 
 The included data is a deterministic synthetic fixture, not exchange history. The simulator assumes fractional long-only positions, unlimited modeled liquidity and fixed costs. It does not yet handle dividends, splits, delistings, historical universes, funding or margin. No profitability or market-performance result is claimed. The final position is valued at the last close rather than forcibly sold.
+
+
+## Sequential research and risk
+
+```sh
+python3 -m alphacairn.research risk examples/synthetic.csv --resample
+python3 -m alphacairn.research walk-forward examples/synthetic.csv --train-size 100 --test-size 40
+```
+
+The workbench supports fixed parameters and trailing-window selection. Risk reports include stated-frequency annualization, drawdowns, paired baseline diagnostics and historical tail statistics. Window-end liquidation includes costs; a final untouched holdout is not reserved automatically. Dataset hashes normalize date/open/close records; original file or received-text hashes are retained separately. See [research method](docs/RESEARCH.md).
+
+## Installed examples
+
+```sh
+python3 -m alphacairn.resources ./demo
+```
+
+This exports the reviewed examples to a new directory without overwriting an existing destination. Use the exported paths with the CLI.
 
 ## Development scope
 
