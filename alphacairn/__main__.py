@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from .backtest import load_bars, simulate
+from .backtest import dataset_digest, load_bars, simulate
 
 
 def main():
@@ -19,7 +19,9 @@ def main():
         bars = load_bars(args.csv)
         options = {"fee_bps": args.fee_bps, "slippage_bps": args.slippage_bps}
         result = {
-            "data_sha256": hashlib.sha256(args.csv.read_bytes()).hexdigest(),
+            "data_sha256": dataset_digest(bars),
+            "source_file_sha256": hashlib.sha256(args.csv.read_bytes()).hexdigest(),
+            "digest_policy": "Normalized date/open/close records identify the calculation input; source_file_sha256 identifies original bytes",
             "parameters": vars(args) | {"csv": str(args.csv)},
             "strategy": simulate(bars, lookback=args.lookback, **options),
             "baseline": simulate(bars, buy_and_hold=True, **options),
