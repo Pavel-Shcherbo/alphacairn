@@ -15,3 +15,11 @@ def finite(value, name, positive=False):
     return float(value)
 
 
+def frequency(periods_per_year):
+    if type(periods_per_year) is not int or not 1 <= periods_per_year <= 366:
+        raise ValueError(
+            "periods_per_year must be an integer between 1 and 366 for daily bars"
+        )
+    return periods_per_year
+
+
