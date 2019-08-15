@@ -23,3 +23,16 @@ def frequency(periods_per_year):
     return periods_per_year
 
 
+def quantile(values, probability):
+    finite(probability, "probability")
+    if not 0 <= probability <= 1:
+        raise ValueError("probability must be between zero and one")
+    if not values:
+        raise ValueError("quantile requires observations")
+    ordered = sorted(finite(value, "observation") for value in values)
+    position = (len(ordered) - 1) * probability
+    left = int(math.floor(position))
+    right = int(math.ceil(position))
+    return ordered[left] + (ordered[right] - ordered[left]) * (position - left)
+
+
