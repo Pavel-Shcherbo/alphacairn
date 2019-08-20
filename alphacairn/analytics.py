@@ -36,3 +36,21 @@ def quantile(values, probability):
     return ordered[left] + (ordered[right] - ordered[left]) * (position - left)
 
 
+def period_returns(equity, initial_cash):
+    previous = finite(initial_cash, "initial_cash", positive=True)
+    if not equity:
+        raise ValueError("equity history must not be empty")
+    result, previous_day = [], None
+    for item in equity:
+        day = date.fromisoformat(item["date"])
+        if previous_day is not None and day <= previous_day:
+            raise ValueError("equity dates must be strictly increasing")
+        current = finite(item["equity"], "equity", positive=True)
+        change = current / previous - 1
+        if not math.isfinite(change) or change <= -1:
+            raise ValueError("period return exceeds the supported finite range")
+        result.append(change)
+        previous, previous_day = current, day
+    return result
+
+
