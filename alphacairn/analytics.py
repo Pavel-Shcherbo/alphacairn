@@ -54,3 +54,46 @@ def period_returns(equity, initial_cash):
     return result
 
 
+def drawdown_history(equity, initial_cash):
+    period_returns(equity, initial_cash)
+    peak, peak_day = float(initial_cash), None
+    current, episodes = None, []
+    series, duration = [], 0
+    for item in equity:
+        value, day = item["equity"], item["date"]
+        if value >= peak:
+            if current is not None:
+                current["recovery_date"] = day
+                current["recovered"] = True
+                episodes.append(current)
+                current = None
+            peak, peak_day, duration = value, day, 0
+        else:
+            duration += 1
+            depth = 1 - value / peak
+            if current is None:
+                current = {
+                    "peak_date": peak_day,
+                    "first_underwater_date": day,
+                    "trough_date": day,
+                    "depth": depth,
+                    "underwater_bars": 0,
+                    "recovery_date": None,
+                    "recovered": False,
+                }
+            current["underwater_bars"] += 1
+            if depth > current["depth"]:
+                current["depth"], current["trough_date"] = depth, day
+        series.append(
+            {"date": day, "drawdown": 1 - value / peak, "underwater_bars": duration}
+        )
+    if current is not None:
+        episodes.append(current)
+    return {
+        "series": series,
+        "episodes": episodes,
+        "maximum": max(row["drawdown"] for row in series),
+        "longest_underwater_bars": max(row["underwater_bars"] for row in series),
+    }
+
+
