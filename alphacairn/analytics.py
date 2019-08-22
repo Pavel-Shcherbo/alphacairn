@@ -157,3 +157,65 @@ def summarize(
     }
 
 
+def compare(
+    strategy_equity,
+    baseline_equity,
+    initial_cash,
+    periods_per_year=365,
+    risk_free_annual=0,
+):
+    frequency(periods_per_year)
+    if [row["date"] for row in strategy_equity] != [
+        row["date"] for row in baseline_equity
+    ]:
+        raise ValueError("comparison requires identical observation dates")
+    strategy = period_returns(strategy_equity, initial_cash)
+    baseline = period_returns(baseline_equity, initial_cash)
+    if len(strategy) < 2:
+        raise ValueError("comparison requires at least two observations")
+    finite(risk_free_annual, "risk_free_annual")
+    if risk_free_annual <= -1:
+        raise ValueError("annual risk-free rate must exceed -1")
+    active = [left - right for left, right in zip(strategy, baseline)]
+    active_deviation = statistics.stdev(active)
+    base_variance = statistics.variance(baseline)
+    strategy_deviation, base_deviation = statistics.stdev(strategy), statistics.stdev(
+        baseline
+    )
+    strategy_mean, baseline_mean = statistics.fmean(strategy), statistics.fmean(
+        baseline
+    )
+    covariance = sum(
+        (left - strategy_mean) * (right - baseline_mean)
+        for left, right in zip(strategy, baseline)
+    ) / (len(strategy) - 1)
+    beta = covariance / base_variance if base_variance > 0 else None
+    risk_free_period = math.expm1(math.log1p(risk_free_annual) / periods_per_year)
+    alpha = (
+        (
+            statistics.fmean(strategy)
+            - risk_free_period
+            - beta * (statistics.fmean(baseline) - risk_free_period)
+        )
+        * periods_per_year
+        if beta is not None
+        else None
+    )
+    return {
+        "tracking_error": active_deviation * math.sqrt(periods_per_year),
+        "information_ratio": (
+            statistics.fmean(active) * math.sqrt(periods_per_year) / active_deviation
+            if active_deviation > 0
+            else None
+        ),
+        "beta": beta,
+        "correlation": (
+            covariance / (strategy_deviation * base_deviation)
+            if strategy_deviation > 0 and base_deviation > 0
+            else None
+        ),
+        "annualized_arithmetic_alpha": alpha,
+        "assumptions": "Paired bar returns; sample covariance; arithmetic alpha relative to the stated baseline and constant risk-free rate. No causal attribution is implied.",
+    }
+
+
