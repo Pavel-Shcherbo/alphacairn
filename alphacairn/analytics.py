@@ -97,3 +97,63 @@ def drawdown_history(equity, initial_cash):
     }
 
 
+def summarize(
+    equity,
+    initial_cash,
+    periods_per_year=365,
+    risk_free_annual=0.0,
+    tail_probability=0.05,
+):
+    frequency(periods_per_year)
+    finite(risk_free_annual, "risk_free_annual")
+    if risk_free_annual <= -1:
+        raise ValueError("annual risk-free rate must exceed -1")
+    finite(tail_probability, "tail_probability")
+    if not 0 < tail_probability < 1:
+        raise ValueError("tail_probability must be between zero and one")
+    changes = period_returns(equity, initial_cash)
+    mean = statistics.fmean(changes)
+    deviation = statistics.stdev(changes) if len(changes) >= 2 else None
+    risk_free_period = math.expm1(math.log1p(risk_free_annual) / periods_per_year)
+    excess = [change - risk_free_period for change in changes]
+    downside = math.sqrt(statistics.fmean(min(change, 0) ** 2 for change in excess))
+    threshold = quantile(changes, tail_probability)
+    tail = [change for change in changes if change <= threshold]
+    drawdowns = drawdown_history(equity, initial_cash)
+    try:
+        annualized = math.expm1(
+            math.log(equity[-1]["equity"] / initial_cash)
+            * periods_per_year
+            / len(changes)
+        )
+    except OverflowError as error:
+        raise ValueError("annualization exceeds the supported numeric range") from error
+    return {
+        "observations": len(changes),
+        "periods_per_year": periods_per_year,
+        "total_return": equity[-1]["equity"] / initial_cash - 1,
+        "annualized_compound_return": annualized,
+        "annualized_volatility": (
+            deviation * math.sqrt(periods_per_year) if deviation is not None else None
+        ),
+        "sharpe": (
+            statistics.fmean(excess) * math.sqrt(periods_per_year) / deviation
+            if deviation is not None and deviation > 0
+            else None
+        ),
+        "sortino": (
+            statistics.fmean(excess) * math.sqrt(periods_per_year) / downside
+            if downside > 0
+            else None
+        ),
+        "maximum_drawdown": drawdowns["maximum"],
+        "longest_underwater_bars": drawdowns["longest_underwater_bars"],
+        "historical_var_loss": -threshold,
+        "historical_expected_shortfall_loss": -statistics.fmean(tail),
+        "tail_probability": tail_probability,
+        "positive_bar_fraction": sum(change > 0 for change in changes) / len(changes),
+        "risk_free_annual": risk_free_annual,
+        "assumptions": "Bar-frequency annualization; sample standard deviation; empirical linear-interpolated tail quantile. Historical loss measures can be negative when all observations are gains. Ratios with zero denominator are undefined, not infinite. These are descriptive statistics, not risk forecasts.",
+    }
+
+
