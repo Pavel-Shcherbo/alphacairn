@@ -219,3 +219,31 @@ def compare(
     }
 
 
+def rolling_volatility(equity, initial_cash, window=20, periods_per_year=365):
+    frequency(periods_per_year)
+    if type(window) is not int or window < 2:
+        raise ValueError("rolling window must be an integer of at least two bars")
+    changes = period_returns(equity, initial_cash)
+    output, observations = [], deque()
+    mean, squared_deviations = 0.0, 0.0
+    for index, item in enumerate(equity):
+        if len(observations) == window:
+            old = observations.popleft()
+            remaining = len(observations)
+            next_mean = (window * mean - old) / remaining
+            squared_deviations -= (old - mean) * (old - next_mean)
+            mean = next_mean
+        change = changes[index]
+        observations.append(change)
+        delta = change - mean
+        mean += delta / len(observations)
+        squared_deviations += delta * (change - mean)
+        value = (
+            math.sqrt(max(squared_deviations, 0) / (window - 1) * periods_per_year)
+            if len(observations) == window
+            else None
+        )
+        output.append({"date": item["date"], "volatility": value})
+    return output
+
+
