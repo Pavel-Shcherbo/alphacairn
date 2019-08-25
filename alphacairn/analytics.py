@@ -247,3 +247,51 @@ def rolling_volatility(equity, initial_cash, window=20, periods_per_year=365):
     return output
 
 
+def block_resample(
+    equity, initial_cash, block_size=5, repetitions=500, seed=0, confidence=0.95
+):
+    if type(block_size) is not int or block_size < 1:
+        raise ValueError("block_size must be a positive integer")
+    if type(repetitions) is not int or not 20 <= repetitions <= 5000:
+        raise ValueError("repetitions must be between 20 and 5000")
+    if type(seed) is not int:
+        raise ValueError("seed must be an integer")
+    finite(confidence, "confidence")
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must lie between zero and one")
+    changes = period_returns(equity, initial_cash)
+    if block_size > len(changes):
+        raise ValueError("block_size cannot exceed the observation count")
+    if len(changes) * repetitions > 5_000_000:
+        raise ValueError(
+            "resampling budget exceeded; reduce repetitions or input length"
+        )
+    generator = random.Random(seed)
+    results = []
+    for _ in range(repetitions):
+        selected = []
+        while len(selected) < len(changes):
+            start = generator.randrange(len(changes))
+            selected.extend(
+                changes[(start + offset) % len(changes)] for offset in range(block_size)
+            )
+        try:
+            compounded = math.expm1(
+                sum(math.log1p(value) for value in selected[: len(changes)])
+            )
+        except OverflowError as error:
+            raise ValueError(
+                "resampled return exceeds the supported numeric range"
+            ) from error
+        results.append(compounded)
+    tail = (1 - confidence) / 2
+    return {
+        "lower": quantile(results, tail),
+        "median": quantile(results, 0.5),
+        "upper": quantile(results, 1 - tail),
+        "confidence": confidence,
+        "block_size": block_size,
+        "repetitions": repetitions,
+        "seed": seed,
+        "interpretation": "Distribution of total returns under circular block resampling of the observed bars. This is not a confidence interval for future performance; it assumes the observed return process is suitable for resampling.",
+    }
