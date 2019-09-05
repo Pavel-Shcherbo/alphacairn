@@ -33,6 +33,8 @@ function download(name, value) {
 
 let csv = "",
   result = null;
+let inputRevision = 0;
+let fileRevision = 0;
 const money = (value) =>
   new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
@@ -105,8 +107,63 @@ function render() {
     " / " +
     result.bars +
     " observations / Starting capital 10,000";
-  $("hash").textContent = "Input SHA-256 " + result.data_sha256;
+  $("hash").textContent = "Dataset SHA-256 " + result.data_sha256;
   $("tradecount").textContent = s.trade_count + " fills";
+  $("assumptions").textContent =
+    s.assumptions +
+    " Annualization uses " +
+    result.parameters.periods_per_year +
+    " daily bars per year. The bundled input is synthetic; imported files are user-supplied. Walk-forward selection does not reserve a final untouched holdout.";
+  clear($("risk-rows"));
+  const metrics = [
+    ["Annualized compound return", "annualized_compound_return", true],
+    ["Annualized volatility", "annualized_volatility", true],
+    ["Sharpe ratio", "sharpe", false],
+    ["Sortino ratio", "sortino", false],
+    ["Historical 5% loss quantile", "historical_var_loss", true],
+    [
+      "Historical mean loss in the lower tail",
+      "historical_expected_shortfall_loss",
+      true,
+    ],
+  ];
+  const format = (value, percent = false) =>
+    value === null || value === undefined
+      ? "—"
+      : percent
+        ? (value * 100).toFixed(2) + "%"
+        : value.toFixed(2);
+  for (const [label, key, percent] of metrics) {
+    const row = element("tr");
+    row.append(
+      element("td", label),
+      element("td", format(result.strategy_metrics[key], percent), "number"),
+      element("td", format(result.baseline_metrics[key], percent), "number"),
+    );
+    $("risk-rows").append(row);
+  }
+  $("risk-frequency").textContent =
+    result.parameters.periods_per_year + " bars per year";
+  $("comparison").textContent = result.comparison
+    ? "Baseline beta " +
+      format(result.comparison.beta) +
+      " / Annualized tracking error " +
+      format(result.comparison.tracking_error, true)
+    : "At least two observations are needed for a paired comparison";
+  $("windows").hidden = !result.windows.length;
+  $("window-count").textContent = result.windows.length + " sequential windows";
+  clear($("window-rows"));
+  for (const window of result.windows) {
+    const row = element("tr");
+    row.append(
+      element("td", window.train_start + " to " + window.train_end),
+      element("td", window.test_start + " to " + window.test_end),
+      element("td", String(window.selected_lookback), "number"),
+      element("td", format(window.test_metrics.total_return, true), "number"),
+      element("td", money(window.fees), "number"),
+    );
+    $("window-rows").append(row);
+  }
   clear($("rows"));
   for (const t of s.trades) {
     const row = element("tr");
@@ -127,26 +184,51 @@ function render() {
     $("rows").append(row);
   }
 }
+function resetStudy(message) {
+  inputRevision += 1;
+  result = null;
+  clear($("chart"));
+  clear($("rows"));
+  clear($("risk-rows"));
+  clear($("window-rows"));
+  $("windows").hidden = true;
+  for (const id of ["return", "drawdown", "fees"]) $(id).textContent = "—";
+  $("period").textContent = message;
+  $("tradecount").textContent = "Not calculated";
+  $("risk-frequency").textContent = "Not calculated";
+  $("comparison").textContent = "Run a study to compare paired returns";
+  $("hash").textContent = "";
+  $("assumptions").textContent =
+    "Run the study to inspect the assumptions for the selected method";
+}
+
 $("run").onclick = async () => {
   error("");
   $("run").disabled = true;
+  resetStudy("Calculating study");
+  const revision = inputRevision;
   try {
-    result = await evaluate({
+    const calculated = await evaluate({
       csv,
+      mode: $("mode").value,
+      periods_per_year: Number($("frequency").value),
+      train_size: Number($("train-size").value),
+      test_size: Number($("test-size").value),
+      candidates: $("candidates")
+        .value.split(",")
+        .map((value) => Number(value.trim())),
+      score: $("score").value,
       lookback: Number($("lookback").value),
       fee_bps: Number($("fee").value),
       slippage_bps: Number($("slippage").value),
     });
+    if (revision !== inputRevision) return;
+    result = calculated;
     render();
   } catch (e) {
+    if (revision !== inputRevision) return;
     error(e.message);
-    result = null;
-    clear($("chart"));
-    clear($("rows"));
-    for (const id of ["return", "drawdown", "fees"]) $(id).textContent = "—";
-    $("period").textContent = "No result for these inputs";
-    $("tradecount").textContent = "Not calculated";
-    $("hash").textContent = "";
+    resetStudy("No result for these inputs");
   } finally {
     $("run").disabled = false;
   }
@@ -154,20 +236,24 @@ $("run").onclick = async () => {
 $("file").onchange = async () => {
   const file = $("file").files[0];
   if (!file) return;
+  const selectedFileRevision = ++fileRevision;
+  resetStudy("Reading selected input");
   if (file.size > 900000) {
     error("Choose a CSV file smaller than 900 KB");
+    $("file").value = "";
     return;
   }
-  csv = await file.text();
-  $("source").textContent = "Imported file: " + file.name;
-  result = null;
-  clear($("chart"));
-  clear($("rows"));
-  $("period").textContent =
-    "New input loaded. Run the study to calculate results.";
-  for (const id of ["return", "drawdown", "fees"]) $(id).textContent = "—";
-  $("hash").textContent = "";
-  $("tradecount").textContent = "Not calculated";
+  try {
+    const content = await file.text();
+    if (selectedFileRevision !== fileRevision) return;
+    csv = content;
+    $("source").textContent = "Imported file: " + file.name;
+    resetStudy("New input loaded. Run the study to calculate results.");
+  } catch (e) {
+    if (selectedFileRevision !== fileRevision) return;
+    error(e.message);
+    resetStudy("Could not read the selected input");
+  }
 };
 $("export").onclick = () => {
   if (!result) {
@@ -188,3 +274,27 @@ fetch("/api/example")
 window.addEventListener("resize", () => {
   if (result) chart();
 });
+
+$("mode").onchange = () => {
+  const sequential = $("mode").value === "walk_forward";
+  $("sequential-settings").hidden = !sequential;
+  $("lookback").disabled = sequential;
+  $("period").textContent =
+    "Method changed. Run the study to calculate a result for the new method.";
+};
+
+for (const id of [
+  "mode",
+  "lookback",
+  "fee",
+  "slippage",
+  "train-size",
+  "test-size",
+  "candidates",
+  "score",
+  "frequency",
+]) {
+  $(id).addEventListener("input", () =>
+    resetStudy("Settings changed. Run the study to calculate results."),
+  );
+}
