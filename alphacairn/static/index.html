@@ -43,6 +43,40 @@
             <div class="panelhead"><h2>Study settings</h2></div>
             <div class="panelbody settings">
               <label
+                >Study method<select id="mode">
+                  <option value="fixed">Fixed parameters</option>
+                  <option value="walk_forward">Walk-forward selection</option>
+                </select></label
+              >
+              <div id="sequential-settings" class="sequential-settings" hidden>
+                <label
+                  >Training window, bars<input
+                    id="train-size"
+                    type="number"
+                    value="100"
+                    min="3"
+                /></label>
+                <label
+                  >Test window, bars<input
+                    id="test-size"
+                    type="number"
+                    value="40"
+                    min="1"
+                /></label>
+                <label
+                  >Candidate lookbacks<input
+                    id="candidates"
+                    type="text"
+                    value="5, 10, 20, 40"
+                /></label>
+                <label
+                  >Training score<select id="score">
+                    <option value="total_return">Net total return</option>
+                    <option value="sharpe">Sharpe ratio</option>
+                  </select></label
+                >
+              </div>
+              <label
                 >Lookback, bars<input
                   id="lookback"
                   type="number"
@@ -65,6 +99,11 @@
                   min="0"
                   max="9999"
                   step="1" /></label
+              ><label
+                >Bars per year<select id="frequency">
+                  <option value="365">365 — continuous daily market</option>
+                  <option value="252">252 — trading-day convention</option>
+                </select></label
               ><label class="filelabel"
                 >Import daily bars<input
                   id="file"
@@ -108,6 +147,53 @@
             </div>
           </div>
         </section>
+        <section class="section panel" id="risk">
+          <div class="panelhead">
+            <h2>Descriptive risk</h2>
+            <span id="risk-frequency" class="muted">Not calculated</span>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th class="number">Strategy</th>
+                  <th class="number">Buy-and-hold</th>
+                </tr>
+              </thead>
+              <tbody id="risk-rows"></tbody>
+            </table>
+          </div>
+          <div class="panelbody">
+            <p id="comparison" class="notice">
+              Run a study to compare paired returns
+            </p>
+            <p class="notice">
+              Historical tail measures describe this sample; they are not
+              forecasts. Undefined ratios are shown as a dash.
+            </p>
+          </div>
+        </section>
+        <section class="section panel" id="windows" hidden>
+          <div class="panelhead">
+            <h2>Out-of-sample windows</h2>
+            <span id="window-count" class="muted"></span>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Training period</th>
+                  <th>Test period</th>
+                  <th class="number">Selected lookback</th>
+                  <th class="number">Test return</th>
+                  <th class="number">Fees</th>
+                </tr>
+              </thead>
+              <tbody id="window-rows"></tbody>
+            </table>
+          </div>
+        </section>
         <section class="section panel" id="trades">
           <div class="panelhead">
             <h2>Trade ledger</h2>
@@ -130,7 +216,7 @@
         </section>
         <section class="section" id="method">
           <h2>Timing and assumptions</h2>
-          <p class="secondary">
+          <p id="assumptions" class="secondary">
             The strategy uses information through the previous close and trades
             at the next open. Positions are long-only and fractional. Fees and
             slippage are fixed inputs. The final position is marked to market,
