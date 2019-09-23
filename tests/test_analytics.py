@@ -29,4 +29,11 @@ def history(changes, initial=100):
 
 
 class AnalyticsTests(unittest.TestCase):
-    pass
+    def test_flat_returns_have_undefined_ratios_and_zero_risk(self):
+        report = summarize(history([0, 0, 0]), 100)
+        self.assertIsNone(report["sharpe"])
+        self.assertIsNone(report["sortino"])
+        self.assertEqual(report["annualized_volatility"], 0)
+        self.assertEqual(report["maximum_drawdown"], 0)
+        self.assertEqual(report["total_return"], 0)
+
