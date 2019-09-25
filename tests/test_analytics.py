@@ -37,3 +37,13 @@ class AnalyticsTests(unittest.TestCase):
         self.assertEqual(report["maximum_drawdown"], 0)
         self.assertEqual(report["total_return"], 0)
 
+    def test_fees_at_first_observation_are_not_dropped(self):
+        values = [
+            {"date": "2020-01-01", "equity": 99},
+            {"date": "2020-01-02", "equity": 99},
+        ]
+        returns = period_returns(values, 100)
+        self.assertAlmostEqual(returns[0], -0.01)
+        self.assertEqual(returns[1], 0)
+        self.assertAlmostEqual(summarize(values, 100)["total_return"], -0.01)
+
