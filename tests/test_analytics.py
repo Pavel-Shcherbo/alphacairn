@@ -59,3 +59,9 @@ class AnalyticsTests(unittest.TestCase):
         self.assertEqual(report["episodes"][0]["underwater_bars"], 2)
         self.assertFalse(report["episodes"][1]["recovered"])
 
+    def test_quantile_and_historical_tail_are_hand_checkable(self):
+        self.assertEqual(quantile([0, 10], 0.25), 2.5)
+        report = summarize(history([-0.1, -0.05, 0, 0.05]), 100, tail_probability=0.25)
+        self.assertAlmostEqual(report["historical_var_loss"], 0.0625)
+        self.assertAlmostEqual(report["historical_expected_shortfall_loss"], 0.1)
+
