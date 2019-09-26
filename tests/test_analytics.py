@@ -47,3 +47,15 @@ class AnalyticsTests(unittest.TestCase):
         self.assertEqual(returns[1], 0)
         self.assertAlmostEqual(summarize(values, 100)["total_return"], -0.01)
 
+    def test_drawdown_episode_records_trough_and_recovery(self):
+        values = [
+            {"date": f"2020-01-{index+1:02d}", "equity": value}
+            for index, value in enumerate([110, 100, 88, 110, 100])
+        ]
+        report = drawdown_history(values, 100)
+        self.assertAlmostEqual(report["maximum"], 0.2)
+        self.assertEqual(report["episodes"][0]["trough_date"], "2020-01-03")
+        self.assertEqual(report["episodes"][0]["recovery_date"], "2020-01-04")
+        self.assertEqual(report["episodes"][0]["underwater_bars"], 2)
+        self.assertFalse(report["episodes"][1]["recovered"])
+
