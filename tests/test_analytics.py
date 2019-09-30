@@ -65,3 +65,14 @@ class AnalyticsTests(unittest.TestCase):
         self.assertAlmostEqual(report["historical_var_loss"], 0.0625)
         self.assertAlmostEqual(report["historical_expected_shortfall_loss"], 0.1)
 
+    def test_paired_comparison_recovers_known_beta(self):
+        baseline = history([0.01, 0.02, -0.01, 0.03])
+        strategy = history([0.02, 0.04, -0.02, 0.06])
+        report = compare(strategy, baseline, 100)
+        self.assertAlmostEqual(report["beta"], 2)
+        self.assertAlmostEqual(report["correlation"], 1)
+        self.assertAlmostEqual(report["annualized_arithmetic_alpha"], 0)
+        baseline[0]["date"] = "2019-12-31"
+        with self.assertRaises(ValueError):
+            compare(strategy, baseline, 100)
+
