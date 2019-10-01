@@ -76,3 +76,21 @@ class AnalyticsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             compare(strategy, baseline, 100)
 
+    def test_rolling_volatility_matches_direct_windows_and_never_uses_future(self):
+        values = history([0.01, -0.02, 0.03, 0.01, -0.04, 0.05])
+        changes = period_returns(values, 100)
+        actual = rolling_volatility(values, 100, window=3, periods_per_year=252)
+        self.assertIsNone(actual[1]["volatility"])
+        for index in range(2, len(values)):
+            self.assertAlmostEqual(
+                actual[index]["volatility"],
+                statistics.stdev(changes[index - 2 : index + 1]) * math.sqrt(252),
+            )
+        extended = rolling_volatility(
+            values + [{"date": "2020-01-07", "equity": 200}],
+            100,
+            window=3,
+            periods_per_year=252,
+        )
+        self.assertEqual(actual, extended[: len(actual)])
+
