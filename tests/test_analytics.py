@@ -94,3 +94,12 @@ class AnalyticsTests(unittest.TestCase):
         )
         self.assertEqual(actual, extended[: len(actual)])
 
+    def test_block_resampling_is_reproducible_and_not_a_future_forecast(self):
+        values = history([0.01, -0.02, 0.03, 0.01, -0.01, 0.02])
+        first = block_resample(values, 100, block_size=2, repetitions=50, seed=7)
+        second = block_resample(values, 100, block_size=2, repetitions=50, seed=7)
+        self.assertEqual(first, second)
+        self.assertLessEqual(first["lower"], first["median"])
+        self.assertLessEqual(first["median"], first["upper"])
+        self.assertIn("not a confidence interval for future", first["interpretation"])
+
