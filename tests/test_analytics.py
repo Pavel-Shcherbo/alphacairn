@@ -103,3 +103,15 @@ class AnalyticsTests(unittest.TestCase):
         self.assertLessEqual(first["median"], first["upper"])
         self.assertIn("not a confidence interval for future", first["interpretation"])
 
+    def test_invalid_frequencies_equity_and_probabilities_fail(self):
+        for values in [
+            history([0]) + [{"date": "2020-01-01", "equity": 100}],
+            [{"date": "2020-01-01", "equity": 0}],
+            [{"date": "2020-01-01", "equity": math.nan}],
+        ]:
+            with self.assertRaises(ValueError):
+                summarize(values, 100)
+        with self.assertRaises(ValueError):
+            summarize(history([0, 0]), 100, periods_per_year=True)
+        with self.assertRaises(ValueError):
+            quantile([1, 2], 1.1)
