@@ -24,6 +24,13 @@ class BacktestTests(unittest.TestCase):
         short = simulate(bars([100, 110, 120, 90]), lookback=2)
         long = simulate(bars([100, 110, 120, 90, 80, 200]), lookback=2)
         self.assertEqual(short["equity"], long["equity"][:4])
+        self.assertEqual(
+            short["trades"],
+            [trade for trade in long["trades"] if trade["date"] <= "2020-01-04"],
+        )
+        for trade in long["trades"]:
+            if trade["signal_date"] is not None:
+                self.assertLess(trade["signal_date"], trade["date"])
 
     def test_flat_market_costs_and_drawdown(self):
         free = simulate(bars([100, 100]), fee_bps=0, slippage_bps=0, buy_and_hold=True)
