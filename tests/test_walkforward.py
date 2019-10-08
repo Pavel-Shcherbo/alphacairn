@@ -30,3 +30,19 @@ class WalkForwardTests(unittest.TestCase):
         )
         self.assertEqual(report["equity"][-1]["quantity"], 0)
 
+    def test_future_test_changes_cannot_change_selected_parameter(self):
+        original = bars()
+        altered = [dict(row) for row in original]
+        for row in altered[30:40]:
+            row["close"] *= 0.5
+        first = walk_forward(original, [2, 5, 10], train_size=30, test_size=10)
+        changed = walk_forward(altered, [2, 5, 10], train_size=30, test_size=10)
+        self.assertEqual(
+            first["windows"][0]["training_scores"],
+            changed["windows"][0]["training_scores"],
+        )
+        self.assertEqual(
+            first["windows"][0]["selected_lookback"],
+            changed["windows"][0]["selected_lookback"],
+        )
+
