@@ -22,4 +22,11 @@ def bars(count=80):
 
 
 class WalkForwardTests(unittest.TestCase):
-    pass
+    def test_warmup_observes_prices_without_trading(self):
+        report = simulate(bars(8), lookback=2, trade_from=5, liquidate_at_end=True)
+        self.assertTrue(all(row["equity"] == 10000 for row in report["equity"][:5]))
+        self.assertTrue(
+            all(trade["date"] >= "2020-01-06" for trade in report["trades"])
+        )
+        self.assertEqual(report["equity"][-1]["quantity"], 0)
+
