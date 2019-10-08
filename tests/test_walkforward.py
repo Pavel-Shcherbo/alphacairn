@@ -46,3 +46,18 @@ class WalkForwardTests(unittest.TestCase):
             changed["windows"][0]["selected_lookback"],
         )
 
+    def test_test_windows_are_disjoint_and_cash_reconciles(self):
+        report = walk_forward(bars(), [2, 5, 10], train_size=30, test_size=13)
+        days = [row["date"] for row in report["equity"]]
+        self.assertEqual(len(days), 50)
+        self.assertEqual(len(set(days)), 50)
+        for previous, current in zip(report["windows"], report["windows"][1:]):
+            self.assertLess(previous["test_end"], current["test_start"])
+            self.assertEqual(previous["final_cash"], current["initial_cash"])
+        self.assertAlmostEqual(
+            report["metrics"]["total_return"],
+            report["equity"][-1]["equity"] / 10000 - 1,
+        )
+        self.assertGreater(report["total_fees"], 0)
+        self.assertIn("not reserved", report["evaluation_policy"])
+
