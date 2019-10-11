@@ -61,3 +61,19 @@ class WalkForwardTests(unittest.TestCase):
         self.assertGreater(report["total_fees"], 0)
         self.assertIn("not reserved", report["evaluation_policy"])
 
+    def test_scheduled_exit_includes_sell_cost(self):
+        values = [
+            {"date": "2020-01-01", "open": 100, "close": 100},
+            {"date": "2020-01-02", "open": 100, "close": 100},
+        ]
+        report = simulate(
+            values,
+            buy_and_hold=True,
+            fee_bps=100,
+            slippage_bps=0,
+            liquidate_at_end=True,
+        )
+        self.assertAlmostEqual(report["final_equity"], 10000 / 1.01 * 0.99)
+        self.assertEqual(report["trades"][-1]["reason"], "scheduled_window_exit")
+        self.assertEqual(report["trades"][-1]["execution_point"], "close")
+
