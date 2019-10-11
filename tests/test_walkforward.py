@@ -77,3 +77,7 @@ class WalkForwardTests(unittest.TestCase):
         self.assertEqual(report["trades"][-1]["reason"], "scheduled_window_exit")
         self.assertEqual(report["trades"][-1]["execution_point"], "close")
 
+    def test_oversized_candidate_workload_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "budget"):
+            walk_forward(bars(3000), list(range(2, 102)), train_size=1000, test_size=1)
+
