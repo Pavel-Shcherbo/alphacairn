@@ -81,3 +81,7 @@ class WalkForwardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "budget"):
             walk_forward(bars(3000), list(range(2, 102)), train_size=1000, test_size=1)
 
+    def test_invalid_windows_are_rejected(self):
+        for params in [{"train_size": 10}, {"test_size": 0}, {"score": "unknown"}]:
+            with self.assertRaises(ValueError):
+                walk_forward(bars(), [2, 5, 10], **params)
