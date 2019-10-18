@@ -6,4 +6,14 @@ from alphacairn.backtest import dataset_digest, parse_bars
 
 
 class ResearchAdapterTests(unittest.TestCase):
-    pass
+    def test_line_endings_do_not_change_normalized_dataset_identity(self):
+        lf = "date,open,close\n2020-01-01,100,101\n2020-01-02,102,103\n"
+        crlf = lf.replace("\n", "\r\n")
+        first = evaluate({"csv": lf, "lookback": 1})
+        second = evaluate({"csv": crlf, "lookback": 1})
+        self.assertEqual(first["data_sha256"], second["data_sha256"])
+        self.assertNotEqual(first["input_text_sha256"], second["input_text_sha256"])
+        self.assertEqual(
+            first["data_sha256"], dataset_digest(parse_bars(io.StringIO(lf)))
+        )
+
