@@ -17,3 +17,16 @@ class ResearchAdapterTests(unittest.TestCase):
             first["data_sha256"], dataset_digest(parse_bars(io.StringIO(lf)))
         )
 
+    def test_fixed_study_metrics_reconcile_to_the_simulator(self):
+        report = evaluate({})
+        self.assertEqual(report["bars"], 260)
+        self.assertEqual(
+            report["strategy_metrics"]["total_return"],
+            report["strategy"]["total_return"],
+        )
+        self.assertEqual(
+            report["strategy_metrics"]["maximum_drawdown"],
+            report["strategy"]["max_drawdown"],
+        )
+        self.assertEqual(report["windows"], [])
+
