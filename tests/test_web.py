@@ -30,3 +30,25 @@ class ResearchAdapterTests(unittest.TestCase):
         )
         self.assertEqual(report["windows"], [])
 
+    def test_sequential_study_exposes_only_out_of_sample_equity(self):
+        report = evaluate(
+            {
+                "mode": "walk_forward",
+                "train_size": 100,
+                "test_size": 40,
+                "candidates": [5, 10, 20, 40],
+            }
+        )
+        self.assertEqual(report["bars"], 160)
+        self.assertEqual(report["input_bars"], 260)
+        self.assertEqual(len(report["windows"]), 4)
+        self.assertEqual(
+            [row["date"] for row in report["strategy"]["equity"]],
+            [row["date"] for row in report["baseline"]["equity"]],
+        )
+        self.assertEqual(report["start"], report["windows"][0]["test_start"])
+        self.assertAlmostEqual(
+            report["strategy"]["fees"],
+            sum(window["fees"] for window in report["windows"]),
+        )
+
