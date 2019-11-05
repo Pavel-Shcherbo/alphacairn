@@ -52,3 +52,11 @@ class ResearchAdapterTests(unittest.TestCase):
             sum(window["fees"] for window in report["windows"]),
         )
 
+    def test_invalid_study_mode_and_annualization_are_rejected(self):
+        for params in [
+            {"mode": "unsupported"},
+            {"periods_per_year": 0},
+            {"mode": "walk_forward", "train_size": 20},
+        ]:
+            with self.assertRaises(ValueError):
+                evaluate(params)
