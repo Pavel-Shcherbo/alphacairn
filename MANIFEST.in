@@ -1,2 +1,6 @@
 include _build.py
 include examples/synthetic.csv
+include examples/portfolio-account.json
+include examples/portfolio-events.json
+include examples/portfolio-quotes.json
+include examples/portfolio-statement.json
