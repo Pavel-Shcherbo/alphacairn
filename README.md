@@ -29,6 +29,12 @@ python3 -m unittest discover -s tests -v
 
 Loads validated daily CSV bars, simulates a long-only moving-average signal with previous-close decisions and next-open fills, applies fixed fees and slippage, compares with buy-and-hold and exports the equity path, trade ledger, input hash and assumptions. The browser accepts a local CSV file and exposes the same calculation.
 
+## Portfolio journal
+
+The workbench includes an exact-decimal portfolio section with FIFO lots, quote-currency commissions, splits, explicit dividends, FX cash movements, statement reconciliation and independent event replay. It supports synthetic equity and spot-crypto examples across USD/EUR, including missing-price and statement-difference controls.
+
+For a persistent local account, use `python3 -m alphacairn.portfolio --help`. The [portfolio guide](docs/PORTFOLIO.md) provides the complete example, event contracts, rounding rules, valuation policy and current limits.
+
 ## Boundaries
 
 The included data is a deterministic synthetic fixture, not exchange history. The simulator assumes fractional long-only positions, unlimited modeled liquidity and fixed costs. It does not yet handle dividends, splits, delistings, historical universes, funding or margin. No profitability or market-performance result is claimed. The final position is valued at the last close rather than forcibly sold.
