@@ -20,4 +20,6 @@ Each product must contain at least 20,000 useful production SLOC, excluding test
 
 The contribution-date proposal allows 0–4 commits per day, rest days and breaks. It is a reconstruction plan, not completed historical work. The GitHub target is Pavel-Shcherbo; retain the existing author configuration. No upload without Pavel.
 
-Implemented increment: 22 current tests passed; CLI and installed workbench entry points checked in a disposable clean environment. Current project-specific production source: 1840 SLOC, below 20,000. No publication.
+Implemented increment: 63 current tests passed; CLI and installed workbench entry points checked in a disposable clean environment. Current project-specific production source: 3278 SLOC, below 20,000. No publication.
+
+Verified increment: exact-decimal portfolio journal, FIFO lots, explicit split/dividend/FX events, reconciliation and as-of valuation. 63 Alphacairn tests passed, including independent integer-cent controls, concurrent writers, replay corruption detection and isolated Decimal contexts. Installed CLI/HTTP checks passed; browser success, missing mark, statement discrepancy, delayed response and reproduced export passed. Evidence: `docs/verification.json`, `docs/installed-verification.json`, `docs/portfolio-browser-verification.json`, `docs/portfolio-export-verification.json`. The 20,000-SLOC and full product requirements remain open.
