@@ -16,3 +16,15 @@ def identity(value, label):
     return value
 
 
+def timestamp(value):
+    if not isinstance(value, str) or len(value) > 40:
+        raise ValueError("timestamp requires bounded ISO text with a UTC offset")
+    try:
+        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("timestamp requires an explicit UTC offset")
+        return parsed.astimezone(dt.timezone.utc)
+    except (ValueError, OverflowError) as error:
+        raise ValueError("invalid or out-of-range UTC timestamp") from error
+
+
