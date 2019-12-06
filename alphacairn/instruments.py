@@ -28,3 +28,19 @@ def timestamp(value):
         raise ValueError("invalid or out-of-range UTC timestamp") from error
 
 
+def timestamp_text(value):
+    return value.isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+@dataclass(frozen=True)
+class Instrument:
+    id: str
+    symbol: str
+    venue: str
+    kind: str
+    quote_currency: str
+    quantity_step: object
+    price_tick: object
+    active_from: object = None
+    active_until: object = None
+
