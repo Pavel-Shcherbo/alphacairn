@@ -90,3 +90,12 @@ class Instrument:
             name, symbol, venue, kind, currency, quantity_step, price_tick, start, end
         )
 
+    def require_active(self, when):
+        if (
+            self.active_from is not None
+            and when < self.active_from
+            or self.active_until is not None
+            and when >= self.active_until
+        ):
+            raise ValueError("event falls outside the instrument active interval")
+
