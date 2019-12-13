@@ -123,3 +123,32 @@ class AccountSpec:
     currencies: tuple
     instruments: tuple
 
+    @classmethod
+    def compile(cls, definition):
+        if not isinstance(definition, dict) or set(definition) - {
+            "name",
+            "base_currency",
+            "currencies",
+            "instruments",
+        }:
+            raise ValueError("account specification contains unsupported fields")
+        name = identity(definition.get("name"), "account name")
+        currencies = definition.get("currencies")
+        if not isinstance(currencies, dict) or not 1 <= len(currencies) <= 32:
+            raise ValueError("account requires 1–32 declared currencies")
+        for currency, places in currencies.items():
+            if not isinstance(currency, str) or not CURRENCY.fullmatch(currency):
+                raise ValueError("currency must be an uppercase code")
+            quantum(places)
+        base = definition.get("base_currency")
+        if not isinstance(base, str) or base not in currencies:
+            raise ValueError("base currency must be declared")
+        instruments = definition.get("instruments")
+        if not isinstance(instruments, list) or not 1 <= len(instruments) <= 1000:
+            raise ValueError("account requires 1–1000 instruments")
+        with arithmetic():
+            parsed = tuple(Instrument.compile(item, currencies) for item in instruments)
+        if len({item.id for item in parsed}) != len(parsed):
+            raise ValueError("instrument IDs must be unique")
+        return cls(name, base, tuple(sorted(currencies.items())), parsed)
+
