@@ -99,3 +99,27 @@ class Instrument:
         ):
             raise ValueError("event falls outside the instrument active interval")
 
+    def definition(self):
+        result = {
+            "id": self.id,
+            "symbol": self.symbol,
+            "venue": self.venue,
+            "kind": self.kind,
+            "quote_currency": self.quote_currency,
+            "quantity_step": text(self.quantity_step),
+            "price_tick": text(self.price_tick),
+        }
+        if self.active_from is not None:
+            result["active_from"] = timestamp_text(self.active_from)
+        if self.active_until is not None:
+            result["active_until"] = timestamp_text(self.active_until)
+        return result
+
+
+@dataclass(frozen=True)
+class AccountSpec:
+    name: str
+    base_currency: str
+    currencies: tuple
+    instruments: tuple
+
