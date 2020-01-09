@@ -152,3 +152,9 @@ class AccountSpec:
             raise ValueError("instrument IDs must be unique")
         return cls(name, base, tuple(sorted(currencies.items())), parsed)
 
+    def places(self, currency):
+        for code, places in self.currencies:
+            if code == currency:
+                return places
+        raise ValueError("undeclared currency")
+
