@@ -158,3 +158,9 @@ class AccountSpec:
                 return places
         raise ValueError("undeclared currency")
 
+    def instrument(self, name):
+        for item in self.instruments:
+            if item.id == name:
+                return item
+        raise ValueError("unknown instrument ID")
+
