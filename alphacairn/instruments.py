@@ -164,3 +164,10 @@ class AccountSpec:
                 return item
         raise ValueError("unknown instrument ID")
 
+    def definition(self):
+        return {
+            "name": self.name,
+            "base_currency": self.base_currency,
+            "currencies": dict(self.currencies),
+            "instruments": [item.definition() for item in self.instruments],
+        }
