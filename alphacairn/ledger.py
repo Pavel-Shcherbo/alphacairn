@@ -30,3 +30,7 @@ def canonical(value):
     return payload
 
 
+def digest(payload):
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
