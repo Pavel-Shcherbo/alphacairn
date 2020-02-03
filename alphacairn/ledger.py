@@ -138,4 +138,49 @@ def normalize_event(event, spec):
 
 
 class Ledger:
-    pass
+    def __init__(self, path, specification=None):
+        self.path = Path(path).resolve()
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        new_file = not self.path.exists()
+        supplied = (
+            AccountSpec.compile(specification) if specification is not None else None
+        )
+        with self._transaction() as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS account (singleton INTEGER PRIMARY KEY CHECK(singleton=1), version INTEGER NOT NULL, specification TEXT NOT NULL)"
+            )
+            row = db.execute(
+                "SELECT version,specification FROM account WHERE singleton=1"
+            ).fetchone()
+            if row is None:
+                if supplied is None:
+                    raise ValueError("a new ledger requires an account specification")
+                db.execute(
+                    "INSERT INTO account VALUES (1,?,?)",
+                    (SCHEMA_VERSION, canonical(supplied.definition())),
+                )
+                self.spec = supplied
+            else:
+                if row["version"] != SCHEMA_VERSION:
+                    raise ValueError("unsupported ledger schema version")
+                self.spec = AccountSpec.compile(json.loads(row["specification"]))
+                if (
+                    supplied is not None
+                    and supplied.definition() != self.spec.definition()
+                ):
+                    raise ValueError(
+                        "ledger belongs to a different immutable account specification"
+                    )
+            statements = [
+                "CREATE TABLE IF NOT EXISTS events (seq INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT UNIQUE NOT NULL,timestamp TEXT NOT NULL,kind TEXT NOT NULL,payload TEXT NOT NULL,payload_sha256 TEXT NOT NULL,receipt TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS cash (currency TEXT PRIMARY KEY,balance TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS lots (id INTEGER PRIMARY KEY AUTOINCREMENT,event_seq INTEGER UNIQUE NOT NULL REFERENCES events(seq),instrument TEXT NOT NULL,quantity TEXT NOT NULL,basis TEXT NOT NULL,acquired_at TEXT NOT NULL)",
+                "CREATE TABLE IF NOT EXISTS postings (id INTEGER PRIMARY KEY AUTOINCREMENT,event_seq INTEGER NOT NULL REFERENCES events(seq),currency TEXT NOT NULL,account TEXT NOT NULL,amount TEXT NOT NULL)",
+                "CREATE INDEX IF NOT EXISTS lots_instrument ON lots(instrument,id)",
+                "CREATE INDEX IF NOT EXISTS postings_event ON postings(event_seq,id)",
+            ]
+            for statement in statements:
+                db.execute(statement)
+        if new_file:
+            os.chmod(self.path, 0o600)
+
