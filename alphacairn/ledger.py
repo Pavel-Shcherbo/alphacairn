@@ -184,3 +184,19 @@ class Ledger:
         if new_file:
             os.chmod(self.path, 0o600)
 
+    @contextmanager
+    def _transaction(self, write=True):
+        db = sqlite3.connect(self.path, timeout=10, isolation_level=None)
+        db.row_factory = sqlite3.Row
+        db.execute("PRAGMA foreign_keys=ON")
+        try:
+            db.execute("BEGIN IMMEDIATE" if write else "BEGIN")
+            with arithmetic():
+                yield db
+            db.commit()
+        except BaseException:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
