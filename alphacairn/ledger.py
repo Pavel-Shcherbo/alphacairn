@@ -206,3 +206,14 @@ class Ledger:
         ).fetchone()
         return Decimal(row["balance"]) if row else ZERO
 
+    def _change_cash(self, db, currency, delta):
+        balance = exact_amount(
+            self._cash(db, currency) + delta, self.spec.places(currency)
+        )
+        if balance < 0:
+            raise ValueError("insufficient settled cash")
+        db.execute(
+            "INSERT INTO cash VALUES (?,?) ON CONFLICT(currency) DO UPDATE SET balance=excluded.balance",
+            (currency, text(balance)),
+        )
+
