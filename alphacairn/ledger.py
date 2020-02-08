@@ -200,3 +200,9 @@ class Ledger:
         finally:
             db.close()
 
+    def _cash(self, db, currency):
+        row = db.execute(
+            "SELECT balance FROM cash WHERE currency=?", (currency,)
+        ).fetchone()
+        return Decimal(row["balance"]) if row else ZERO
+
