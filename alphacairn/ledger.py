@@ -217,3 +217,6 @@ class Ledger:
             (currency, text(balance)),
         )
 
+    def apply(self, event):
+        return self.apply_batch([event])[0]
+
