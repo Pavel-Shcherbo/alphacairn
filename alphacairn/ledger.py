@@ -227,3 +227,189 @@ class Ledger:
         with self._transaction() as db:
             return [self._apply(db, event) for event in normalized]
 
+    def _apply(self, db, event):
+        payload = canonical(event)
+        fingerprint = digest(payload)
+        existing = db.execute(
+            "SELECT payload_sha256,receipt FROM events WHERE event_id=?", (event["id"],)
+        ).fetchone()
+        if existing:
+            if existing["payload_sha256"] != fingerprint:
+                raise ValueError("event ID conflicts with a different payload")
+            return {**json.loads(existing["receipt"]), "duplicate": True}
+        previous = db.execute(
+            "SELECT timestamp FROM events ORDER BY seq DESC LIMIT 1"
+        ).fetchone()
+        if previous and event["timestamp"] < previous["timestamp"]:
+            raise ValueError("new events must not precede the latest journal timestamp")
+        cursor = db.execute(
+            "INSERT INTO events(event_id,timestamp,kind,payload,payload_sha256,receipt) VALUES (?,?,?,?,?,?)",
+            (
+                event["id"],
+                event["timestamp"],
+                event["kind"],
+                payload,
+                fingerprint,
+                "{}",
+            ),
+        )
+        sequence = cursor.lastrowid
+        postings, matches = [], []
+
+        def post(currency, account, amount):
+            amount = exact_amount(amount, self.spec.places(currency))
+            postings.append(
+                {"currency": currency, "account": account, "amount": text(amount)}
+            )
+
+        kind = event["kind"]
+        if kind in ("deposit", "withdraw"):
+            currency = event["currency"]
+            amount = Decimal(event["amount"]) * (1 if kind == "deposit" else -1)
+            self._change_cash(db, currency, amount)
+            post(currency, "cash", amount)
+            post(currency, "external_capital", -amount)
+        elif kind == "fx":
+            origin, target = event["from_currency"], event["to_currency"]
+            amount, fee, rate = map(
+                Decimal, (event["amount"], event["fee"], event["rate"])
+            )
+            proceeds = rounded(amount * rate, self.spec.places(target))
+            self._change_cash(db, origin, -(amount + fee))
+            self._change_cash(db, target, proceeds)
+            post(origin, "cash", -(amount + fee))
+            post(origin, "fx_clearing", amount)
+            post(origin, "fx_fees", fee)
+            post(target, "cash", proceeds)
+            post(target, "fx_clearing", -proceeds)
+        else:
+            instrument = self.spec.instrument(event["instrument"])
+            currency, places = instrument.quote_currency, self.spec.places(
+                instrument.quote_currency
+            )
+            if kind == "dividend":
+                gross, withholding = Decimal(event["gross"]), Decimal(
+                    event["withholding"]
+                )
+                self._change_cash(db, currency, gross - withholding)
+                post(currency, "cash", gross - withholding)
+                post(currency, "dividend_income", -gross)
+                post(currency, "withholding", withholding)
+            elif kind == "split":
+                lots = db.execute(
+                    "SELECT * FROM lots WHERE instrument=? ORDER BY id",
+                    (instrument.id,),
+                ).fetchall()
+                if not any(Decimal(lot["quantity"]) > 0 for lot in lots):
+                    raise ValueError("split requires an open position")
+                for lot in lots:
+                    quantity = Decimal(lot["quantity"])
+                    if not quantity:
+                        continue
+                    adjusted = quantity * event["numerator"] / event["denominator"]
+                    adjusted = aligned(
+                        adjusted, instrument.quantity_step, "post-split lot quantity"
+                    )
+                    if adjusted * event["denominator"] != quantity * event["numerator"]:
+                        raise ValueError("split ratio cannot be represented exactly")
+                    db.execute(
+                        "UPDATE lots SET quantity=? WHERE id=?",
+                        (text(adjusted), lot["id"]),
+                    )
+            else:
+                quantity, price, fee = map(
+                    Decimal, (event["quantity"], event["price"], event["fee"])
+                )
+                notional = rounded(quantity * price, places)
+                if notional <= 0:
+                    raise ValueError("trade notional rounds to zero")
+                if event["side"] == "buy":
+                    basis = exact_amount(notional + fee, places)
+                    self._change_cash(db, currency, -basis)
+                    db.execute(
+                        "INSERT INTO lots(event_seq,instrument,quantity,basis,acquired_at) VALUES (?,?,?,?,?)",
+                        (
+                            sequence,
+                            instrument.id,
+                            text(quantity),
+                            text(basis),
+                            event["timestamp"],
+                        ),
+                    )
+                    post(currency, "cash", -basis)
+                    post(currency, "inventory:" + instrument.id, basis)
+                else:
+                    remaining, released_basis = quantity, ZERO
+                    lots = db.execute(
+                        "SELECT * FROM lots WHERE instrument=? ORDER BY id",
+                        (instrument.id,),
+                    ).fetchall()
+                    if sum((Decimal(lot["quantity"]) for lot in lots), ZERO) < quantity:
+                        raise ValueError(
+                            "insufficient position; short selling is unsupported"
+                        )
+                    for lot in lots:
+                        available, basis = Decimal(lot["quantity"]), Decimal(
+                            lot["basis"]
+                        )
+                        if not available or not remaining:
+                            continue
+                        taken = min(available, remaining)
+                        allocated = (
+                            basis
+                            if taken == available
+                            else rounded(basis * taken / available, places)
+                        )
+                        db.execute(
+                            "UPDATE lots SET quantity=?,basis=? WHERE id=?",
+                            (
+                                text(available - taken),
+                                text(basis - allocated),
+                                lot["id"],
+                            ),
+                        )
+                        remaining -= taken
+                        released_basis += allocated
+                        matches.append(
+                            {
+                                "lot_id": lot["id"],
+                                "quantity": text(taken),
+                                "basis": text(allocated),
+                            }
+                        )
+                    proceeds = exact_amount(notional - fee, places)
+                    self._change_cash(db, currency, proceeds)
+                    post(currency, "cash", proceeds)
+                    post(currency, "inventory:" + instrument.id, -released_basis)
+                    post(
+                        currency,
+                        "realized_income:" + instrument.id,
+                        -(proceeds - released_basis),
+                    )
+        totals = {}
+        for item in postings:
+            totals[item["currency"]] = totals.get(item["currency"], ZERO) + Decimal(
+                item["amount"]
+            )
+        if any(value != 0 for value in totals.values()):
+            raise RuntimeError("internal journal balancing invariant failed")
+        db.executemany(
+            "INSERT INTO postings(event_seq,currency,account,amount) VALUES (?,?,?,?)",
+            [
+                (sequence, item["currency"], item["account"], item["amount"])
+                for item in postings
+            ],
+        )
+        receipt = {
+            "sequence": sequence,
+            "id": event["id"],
+            "timestamp": event["timestamp"],
+            "kind": kind,
+            "postings": postings,
+            "fifo_matches": matches,
+        }
+        db.execute(
+            "UPDATE events SET receipt=? WHERE seq=?", (canonical(receipt), sequence)
+        )
+        return {**receipt, "duplicate": False}
+
