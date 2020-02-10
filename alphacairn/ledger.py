@@ -220,3 +220,10 @@ class Ledger:
     def apply(self, event):
         return self.apply_batch([event])[0]
 
+    def apply_batch(self, events):
+        if not isinstance(events, list) or not 1 <= len(events) <= MAX_BATCH:
+            raise ValueError("event batch requires 1–10000 events")
+        normalized = [normalize_event(event, self.spec) for event in events]
+        with self._transaction() as db:
+            return [self._apply(db, event) for event in normalized]
+
