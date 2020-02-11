@@ -413,3 +413,49 @@ class Ledger:
         )
         return {**receipt, "duplicate": False}
 
+    def _state(self, db):
+        cash = {
+            row["currency"]: row["balance"]
+            for row in db.execute("SELECT * FROM cash ORDER BY currency")
+        }
+        lots = []
+        positions = {}
+        for row in db.execute("SELECT * FROM lots ORDER BY id"):
+            quantity, basis = Decimal(row["quantity"]), Decimal(row["basis"])
+            if quantity <= 0:
+                continue
+            lots.append(dict(row))
+            position = positions.setdefault(
+                row["instrument"], {"quantity": ZERO, "basis": ZERO}
+            )
+            position["quantity"] += quantity
+            position["basis"] += basis
+        positions = {
+            name: {key: text(value) for key, value in values.items()}
+            for name, values in sorted(positions.items())
+        }
+        accounts = {}
+        for row in db.execute(
+            "SELECT currency,account,amount FROM postings ORDER BY id"
+        ):
+            account = accounts.setdefault(row["currency"], {})
+            account[row["account"]] = account.get(row["account"], ZERO) + Decimal(
+                row["amount"]
+            )
+        accounts = {
+            currency: {name: text(value) for name, value in sorted(values.items())}
+            for currency, values in sorted(accounts.items())
+        }
+        last = db.execute(
+            "SELECT seq,timestamp FROM events ORDER BY seq DESC LIMIT 1"
+        ).fetchone()
+        return {
+            "account": self.spec.definition(),
+            "cash": cash,
+            "positions": positions,
+            "lots": lots,
+            "accounts": accounts,
+            "last_sequence": last["seq"] if last else 0,
+            "latest_timestamp": last["timestamp"] if last else None,
+        }
+
