@@ -459,3 +459,7 @@ class Ledger:
             "latest_timestamp": last["timestamp"] if last else None,
         }
 
+    def state(self):
+        with self._transaction(write=False) as db:
+            return self._state(db)
+
