@@ -463,3 +463,27 @@ class Ledger:
         with self._transaction(write=False) as db:
             return self._state(db)
 
+    def events(self, after=0, limit=100):
+        if (
+            type(after) is not int
+            or after < 0
+            or type(limit) is not int
+            or not 1 <= limit <= 1000
+        ):
+            raise ValueError(
+                "event cursor must be nonnegative and limit between 1 and 1000"
+            )
+        with self._transaction(write=False) as db:
+            rows = db.execute(
+                "SELECT * FROM events WHERE seq>? ORDER BY seq LIMIT ?", (after, limit)
+            ).fetchall()
+            return [
+                {
+                    "sequence": row["seq"],
+                    "event": json.loads(row["payload"]),
+                    "payload_sha256": row["payload_sha256"],
+                    "receipt": json.loads(row["receipt"]),
+                }
+                for row in rows
+            ]
+
