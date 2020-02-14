@@ -487,3 +487,58 @@ class Ledger:
                 for row in rows
             ]
 
+    def reconcile(self, observed):
+        if (
+            not isinstance(observed, dict)
+            or set(observed) != {"cash", "positions"}
+            or not all(isinstance(observed[key], dict) for key in observed)
+        ):
+            raise ValueError("reconciliation requires cash and positions objects")
+        cash, positions = {}, {}
+        with arithmetic():
+            for currency, amount in observed["cash"].items():
+                cash[currency] = exact_amount(
+                    amount, self.spec.places(currency), nonnegative=True
+                )
+            for name, quantity in observed["positions"].items():
+                instrument = self.spec.instrument(name)
+                value = decimal_value(quantity, "observed quantity", nonnegative=True)
+                if value:
+                    aligned(value, instrument.quantity_step, "observed quantity")
+                positions[name] = value
+            state = self.state()
+            differences = []
+            for kind, actual, expected in [
+                (
+                    "cash",
+                    cash,
+                    {key: Decimal(value) for key, value in state["cash"].items()},
+                ),
+                (
+                    "positions",
+                    positions,
+                    {
+                        key: Decimal(value["quantity"])
+                        for key, value in state["positions"].items()
+                    },
+                ),
+            ]:
+                for key in sorted(actual.keys() | expected.keys()):
+                    wanted, found = expected.get(key, ZERO), actual.get(key, ZERO)
+                    if wanted != found:
+                        differences.append(
+                            {
+                                "kind": kind,
+                                "key": key,
+                                "expected": text(wanted),
+                                "observed": text(found),
+                                "difference": text(found - wanted),
+                            }
+                        )
+        return {
+            "matched": not differences,
+            "sequence": state["last_sequence"],
+            "differences": differences,
+            "policy": "exact comparison; missing keys are zero; no automatic reconciliation entries",
+        }
+
