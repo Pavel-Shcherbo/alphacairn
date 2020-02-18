@@ -542,3 +542,97 @@ class Ledger:
             "policy": "exact comparison; missing keys are zero; no automatic reconciliation entries",
         }
 
+    def audit(self):
+        with self._transaction(write=False) as db:
+            state = self._state(db)
+            issues, event_totals = [], {}
+            history = db.execute(
+                "SELECT seq,payload,payload_sha256,receipt FROM events ORDER BY seq"
+            ).fetchall()
+            for row in history:
+                if digest(row["payload"]) != row["payload_sha256"]:
+                    issues.append(
+                        {"code": "event_hash_mismatch", "sequence": row["seq"]}
+                    )
+            for row in db.execute(
+                "SELECT event_seq,currency,amount FROM postings ORDER BY id"
+            ):
+                key = (row["event_seq"], row["currency"])
+                event_totals[key] = event_totals.get(key, ZERO) + Decimal(row["amount"])
+            for (sequence, currency), amount in event_totals.items():
+                if amount:
+                    issues.append(
+                        {
+                            "code": "unbalanced_event",
+                            "sequence": sequence,
+                            "currency": currency,
+                        }
+                    )
+            for currency in dict(self.spec.currencies):
+                journal_cash = Decimal(
+                    state["accounts"].get(currency, {}).get("cash", "0")
+                )
+                if journal_cash != Decimal(state["cash"].get(currency, "0")):
+                    issues.append({"code": "cash_cache_mismatch", "currency": currency})
+            for instrument in self.spec.instruments:
+                journal_basis = Decimal(
+                    state["accounts"]
+                    .get(instrument.quote_currency, {})
+                    .get("inventory:" + instrument.id, "0")
+                )
+                lot_basis = Decimal(
+                    state["positions"].get(instrument.id, {}).get("basis", "0")
+                )
+                if journal_basis != lot_basis:
+                    issues.append(
+                        {
+                            "code": "inventory_basis_mismatch",
+                            "instrument": instrument.id,
+                        }
+                    )
+            for row in db.execute("SELECT id,quantity,basis FROM lots ORDER BY id"):
+                quantity, basis = Decimal(row["quantity"]), Decimal(row["basis"])
+                if quantity < 0 or basis < 0 or quantity == 0 and basis != 0:
+                    issues.append({"code": "invalid_lot_balance", "lot_id": row["id"]})
+        # Rebuild from the accepted event stream independently of persisted lots
+        # and cash caches. This also checks quantity changes such as stock splits.
+        try:
+            with tempfile.TemporaryDirectory(prefix="alphacairn-audit-") as temporary:
+                replay = Ledger(
+                    Path(temporary) / "replay.sqlite", self.spec.definition()
+                )
+                for offset in range(0, len(history), 1000):
+                    chunk = history[offset : offset + 1000]
+                    receipts = replay.apply_batch(
+                        [json.loads(row["payload"]) for row in chunk]
+                    )
+                    for original, receipt in zip(chunk, receipts):
+                        receipt.pop("duplicate")
+                        if canonical(receipt) != original["receipt"]:
+                            issues.append(
+                                {
+                                    "code": "receipt_replay_mismatch",
+                                    "sequence": original["seq"],
+                                }
+                            )
+                restored = replay.state()
+                for component in (
+                    "cash",
+                    "positions",
+                    "lots",
+                    "accounts",
+                    "last_sequence",
+                    "latest_timestamp",
+                ):
+                    if restored[component] != state[component]:
+                        issues.append(
+                            {"code": "state_replay_mismatch", "component": component}
+                        )
+        except (ValueError, KeyError, sqlite3.Error):
+            issues.append({"code": "event_replay_failed"})
+        return {
+            "passed": not issues,
+            "sequence": state["last_sequence"],
+            "issues": issues,
+            "scope": "journal hashes, balanced postings, cash and lot checks, full event replay; not external statement verification",
+        }
