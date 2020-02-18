@@ -5,3 +5,7 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN, localcontext, Co
 ZERO = Decimal(0)
 
 
+def arithmetic():
+    return localcontext(Context(prec=80, rounding=ROUND_HALF_EVEN))
+
+
