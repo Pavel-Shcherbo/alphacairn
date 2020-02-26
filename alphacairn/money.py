@@ -28,3 +28,9 @@ def decimal_value(value, label="value", *, positive=False, nonnegative=False):
     return result
 
 
+def quantum(places):
+    if type(places) is not int or not 0 <= places <= 18:
+        raise ValueError("currency places must be between 0 and 18")
+    return Decimal((0, (1,), -places))
+
+
