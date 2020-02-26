@@ -34,3 +34,15 @@ def quantum(places):
     return Decimal((0, (1,), -places))
 
 
+def rounded(value, places):
+    with arithmetic():
+        try:
+            return decimal_value(
+                value.quantize(quantum(places), rounding=ROUND_HALF_EVEN)
+            )
+        except InvalidOperation as error:
+            raise ValueError(
+                "rounded amount exceeds the supported precision"
+            ) from error
+
+
