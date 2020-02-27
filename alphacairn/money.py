@@ -46,3 +46,11 @@ def rounded(value, places):
             ) from error
 
 
+def exact_amount(value, places, label="amount", *, positive=False, nonnegative=False):
+    result = decimal_value(value, label, positive=positive, nonnegative=nonnegative)
+    with arithmetic():
+        if result != result.quantize(quantum(places), rounding=ROUND_HALF_EVEN):
+            raise ValueError(f"{label} contains unsupported fractional currency units")
+        return decimal_value(result.quantize(quantum(places)))
+
+
