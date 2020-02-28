@@ -54,3 +54,12 @@ def exact_amount(value, places, label="amount", *, positive=False, nonnegative=F
         return decimal_value(result.quantize(quantum(places)))
 
 
+def aligned(value, step, label):
+    value = decimal_value(value, label, positive=True)
+    with arithmetic():
+        quotient = value / step
+        if quotient != quotient.to_integral_value():
+            raise ValueError(f"{label} must align with the instrument increment")
+    return value
+
+
