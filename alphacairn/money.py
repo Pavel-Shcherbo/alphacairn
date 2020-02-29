@@ -63,3 +63,5 @@ def aligned(value, step, label):
     return value
 
 
+def text(value):
+    return format(value, "f")
