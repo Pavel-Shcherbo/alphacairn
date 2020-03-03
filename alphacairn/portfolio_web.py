@@ -12,3 +12,16 @@ from .resources import examples_directory
 from .valuation import value_portfolio
 
 
+def portfolio_example():
+    directory = examples_directory()
+    return {
+        key: json.loads((directory / filename).read_text())
+        for key, filename in [
+            ("account", "portfolio-account.json"),
+            ("events", "portfolio-events.json"),
+            ("quotes", "portfolio-quotes.json"),
+            ("statement", "portfolio-statement.json"),
+        ]
+    }
+
+
