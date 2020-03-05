@@ -266,6 +266,7 @@ fetch("/api/example")
   .then((r) => r.json())
   .then((data) => {
     csv = data.csv;
+    loadPortfolioExample(data.portfolio);
     $("source").textContent = data.source;
     $("run").click();
   })
@@ -298,3 +299,129 @@ for (const id of [
     resetStudy("Settings changed. Run the study to calculate results."),
   );
 }
+
+let portfolioExample = null;
+let portfolioResult = null;
+let portfolioRevision = 0;
+function loadPortfolioExample(example) {
+  portfolioExample = example;
+  if (!portfolioRevision) {
+    $("portfolio-events").value = JSON.stringify(example.events, null, 2);
+    $("portfolio-quotes").value = JSON.stringify(example.quotes, null, 2);
+  }
+  $("portfolio-run").disabled = false;
+}
+function resetPortfolio(message) {
+  portfolioRevision += 1;
+  portfolioResult = null;
+  $("portfolio-export").disabled = true;
+  $("portfolio-status").textContent = message;
+  $("portfolio-error").hidden = true;
+  for (const id of ["portfolio-equity", "portfolio-count", "portfolio-match"])
+    $(id).textContent = "—";
+  for (const id of [
+    "portfolio-cash",
+    "portfolio-audit",
+    "portfolio-issues",
+    "portfolio-hash",
+  ])
+    $(id).textContent = "";
+  clear($("portfolio-positions"));
+}
+for (const id of [
+  "portfolio-events",
+  "portfolio-quotes",
+  "portfolio-missing",
+  "portfolio-mismatch",
+]) {
+  $(id).addEventListener("input", () =>
+    resetPortfolio("Inputs changed. Run ledger checks again."),
+  );
+}
+$("portfolio-run").onclick = async () => {
+  resetPortfolio("Checking journal");
+  const revision = portfolioRevision;
+  $("portfolio-error").hidden = true;
+  $("portfolio-run").disabled = true;
+  try {
+    if (!portfolioExample)
+      throw new Error("Wait for the account example to load");
+    const calculated = await evaluate({
+      mode: "portfolio",
+      account: portfolioExample.account,
+      statement: portfolioExample.statement,
+      events: JSON.parse($("portfolio-events").value),
+      quotes: JSON.parse($("portfolio-quotes").value),
+      omit_crypto_mark: $("portfolio-missing").checked,
+      inject_statement_mismatch: $("portfolio-mismatch").checked,
+    });
+    if (revision !== portfolioRevision) return;
+    portfolioResult = calculated;
+    const valuation = calculated.valuation;
+    $("portfolio-equity").textContent = valuation.equity ?? "Incomplete";
+    $("portfolio-count").textContent = String(calculated.state.last_sequence);
+    $("portfolio-match").textContent = calculated.reconciliation.matched
+      ? "Matched"
+      : "Difference";
+    $("portfolio-status").textContent = calculated.passed
+      ? "All ledger checks passed"
+      : "Review the unresolved inputs below";
+    $("portfolio-audit").textContent = calculated.audit.passed
+      ? "Journal balances and full event replay agree"
+      : "Journal audit found differences";
+    $("portfolio-cash").textContent =
+      "Cash: " +
+      Object.entries(calculated.state.cash)
+        .map(([currency, amount]) => currency + " " + amount)
+        .join("; ");
+    const issues = [
+      ...valuation.missing_inputs.map(
+        (item) =>
+          (item.instrument || item.currency) +
+          ": " +
+          item.reason +
+          " " +
+          item.kind,
+      ),
+      ...calculated.reconciliation.differences.map(
+        (item) =>
+          item.key +
+          ": expected " +
+          item.expected +
+          ", observed " +
+          item.observed,
+      ),
+      ...calculated.audit.issues.map((item) => item.code),
+    ];
+    $("portfolio-issues").textContent = issues.join("; ");
+    $("portfolio-hash").textContent =
+      "Input SHA-256 " + calculated.input_sha256;
+    for (const position of valuation.positions) {
+      const row = element("tr");
+      for (const [index, value] of [
+        position.instrument,
+        position.quote_currency,
+        position.quantity,
+        position.basis,
+        position.market_value,
+        position.unrealized_quote_pnl,
+      ].entries()) {
+        row.append(
+          element("td", value ?? "Missing", index >= 2 ? "number" : ""),
+        );
+      }
+      $("portfolio-positions").append(row);
+    }
+    $("portfolio-export").disabled = false;
+  } catch (exception) {
+    if (revision !== portfolioRevision) return;
+    $("portfolio-error").textContent = exception.message;
+    $("portfolio-error").hidden = false;
+    $("portfolio-status").textContent = "Journal could not be checked";
+  } finally {
+    $("portfolio-run").disabled = false;
+  }
+};
+$("portfolio-export").onclick = () => {
+  if (portfolioResult) download("alphacairn-portfolio.json", portfolioResult);
+};
