@@ -18,7 +18,7 @@
         <p class="caption">Strategy research with explicit assumptions</p>
         <nav aria-label="Workspace">
           <a href="#research">Research</a><a href="#trades">Trade ledger</a
-          ><a href="#method">Method</a>
+          ><a href="#portfolio">Portfolio</a><a href="#method">Method</a>
         </nav>
         <footer>Local workbench<br />Development build</footer>
       </aside>
@@ -212,6 +212,102 @@
               </thead>
               <tbody id="rows"></tbody>
             </table>
+          </div>
+        </section>
+        <section class="section" id="portfolio">
+          <div class="pagehead">
+            <div>
+              <h2>Portfolio journal</h2>
+              <p>
+                Reconcile cash and FIFO lots across instruments and currencies
+              </p>
+            </div>
+            <div class="actions">
+              <button id="portfolio-export" disabled>Export journal</button
+              ><button id="portfolio-run" class="primary" disabled>
+                Run ledger checks
+              </button>
+            </div>
+          </div>
+          <p class="notice">
+            Synthetic equity and crypto positions. These journal events are
+            independent of the strategy study above.
+          </p>
+          <div class="portfolio-editors">
+            <div class="panel">
+              <div class="panelhead"><h3>Account events</h3></div>
+              <div class="panelbody">
+                <label for="portfolio-events"
+                  >Deposits, trades and corporate actions</label
+                ><textarea
+                  id="portfolio-events"
+                  rows="12"
+                  spellcheck="false"
+                ></textarea>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panelhead"><h3>As-of prices and FX</h3></div>
+              <div class="panelbody">
+                <label for="portfolio-quotes"
+                  >Prices use quote currencies; FX converts to USD</label
+                ><textarea
+                  id="portfolio-quotes"
+                  rows="12"
+                  spellcheck="false"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="portfolio-controls">
+            <label
+              ><input type="checkbox" id="portfolio-missing" /> Omit crypto
+              valuation mark</label
+            ><label
+              ><input type="checkbox" id="portfolio-mismatch" /> Inject a
+              statement discrepancy</label
+            ><span id="portfolio-status" role="status"
+              >Load the example, then run ledger checks</span
+            >
+          </div>
+          <div id="portfolio-error" class="error" role="alert" hidden></div>
+          <div class="panel">
+            <div class="metrics">
+              <div>
+                <span>Equity, USD</span><strong id="portfolio-equity">—</strong>
+              </div>
+              <div>
+                <span>Accepted events</span
+                ><strong id="portfolio-count">—</strong>
+              </div>
+              <div>
+                <span>Statement reconciliation</span
+                ><strong id="portfolio-match">—</strong>
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Instrument</th>
+                    <th>Currency</th>
+                    <th class="number">Quantity</th>
+                    <th class="number">Remaining basis</th>
+                    <th class="number">Market value</th>
+                    <th class="number">Unrealized P/L</th>
+                  </tr>
+                </thead>
+                <tbody id="portfolio-positions"></tbody>
+              </table>
+            </div>
+            <div class="panelbody">
+              <p id="portfolio-cash" class="secondary">No journal calculated</p>
+              <p id="portfolio-audit" class="notice">
+                Audit rebuilds events independently of saved balances
+              </p>
+              <p id="portfolio-issues" class="notice"></p>
+              <p id="portfolio-hash" class="mono notice"></p>
+            </div>
           </div>
         </section>
         <section class="section" id="method">
