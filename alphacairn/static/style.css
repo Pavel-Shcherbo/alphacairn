@@ -537,3 +537,35 @@ td:first-child {
     grid-template-columns: 1fr;
   }
 }
+
+.portfolio-editors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.portfolio-editors textarea {
+  margin-top: 8px;
+  min-height: 280px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.portfolio-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+#portfolio-status {
+  color: var(--secondary);
+  font-size: 13px;
+}
+#portfolio .pagehead {
+  margin-top: 0;
+}
+@media (max-width: 800px) {
+  .portfolio-editors {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
