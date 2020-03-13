@@ -6,16 +6,20 @@ from .analytics import compare, summarize
 from .httpapp import serve
 from .walkforward import walk_forward
 from .resources import examples_directory
+from .portfolio_web import portfolio_example, evaluate_portfolio
 
 
 def example():
     return {
         "csv": (examples_directory() / "synthetic.csv").read_text(),
         "source": "Synthetic daily fixture; not market data",
+        "portfolio": portfolio_example(),
     }
 
 
 def evaluate(params):
+    if params.get("mode") == "portfolio":
+        return evaluate_portfolio(params)
     content = params.get("csv", example()["csv"])
     if not isinstance(content, str):
         raise ValueError("csv must be text")
@@ -53,7 +57,7 @@ def evaluate(params):
             test_size=params.get("test_size", 40),
             score=params.get("score", "total_return"),
             periods_per_year=periods_per_year,
-            **options
+            **options,
         )
         windows = research["windows"]
         baseline = research["baseline"]
