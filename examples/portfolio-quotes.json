@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-01-02T16:00:00Z",
+  "marks": {
+    "equity:demo-us": {
+      "price": "75",
+      "timestamp": "2026-01-02T16:00:00Z"
+    },
+    "equity:demo-eu": {
+      "price": "60",
+      "timestamp": "2026-01-02T16:00:00Z"
+    },
+    "crypto:demo": {
+      "price": "22000",
+      "timestamp": "2026-01-02T16:00:00Z"
+    }
+  },
+  "fx": {
+    "EUR": {
+      "rate": "1.1",
+      "timestamp": "2026-01-02T16:00:00Z"
+    }
+  }
+}
