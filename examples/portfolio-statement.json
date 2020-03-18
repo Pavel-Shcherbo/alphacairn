@@ -1,0 +1,11 @@
+{
+  "cash": {
+    "USD": "7200",
+    "EUR": "399"
+  },
+  "positions": {
+    "equity:demo-us": "6",
+    "equity:demo-eu": "10",
+    "crypto:demo": "0.1"
+  }
+}
