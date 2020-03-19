@@ -19,3 +19,9 @@ authorization or organization model yet.
 ## Next architectural increment
 
 Introduce instrument and data-version contracts, then add hand-checked corporate actions and historical-universe fixtures before multi-asset evaluation.
+
+## Portfolio journal
+
+`instruments` declares stable account and instrument identities. `money` supplies a private exact-decimal arithmetic context, bounded values, increments and explicit currency rounding. `ledger` appends normalized idempotent events, applies FIFO lots and balanced postings under one SQLite write transaction, and reconciles against independent supplied balances. Its audit rebuilds accepted events into a separate database and compares receipts and materialized state.
+
+`valuation` applies explicit as-of marks and FX rates without treating missing prices as zero. `portfolio` exposes persistent operator commands; `portfolio_web` runs bounded disposable scenarios with exportable normalized inputs. The browser invalidates obsolete results on input edits and discards delayed responses. Details and limits are specified in PORTFOLIO.md.
