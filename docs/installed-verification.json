@@ -1,7 +1,11 @@
 {
   "scope": "Clean wheel installation and public entry points, not full portfolio acceptance",
-  "wheel_sha256": "d8087265b4e246bb9c7b65e9061023124494defd78832401f5d7e2f1cdcdd1ed",
+  "wheel_sha256": "517c044c03f2dafc2c746c9ec5d49d93e7e8b2bc461b8eea37ec877365377da7",
   "examples_exported": [
+    "portfolio-account.json",
+    "portfolio-events.json",
+    "portfolio-quotes.json",
+    "portfolio-statement.json",
     "synthetic.csv"
   ],
   "existing_destination_preserved": true,
@@ -9,5 +13,7 @@
   "cli_passed": true,
   "workbench_http_passed": true,
   "state_outside_package": true,
+  "portfolio_cli_lifecycle_passed": true,
+  "portfolio_http_success_and_failures_passed": true,
   "full_portfolio_acceptance": false
 }
