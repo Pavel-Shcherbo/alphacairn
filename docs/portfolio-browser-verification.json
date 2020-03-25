@@ -1,0 +1,33 @@
+{
+  "scope": "Observed local portfolio browser flows, not full product acceptance",
+  "passed": true,
+  "success": {
+    "equity": "10948.90",
+    "accepted_events": 9,
+    "position_rows": 3,
+    "reconciliation": "Matched"
+  },
+  "missing_mark": {
+    "equity": "Incomplete",
+    "issues": "crypto:demo: missing mark",
+    "audit_passed": true
+  },
+  "statement_difference": {
+    "expected_cash": "7200.00",
+    "observed_cash": "7199.00",
+    "cash_not_auto_modified": true
+  },
+  "delayed_response_discarded_after_edit": true,
+  "export_disabled_after_edit": true,
+  "download_reproduced": true,
+  "mobile": {
+    "viewport_width": 390,
+    "document_scroll_width": 390
+  },
+  "console_errors": 0,
+  "console_warnings": 0,
+  "screenshots": {
+    "docs/portfolio-desktop.png": "2d717e5abd0556094ff790b5ac96227e2ee6e4b0ee48aa60123d1bbec29d2485",
+    "docs/portfolio-mobile.png": "e0aa03b2a2b70b92185108df4a69f8ee7dbe38d74497274a5ba2d5a695dd4049"
+  }
+}
