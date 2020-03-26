@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "scope": "Actual browser download reproduced from its normalized input bundle",
+  "artifact_sha256": "5d96f234d85b2cb25c0a9c2451debd90cf9b97b0e40fd14806e7efc9aaaa8e7c",
+  "equity": "10948.90",
+  "state_reproduced": true,
+  "reconciliation_reproduced": true,
+  "valuation_reproduced": true,
+  "audit_passed": true
+}
