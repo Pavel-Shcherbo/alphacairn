@@ -1,7 +1,7 @@
 {
-  "verified_at": "2026-11-04T02:17:40.894521+00:00",
+  "verified_at": "2026-11-04T03:18:46.316262+00:00",
   "scope": "Current local core, not the full product scope or the 20,000-SLOC acceptance",
-  "unit_tests": 22,
+  "unit_tests": 63,
   "unit_passed": true,
   "cli_passed": true,
   "source_hashes": {
@@ -10,13 +10,19 @@
     "alphacairn/analytics.py": "dbf49a0bd59261e3a7ce6c66c0083d9fdc9960fa2dc0fecca7266ddcc7fd0a23",
     "alphacairn/backtest.py": "60212fb005aba51c2870b9205af1d7ad199f2285b16d76cbc41a5f5b6da930ac",
     "alphacairn/httpapp.py": "aeae90d384d4ce2451d73504885e5d9da679f48768f34f50fda39f9ef24907a6",
+    "alphacairn/instruments.py": "488c69b1009f8502f8b03e21885860bdd9dd94a7665f1f0f9ecd2c48824c8a1e",
+    "alphacairn/ledger.py": "bd658b7f2a857d041e98d79dd6bc0b3c0493eb45418311f8fd09d690aa58bd8e",
+    "alphacairn/money.py": "db585a0d1b54a9e41699de93a702679e26e526a67d49fa65a938c4f09e221eba",
+    "alphacairn/portfolio.py": "d36e7dbfce69488a3ef8ebf9c5aa6bca8425bbae3b4b92c94f0a862b05e8ddc7",
+    "alphacairn/portfolio_web.py": "3c6a28a951f4868d56006e028dfd33561fcced71b926e95d255c951485e37323",
     "alphacairn/research.py": "66cb383a809ef73cacc05a499acac4d32335ce4b461eece28443be80b19bcc40",
     "alphacairn/resources.py": "7b4881ac5e208822eea3c485114e2482ba81fc4336e113fdd301e87610b7d62e",
-    "alphacairn/static/app.js": "9a58d9e145394a6de52c2d9999617bded7d7323912ba8350e22ad028bb0f86d2",
-    "alphacairn/static/index.html": "a9c6731794e8c8d69ff81fd02823f34aa95cfdbcfaf8105b53ccb08a48bc0967",
-    "alphacairn/static/style.css": "64e34c4e41533bce7aa55e9f8c5e578c60088ecb650580360b19e1e7e55d2009",
+    "alphacairn/static/app.js": "afb3f664210bf3aa2ee0d94b77a15d71fd5779ef5f9df650a0899403505ccd7d",
+    "alphacairn/static/index.html": "b8572bf4a66b27e39c9414200bbafaa9f7fa03f2aa93c9a7bd3ebca9be0f077f",
+    "alphacairn/static/style.css": "55a11843ce47983f71bfd2177ec982601eb44c49f9ac2e49c07739a058fb99e3",
+    "alphacairn/valuation.py": "101abe7a32a064a168affe0f285003f99a90e985828904027bab8be8225ee92f",
     "alphacairn/walkforward.py": "0f32dab776be93df5c6ce31fabf2b9a0122df505fcc19a21c7b059a9eacbb098",
-    "alphacairn/web.py": "689d4512dc053666e22d5a4f3d7b1bb2f7eb68b624ff0edf27d7cd3cd1329f5c"
+    "alphacairn/web.py": "f2a3caf17ed32fd4d10a32b17fe6e92c7d8bf8f140f698fa3b64e4c839fdddcd"
   },
   "full_portfolio_acceptance": false
 }
