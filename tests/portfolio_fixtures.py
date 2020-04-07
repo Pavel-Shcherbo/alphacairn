@@ -35,3 +35,7 @@ def account_spec():
     }
 
 
+def event(name, kind, **values):
+    return {"id": name, "timestamp": "2026-01-02T12:00:00Z", "kind": kind, **values}
+
+
