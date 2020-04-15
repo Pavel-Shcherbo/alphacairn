@@ -39,3 +39,15 @@ def event(name, kind, **values):
     return {"id": name, "timestamp": "2026-01-02T12:00:00Z", "kind": kind, **values}
 
 
+def trade(name, side, quantity, price, fee="0", instrument="equity:demo-us"):
+    return event(
+        name,
+        "trade",
+        instrument=instrument,
+        side=side,
+        quantity=quantity,
+        price=price,
+        fee=fee,
+    )
+
+
