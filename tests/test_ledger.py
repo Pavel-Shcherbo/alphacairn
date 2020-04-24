@@ -11,4 +11,9 @@ from portfolio_fixtures import account_spec, event, trade, scenario_events
 
 
 class LedgerTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.path = Path(self.temporary.name) / "ledger.sqlite"
+        self.ledger = Ledger(self.path, account_spec())
+
