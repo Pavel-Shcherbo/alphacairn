@@ -17,3 +17,8 @@ class LedgerTests(unittest.TestCase):
         self.path = Path(self.temporary.name) / "ledger.sqlite"
         self.ledger = Ledger(self.path, account_spec())
 
+    def fund(self, amount="10000"):
+        return self.ledger.apply(
+            event("fund", "deposit", currency="USD", amount=amount)
+        )
+
