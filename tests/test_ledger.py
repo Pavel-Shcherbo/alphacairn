@@ -22,3 +22,19 @@ class LedgerTests(unittest.TestCase):
             event("fund", "deposit", currency="USD", amount=amount)
         )
 
+    def test_fifo_partial_sale_reconciles_hand_calculated_values(self):
+        receipts = self.ledger.apply_batch(scenario_events()[:4])
+        state = self.ledger.state()
+        self.assertEqual(state["cash"]["USD"], "10194.00")
+        self.assertEqual(
+            state["positions"]["equity:demo-us"], {"quantity": "3", "basis": "360.60"}
+        )
+        self.assertEqual(
+            [match["basis"] for match in receipts[3]["fifo_matches"]],
+            ["1002.00", "240.40"],
+        )
+        self.assertEqual(
+            state["accounts"]["USD"]["realized_income:equity:demo-us"], "-554.60"
+        )
+        self.assertTrue(self.ledger.audit()["passed"])
+
