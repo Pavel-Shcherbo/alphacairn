@@ -38,3 +38,20 @@ class LedgerTests(unittest.TestCase):
         )
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_full_multi_currency_crypto_and_actions_scenario(self):
+        self.ledger.apply_batch(scenario_events())
+        state = self.ledger.state()
+        self.assertEqual(state["cash"], {"EUR": "399.00", "USD": "7200.00"})
+        self.assertEqual(
+            state["positions"]["equity:demo-us"], {"quantity": "6", "basis": "360.60"}
+        )
+        self.assertEqual(
+            state["positions"]["equity:demo-eu"], {"quantity": "10", "basis": "501.00"}
+        )
+        self.assertEqual(
+            state["positions"]["crypto:demo"], {"quantity": "0.1", "basis": "2002.00"}
+        )
+        self.assertEqual(state["accounts"]["USD"]["dividend_income"], "-12.00")
+        self.assertEqual(state["accounts"]["USD"]["withholding"], "3.00")
+        self.assertTrue(Ledger(self.path).audit()["passed"])
+
