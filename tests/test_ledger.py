@@ -55,3 +55,14 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(state["accounts"]["USD"]["withholding"], "3.00")
         self.assertTrue(Ledger(self.path).audit()["passed"])
 
+    def test_duplicate_payload_is_idempotent_and_conflict_is_rejected(self):
+        receipt = self.fund()
+        repeated = self.ledger.apply(
+            event("fund", "deposit", currency="USD", amount="10000.00")
+        )
+        self.assertTrue(repeated["duplicate"])
+        self.assertEqual(repeated["sequence"], receipt["sequence"])
+        with self.assertRaisesRegex(ValueError, "conflicts"):
+            self.ledger.apply(event("fund", "deposit", currency="USD", amount="9999"))
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "10000.00")
+
