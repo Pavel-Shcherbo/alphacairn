@@ -66,3 +66,15 @@ class LedgerTests(unittest.TestCase):
             self.ledger.apply(event("fund", "deposit", currency="USD", amount="9999"))
         self.assertEqual(self.ledger.state()["cash"]["USD"], "10000.00")
 
+    def test_atomic_batch_rolls_back_all_events_after_failure(self):
+        with self.assertRaisesRegex(ValueError, "insufficient"):
+            self.ledger.apply_batch(
+                [
+                    event("fund", "deposit", currency="USD", amount="100"),
+                    trade("too-large", "buy", "2", "100"),
+                ]
+            )
+        self.assertEqual(self.ledger.state()["last_sequence"], 0)
+        self.assertEqual(self.ledger.state()["cash"], {})
+        self.assertEqual(self.ledger.events(), [])
+
