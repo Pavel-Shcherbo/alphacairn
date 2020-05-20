@@ -78,3 +78,15 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["cash"], {})
         self.assertEqual(self.ledger.events(), [])
 
+    def test_overspending_and_short_sale_leave_no_partial_state(self):
+        self.fund("100")
+        for item in [
+            trade("buy", "buy", "1", "100", "1"),
+            trade("sell", "sell", "1", "100"),
+        ]:
+            with self.subTest(item=item), self.assertRaises(ValueError):
+                self.ledger.apply(item)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "100.00")
+        self.assertEqual(self.ledger.state()["positions"], {})
+        self.assertEqual(self.ledger.state()["last_sequence"], 1)
+
