@@ -90,3 +90,19 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["positions"], {})
         self.assertEqual(self.ledger.state()["last_sequence"], 1)
 
+    def test_same_cash_cannot_be_spent_twice_by_concurrent_writers(self):
+        self.fund("600")
+
+        def buy(number):
+            try:
+                Ledger(self.path).apply(trade("buy-" + str(number), "buy", "4", "100"))
+                return True
+            except ValueError:
+                return False
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            outcomes = list(pool.map(buy, [1, 2]))
+        self.assertEqual(sum(outcomes), 1)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "200.00")
+        self.assertTrue(self.ledger.audit()["passed"])
+
