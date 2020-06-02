@@ -106,3 +106,14 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["cash"]["USD"], "200.00")
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_concurrent_duplicate_deliveries_create_one_event(self):
+        def deposit(_):
+            return Ledger(self.path).apply(
+                event("same-fund", "deposit", currency="USD", amount="100")
+            )
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            receipts = list(pool.map(deposit, range(12)))
+        self.assertEqual(sum(not receipt["duplicate"] for receipt in receipts), 1)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "100.00")
+
