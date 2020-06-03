@@ -117,3 +117,32 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(sum(not receipt["duplicate"] for receipt in receipts), 1)
         self.assertEqual(self.ledger.state()["cash"]["USD"], "100.00")
 
+    def test_split_preserves_basis_and_rejects_unrepresentable_fractional_lots(self):
+        self.fund()
+        self.ledger.apply(trade("buy", "buy", "3", "100", "3"))
+        before = self.ledger.state()
+        with self.assertRaisesRegex(ValueError, "increment"):
+            self.ledger.apply(
+                event(
+                    "reverse",
+                    "split",
+                    instrument="equity:demo-us",
+                    numerator=1,
+                    denominator=2,
+                )
+            )
+        self.assertEqual(self.ledger.state(), before)
+        self.ledger.apply(
+            event(
+                "forward",
+                "split",
+                instrument="equity:demo-us",
+                numerator=2,
+                denominator=1,
+            )
+        )
+        self.assertEqual(
+            self.ledger.state()["positions"]["equity:demo-us"],
+            {"quantity": "6", "basis": "303.00"},
+        )
+
