@@ -157,3 +157,19 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(state["accounts"]["USD"]["inventory:equity:demo-us"], "0.00")
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_fx_uses_declared_rounding_and_source_currency_fee(self):
+        self.fund("100")
+        self.ledger.apply(
+            event(
+                "fx",
+                "fx",
+                from_currency="USD",
+                to_currency="EUR",
+                amount="10",
+                rate="0.9005",
+                fee="1",
+            )
+        )
+        self.assertEqual(self.ledger.state()["cash"], {"EUR": "9.00", "USD": "89.00"})
+        self.assertTrue(self.ledger.audit()["passed"])
+
