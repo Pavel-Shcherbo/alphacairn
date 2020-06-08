@@ -146,3 +146,14 @@ class LedgerTests(unittest.TestCase):
             {"quantity": "6", "basis": "303.00"},
         )
 
+    def test_fifo_rounding_remainder_is_fully_released_on_close(self):
+        self.fund("100")
+        self.ledger.apply(trade("buy", "buy", "3", "0.01", "0.01"))
+        for number in range(3):
+            self.ledger.apply(trade("sell-" + str(number), "sell", "1", "0.02"))
+        state = self.ledger.state()
+        self.assertEqual(state["positions"], {})
+        self.assertEqual(state["cash"]["USD"], "100.02")
+        self.assertEqual(state["accounts"]["USD"]["inventory:equity:demo-us"], "0.00")
+        self.assertTrue(self.ledger.audit()["passed"])
+
