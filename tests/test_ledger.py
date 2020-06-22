@@ -173,3 +173,16 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["cash"], {"EUR": "9.00", "USD": "89.00"})
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_reconciliation_differences_stay_visible_without_mutation(self):
+        self.ledger.apply_batch(scenario_events()[:2])
+        before = self.ledger.state()
+        matched = self.ledger.reconcile(
+            {"cash": {"USD": "8998"}, "positions": {"equity:demo-us": "10"}}
+        )
+        self.assertTrue(matched["matched"])
+        differences = self.ledger.reconcile({"cash": {"USD": "8997"}, "positions": {}})
+        self.assertEqual(
+            {item["kind"] for item in differences["differences"]}, {"cash", "positions"}
+        )
+        self.assertEqual(self.ledger.state(), before)
+
