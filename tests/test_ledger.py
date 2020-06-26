@@ -186,3 +186,13 @@ class LedgerTests(unittest.TestCase):
         )
         self.assertEqual(self.ledger.state(), before)
 
+    def test_timestamp_order_and_equivalent_offsets(self):
+        self.fund()
+        same = event("fund", "deposit", currency="USD", amount="10000")
+        same["timestamp"] = "2026-01-02T15:00:00+03:00"
+        self.assertTrue(self.ledger.apply(same)["duplicate"])
+        earlier = event("earlier", "deposit", currency="USD", amount="1")
+        earlier["timestamp"] = "2026-01-01T12:00:00Z"
+        with self.assertRaisesRegex(ValueError, "precede"):
+            self.ledger.apply(earlier)
+
