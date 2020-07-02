@@ -215,3 +215,14 @@ class LedgerTests(unittest.TestCase):
                 self.ledger.apply(item)
         self.assertEqual(self.ledger.state()["last_sequence"], 0)
 
+    def test_immutable_account_and_active_interval_validation(self):
+        different = account_spec()
+        different["name"] = "another"
+        with self.assertRaisesRegex(ValueError, "different"):
+            Ledger(self.path, different)
+        active = account_spec()
+        active["instruments"][0]["active_from"] = "2026-02-01T00:00:00Z"
+        other = Ledger(self.path.parent / "active.sqlite", active)
+        with self.assertRaisesRegex(ValueError, "active"):
+            other.apply(trade("early", "buy", "1", "100"))
+
