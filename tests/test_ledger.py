@@ -196,3 +196,22 @@ class LedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "precede"):
             self.ledger.apply(earlier)
 
+    def test_invalid_event_fields_and_numeric_values_fail_before_changes(self):
+        invalid = [
+            event("x", "deposit", currency="USD", amount=0.1),
+            event("x", "deposit", currency="USD", amount="1.001"),
+            trade("x", "buy", "0.5", "100"),
+            trade("x", "buy", "1", "100.001"),
+            trade("x", "buy", "1", "NaN"),
+            event(
+                "x", "dividend", instrument="equity:demo-us", gross="1", withholding="2"
+            ),
+        ]
+        unknown = event("x", "deposit", currency="USD", amount="1")
+        unknown["typo"] = True
+        invalid.append(unknown)
+        for item in invalid:
+            with self.subTest(item=item), self.assertRaises(ValueError):
+                self.ledger.apply(item)
+        self.assertEqual(self.ledger.state()["last_sequence"], 0)
+
