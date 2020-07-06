@@ -226,3 +226,13 @@ class LedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "active"):
             other.apply(trade("early", "buy", "1", "100"))
 
+    def test_event_cursor_survives_reopen(self):
+        self.ledger.apply_batch(scenario_events())
+        first = self.ledger.events(limit=3)
+        second = Ledger(self.path).events(after=first[-1]["sequence"], limit=3)
+        self.assertEqual(
+            [item["event"]["id"] for item in second],
+            ["sell-partial", "split", "dividend"],
+        )
+        self.assertEqual(len({item["sequence"] for item in first + second}), 6)
+
