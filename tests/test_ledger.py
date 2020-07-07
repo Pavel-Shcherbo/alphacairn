@@ -236,3 +236,14 @@ class LedgerTests(unittest.TestCase):
         )
         self.assertEqual(len({item["sequence"] for item in first + second}), 6)
 
+    def test_audit_detects_quantity_cache_corruption_by_replay(self):
+        self.ledger.apply_batch(scenario_events()[:2])
+        with closing(sqlite3.connect(self.path)) as database, database:
+            database.execute("UPDATE lots SET quantity='11'")
+        result = self.ledger.audit()
+        self.assertFalse(result["passed"])
+        self.assertIn(
+            {"code": "state_replay_mismatch", "component": "positions"},
+            result["issues"],
+        )
+
