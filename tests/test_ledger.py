@@ -247,3 +247,12 @@ class LedgerTests(unittest.TestCase):
             result["issues"],
         )
 
+    def test_audit_detects_cash_and_receipt_corruption(self):
+        self.fund()
+        with closing(sqlite3.connect(self.path)) as database, database:
+            database.execute("UPDATE cash SET balance='9999.00'")
+            database.execute("UPDATE events SET receipt='{}'")
+        codes = {item["code"] for item in self.ledger.audit()["issues"]}
+        self.assertIn("cash_cache_mismatch", codes)
+        self.assertIn("receipt_replay_mismatch", codes)
+
