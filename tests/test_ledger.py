@@ -256,3 +256,18 @@ class LedgerTests(unittest.TestCase):
         self.assertIn("cash_cache_mismatch", codes)
         self.assertIn("receipt_replay_mismatch", codes)
 
+    def test_sale_fee_can_exceed_proceeds_when_cash_covers_it(self):
+        self.fund("0.01")
+        self.ledger.apply(trade("buy", "buy", "1", "0.01"))
+        with self.assertRaisesRegex(ValueError, "insufficient settled cash"):
+            self.ledger.apply(trade("sale", "sell", "1", "0.01", "0.02"))
+        self.ledger.apply(event("top-up", "deposit", currency="USD", amount="0.02"))
+        self.ledger.apply(trade("sale", "sell", "1", "0.01", "0.02"))
+        state = self.ledger.state()
+        self.assertEqual(state["cash"]["USD"], "0.01")
+        self.assertEqual(
+            state["accounts"]["USD"]["realized_income:equity:demo-us"], "0.02"
+        )
+        self.assertEqual(state["positions"], {})
+        self.assertTrue(self.ledger.audit()["passed"])
+
