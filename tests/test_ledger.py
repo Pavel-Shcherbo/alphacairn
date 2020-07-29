@@ -271,3 +271,14 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(state["positions"], {})
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_concurrent_initialization_does_not_replace_account_metadata(self):
+        path = self.path.parent / "cold.sqlite"
+
+        def initialize(_):
+            return Ledger(path, account_spec()).state()["account"]
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            accounts = list(pool.map(initialize, range(8)))
+        self.assertTrue(all(account == accounts[0] for account in accounts))
+        self.assertEqual(Ledger(path).state()["last_sequence"], 0)
+
