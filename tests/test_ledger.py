@@ -282,3 +282,65 @@ class LedgerTests(unittest.TestCase):
         self.assertTrue(all(account == accounts[0] for account in accounts))
         self.assertEqual(Ledger(path).state()["last_sequence"], 0)
 
+    def test_seeded_trade_history_matches_independent_integer_cent_oracle(self):
+        import random
+        from fractions import Fraction
+        from decimal import Decimal
+
+        generator = random.Random(44784481)
+        self.fund("10000")
+        cash, realized, lots = 1000000, 0, []
+        for number in range(100):
+            available = sum(quantity for quantity, basis in lots)
+            price = generator.randrange(1, 1001)
+            fee = generator.randrange(0, 6)
+            quantity = generator.randrange(1, 6)
+            side = "sell" if available and generator.random() < 0.5 else "buy"
+            if side == "sell":
+                quantity = min(quantity, available)
+                remaining, released = quantity, 0
+                for lot in lots:
+                    if not remaining or not lot[0]:
+                        continue
+                    taken = min(remaining, lot[0])
+                    allocated = (
+                        lot[1]
+                        if taken == lot[0]
+                        else round(Fraction(lot[1] * taken, lot[0]))
+                    )
+                    lot[0] -= taken
+                    lot[1] -= allocated
+                    released += allocated
+                    remaining -= taken
+                cash += quantity * price - fee
+                realized += quantity * price - fee - released
+            else:
+                basis = quantity * price + fee
+                cash -= basis
+                lots.append([quantity, basis])
+            self.ledger.apply(
+                trade(
+                    "trade-" + str(number),
+                    side,
+                    str(quantity),
+                    f"{price // 100}.{price % 100:02d}",
+                    f"{fee // 100}.{fee % 100:02d}",
+                )
+            )
+            state = self.ledger.state()
+            self.assertEqual(Decimal(state["cash"]["USD"]), Decimal(cash) / 100)
+            position = state["positions"].get(
+                "equity:demo-us", {"quantity": "0", "basis": "0"}
+            )
+            self.assertEqual(Decimal(position["quantity"]), sum(lot[0] for lot in lots))
+            self.assertEqual(
+                Decimal(position["basis"]), Decimal(sum(lot[1] for lot in lots)) / 100
+            )
+            self.assertEqual(
+                Decimal(
+                    state["accounts"]["USD"].get("realized_income:equity:demo-us", "0")
+                ),
+                -Decimal(realized) / 100,
+            )
+        self.assertTrue(self.ledger.audit()["passed"])
+
