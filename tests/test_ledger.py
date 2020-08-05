@@ -344,3 +344,20 @@ class LedgerTests(unittest.TestCase):
             )
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_extreme_fx_overflow_is_a_validation_failure_with_atomic_rollback(self):
+        amount = "1" + "0" * 35
+        self.fund(amount)
+        before = self.ledger.state()
+        with self.assertRaises(ValueError):
+            self.ledger.apply(
+                event(
+                    "overflow",
+                    "fx",
+                    from_currency="USD",
+                    to_currency="EUR",
+                    amount=amount,
+                    rate="1" + "0" * 37,
+                )
+            )
+        self.assertEqual(self.ledger.state(), before)
+
