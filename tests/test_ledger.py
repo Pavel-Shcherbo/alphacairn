@@ -361,3 +361,17 @@ class LedgerTests(unittest.TestCase):
             )
         self.assertEqual(self.ledger.state(), before)
 
+    def test_portfolio_result_ignores_hostile_ambient_decimal_context(self):
+        from decimal import localcontext, Inexact, ROUND_DOWN
+
+        with localcontext() as context:
+            context.prec = 3
+            context.Emax = 9
+            context.Emin = -9
+            context.rounding = ROUND_DOWN
+            context.traps[Inexact] = True
+            self.ledger.apply_batch(scenario_events())
+            self.assertEqual(
+                self.ledger.state()["cash"], {"EUR": "399.00", "USD": "7200.00"}
+            )
+            self.assertTrue(self.ledger.audit()["passed"])
