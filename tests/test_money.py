@@ -28,3 +28,15 @@ class MoneyContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             aligned("0.03", Decimal("0.02"), "quantity")
 
+    def test_instrument_identity_is_distinct_from_symbol(self):
+        spec = AccountSpec.compile(account_spec())
+        self.assertEqual(
+            spec.instrument("equity:demo-us").symbol,
+            spec.instrument("equity:demo-eu").symbol,
+        )
+        self.assertNotEqual(
+            spec.instrument("equity:demo-us").quote_currency,
+            spec.instrument("equity:demo-eu").quote_currency,
+        )
+        self.assertEqual(AccountSpec.compile(spec.definition()), spec)
+
