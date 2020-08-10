@@ -19,3 +19,12 @@ class MoneyContractTests(unittest.TestCase):
                 rounded(Decimal("123456789.125"), 2), Decimal("123456789.12")
             )
 
+    def test_invalid_or_unbounded_money_is_rejected(self):
+        for value in [True, 0.1, "NaN", "Infinity", "1e999", "0" * 1000, "-1"]:
+            with self.subTest(value=str(value)[:30]), self.assertRaises(ValueError):
+                decimal_value(value, positive=True)
+        with self.assertRaises(ValueError):
+            exact_amount("1.001", 2)
+        with self.assertRaises(ValueError):
+            aligned("0.03", Decimal("0.02"), "quantity")
+
