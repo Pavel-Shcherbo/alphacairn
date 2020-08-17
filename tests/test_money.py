@@ -40,3 +40,7 @@ class MoneyContractTests(unittest.TestCase):
         )
         self.assertEqual(AccountSpec.compile(spec.definition()), spec)
 
+    def test_naive_and_out_of_range_timestamps_fail(self):
+        for value in ["2026-01-01T00:00:00", "0001-01-01T00:00:00+23:59", "not-a-date"]:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                timestamp(value)
