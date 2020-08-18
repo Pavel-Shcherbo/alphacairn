@@ -11,4 +11,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PortfolioCliTests(unittest.TestCase):
-    pass
+    def call(self, db, *arguments):
+        return subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "alphacairn.portfolio",
+                "--db",
+                str(db),
+                *map(str, arguments),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
