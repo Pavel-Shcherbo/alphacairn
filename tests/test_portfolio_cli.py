@@ -53,3 +53,10 @@ class PortfolioCliTests(unittest.TestCase):
                 ["sell-partial", "split"],
             )
 
+    def test_missing_ledger_is_not_created_by_read_commands(self):
+        with tempfile.TemporaryDirectory() as folder:
+            db = Path(folder) / "missing.sqlite"
+            result = self.call(db, "state")
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse(db.exists())
+
