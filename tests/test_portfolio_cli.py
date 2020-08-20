@@ -60,3 +60,14 @@ class PortfolioCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertFalse(db.exists())
 
+    def test_json_boundary_rejects_duplicate_keys_nonfinite_and_deep_values(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "input.json"
+            for payload in [
+                '{"amount":"1","amount":"2"}',
+                '{"amount":NaN}',
+                "[" * 2000 + "0" + "]" * 2000,
+            ]:
+                path.write_text(payload)
+                with self.subTest(payload=payload[:40]), self.assertRaises(ValueError):
+                    read_json(path)
