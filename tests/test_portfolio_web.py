@@ -13,3 +13,10 @@ class PortfolioWorkbenchTests(unittest.TestCase):
         self.assertEqual(len(report["input_sha256"]), 64)
         self.assertTrue(report["audit"]["passed"])
 
+    def test_missing_mark_preserves_journal_audit_but_fails_valuation(self):
+        report = evaluate({"mode": "portfolio", "omit_crypto_mark": True})
+        self.assertFalse(report["passed"])
+        self.assertIsNone(report["valuation"]["equity"])
+        self.assertTrue(report["audit"]["passed"])
+        self.assertTrue(report["reconciliation"]["matched"])
+
