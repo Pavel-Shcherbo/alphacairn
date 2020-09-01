@@ -20,3 +20,20 @@ class PortfolioWorkbenchTests(unittest.TestCase):
         self.assertTrue(report["audit"]["passed"])
         self.assertTrue(report["reconciliation"]["matched"])
 
+    def test_statement_difference_is_preserved_and_not_auto_fixed(self):
+        report = evaluate({"mode": "portfolio", "inject_statement_mismatch": True})
+        self.assertFalse(report["passed"])
+        self.assertEqual(report["state"]["cash"]["USD"], "7200.00")
+        self.assertEqual(
+            report["reconciliation"]["differences"],
+            [
+                {
+                    "kind": "cash",
+                    "key": "USD",
+                    "expected": "7200.00",
+                    "observed": "7199.00",
+                    "difference": "-1.00",
+                }
+            ],
+        )
+
