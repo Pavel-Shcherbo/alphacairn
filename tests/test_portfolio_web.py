@@ -37,3 +37,15 @@ class PortfolioWorkbenchTests(unittest.TestCase):
             ],
         )
 
+    def test_invalid_inputs_and_work_budget_are_rejected(self):
+        defaults = portfolio_example()
+        for params in [
+            {"mode": "portfolio", "omit_crypto_mark": 1},
+            {"mode": "portfolio", "events": []},
+            {"mode": "portfolio", "events": defaults["events"] * 100},
+            {"mode": "portfolio", "quotes": {"marks": {}}},
+            {"mode": "portfolio", "unknown": True},
+        ]:
+            with self.subTest(params=list(params)), self.assertRaises(ValueError):
+                evaluate(params)
+
