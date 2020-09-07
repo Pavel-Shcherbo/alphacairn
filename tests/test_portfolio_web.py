@@ -49,3 +49,7 @@ class PortfolioWorkbenchTests(unittest.TestCase):
             with self.subTest(params=list(params)), self.assertRaises(ValueError):
                 evaluate(params)
 
+    def test_repeated_browser_scenarios_have_same_input_identity(self):
+        first = evaluate({"mode": "portfolio"})
+        second = evaluate({"mode": "portfolio"})
+        self.assertEqual(first, second)
