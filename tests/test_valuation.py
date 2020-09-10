@@ -29,3 +29,12 @@ class ValuationTests(unittest.TestCase):
         self.state = ledger.state()
         self.fx = {"EUR": {"rate": "1.1", "timestamp": AS_OF}}
 
+    def value(self, prices=None, fx=None, **options):
+        return value_portfolio(
+            self.state,
+            marks() if prices is None else prices,
+            self.fx if fx is None else fx,
+            as_of=options.pop("as_of", AS_OF),
+            **options,
+        )
+
