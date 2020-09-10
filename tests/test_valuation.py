@@ -21,4 +21,11 @@ def marks():
 
 
 class ValuationTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        ledger = Ledger(Path(self.temporary.name) / "ledger.sqlite", account_spec())
+        ledger.apply_batch(scenario_events())
+        self.state = ledger.state()
+        self.fx = {"EUR": {"rate": "1.1", "timestamp": AS_OF}}
+
