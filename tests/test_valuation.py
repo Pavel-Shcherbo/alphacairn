@@ -38,3 +38,12 @@ class ValuationTests(unittest.TestCase):
             **options,
         )
 
+    def test_multi_currency_equity_matches_hand_calculation(self):
+        result = self.value()
+        self.assertTrue(result["complete"])
+        self.assertEqual(result["equity"], "10948.90")
+        positions = {item["instrument"]: item for item in result["positions"]}
+        self.assertEqual(positions["equity:demo-us"]["unrealized_quote_pnl"], "89.40")
+        self.assertEqual(positions["crypto:demo"]["market_value"], "2200.00")
+        self.assertEqual(positions["equity:demo-eu"]["base_value"], "660.00")
+
