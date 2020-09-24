@@ -47,3 +47,18 @@ class ValuationTests(unittest.TestCase):
         self.assertEqual(positions["crypto:demo"]["market_value"], "2200.00")
         self.assertEqual(positions["equity:demo-eu"]["base_value"], "660.00")
 
+    def test_missing_or_stale_prices_never_become_zero_equity(self):
+        prices = marks()
+        prices.pop("crypto:demo")
+        missing = self.value(prices)
+        self.assertFalse(missing["complete"])
+        self.assertIsNone(missing["equity"])
+        self.assertEqual(missing["known_base_value"], "8748.90")
+        prices = marks()
+        prices["crypto:demo"]["timestamp"] = "2025-12-01T00:00:00Z"
+        stale = self.value(prices)
+        self.assertIn(
+            {"kind": "mark", "instrument": "crypto:demo", "reason": "stale"},
+            stale["missing_inputs"],
+        )
+
