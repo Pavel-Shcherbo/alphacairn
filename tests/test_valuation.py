@@ -62,3 +62,11 @@ class ValuationTests(unittest.TestCase):
             stale["missing_inputs"],
         )
 
+    def test_missing_fx_is_deduplicated_across_cash_and_positions(self):
+        result = self.value(fx={})
+        self.assertIsNone(result["equity"])
+        self.assertEqual(
+            result["missing_inputs"],
+            [{"currency": "EUR", "kind": "fx", "reason": "missing"}],
+        )
+
