@@ -70,3 +70,10 @@ class ValuationTests(unittest.TestCase):
             [{"currency": "EUR", "kind": "fx", "reason": "missing"}],
         )
 
+    def test_zero_price_is_a_valid_explicit_total_loss_mark(self):
+        prices = marks()
+        prices["crypto:demo"]["price"] = "0"
+        result = self.value(prices)
+        self.assertTrue(result["complete"])
+        self.assertEqual(result["equity"], "8748.90")
+
