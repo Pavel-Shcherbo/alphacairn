@@ -77,3 +77,11 @@ class ValuationTests(unittest.TestCase):
         self.assertTrue(result["complete"])
         self.assertEqual(result["equity"], "8748.90")
 
+    def test_future_marks_and_historical_state_mismatch_are_rejected(self):
+        prices = marks()
+        prices["crypto:demo"]["timestamp"] = "2026-01-03T00:00:00Z"
+        with self.assertRaisesRegex(ValueError, "after"):
+            self.value(prices)
+        with self.assertRaisesRegex(ValueError, "historical"):
+            self.value(as_of="2026-01-01T00:00:00Z")
+
