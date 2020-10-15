@@ -85,3 +85,14 @@ class ValuationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "historical"):
             self.value(as_of="2026-01-01T00:00:00Z")
 
+    def test_invalid_rates_float_inputs_and_limits_fail(self):
+        for quote in [
+            {"rate": "0", "timestamp": AS_OF},
+            {"rate": 1.1, "timestamp": AS_OF},
+            {"rate": "1", "timestamp": "2026-01-03T00:00:00Z"},
+        ]:
+            with self.subTest(quote=quote), self.assertRaises(ValueError):
+                self.value(fx={"EUR": quote})
+        with self.assertRaises(ValueError):
+            self.value(max_age_seconds=True)
+
