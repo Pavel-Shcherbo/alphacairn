@@ -96,3 +96,22 @@ class ValuationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.value(max_age_seconds=True)
 
+    def test_split_with_corresponding_raw_mark_change_does_not_create_equity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ledger = Ledger(Path(directory) / "split.sqlite", account_spec())
+            ledger.apply_batch(scenario_events()[:4])
+            before = value_portfolio(
+                ledger.state(),
+                {"equity:demo-us": {"price": "150", "timestamp": AS_OF}},
+                {},
+                as_of=AS_OF,
+            )
+            ledger.apply(scenario_events()[4])
+            after = value_portfolio(
+                ledger.state(),
+                {"equity:demo-us": {"price": "75", "timestamp": AS_OF}},
+                {},
+                as_of=AS_OF,
+            )
+            self.assertEqual(before["equity"], "10644.00")
+            self.assertEqual(before["equity"], after["equity"])
