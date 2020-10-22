@@ -4,3 +4,7 @@ include examples/portfolio-account.json
 include examples/portfolio-events.json
 include examples/portfolio-quotes.json
 include examples/portfolio-statement.json
+include examples/market-bars.json
+include examples/market-universe.json
+include examples/market-query.json
+include examples/market-decisions.json
