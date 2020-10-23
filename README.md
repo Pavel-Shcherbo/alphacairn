@@ -35,6 +35,10 @@ The workbench includes an exact-decimal portfolio section with FIFO lots, quote-
 
 For a persistent local account, use `python3 -m alphacairn.portfolio --help`. The [portfolio guide](docs/PORTFOLIO.md) provides the complete example, event contracts, rounding rules, valuation policy and current limits.
 
+## Versioned market data
+
+A local catalog retains original JSON batches, exact decimal OHLCV observations, publication-time revisions and historical universe intervals. Queries require an explicit source and information clock. Portable snapshots can feed the research CLI; decision windows rebuild eligible revisions and membership at each decision time. See [market data guide](docs/MARKET_DATA.md) for commands, timing semantics, limits and a synthetic correction/delisting example.
+
 ## Boundaries
 
 The included data is a deterministic synthetic fixture, not exchange history. The simulator assumes fractional long-only positions, unlimited modeled liquidity and fixed costs. It does not yet handle dividends, splits, delistings, historical universes, funding or margin. No profitability or market-performance result is claimed. The final position is valued at the last close rather than forcibly sold.
