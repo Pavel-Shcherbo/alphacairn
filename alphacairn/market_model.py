@@ -33,3 +33,12 @@ def instant(value, label="timestamp"):
     return parsed.astimezone(timezone.utc).isoformat(timespec="microseconds")
 
 
+def day(value, label="session"):
+    if not isinstance(value, str) or len(value) != 10:
+        raise ValueError(f"{label} requires YYYY-MM-DD")
+    result = date.fromisoformat(value).isoformat()
+    if result != value:
+        raise ValueError(f"{label} requires YYYY-MM-DD")
+    return result
+
+
