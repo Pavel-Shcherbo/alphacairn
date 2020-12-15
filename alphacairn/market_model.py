@@ -21,3 +21,15 @@ def identifier(value, label):
     return value
 
 
+def instant(value, label="timestamp"):
+    if not isinstance(value, str) or len(value) > 40:
+        raise ValueError(f"{label} requires an ISO timestamp with a timezone")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise ValueError(f"{label} is not an ISO timestamp") from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{label} requires a timezone")
+    return parsed.astimezone(timezone.utc).isoformat(timespec="microseconds")
+
+
