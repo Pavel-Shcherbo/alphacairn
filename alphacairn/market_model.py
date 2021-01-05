@@ -48,3 +48,7 @@ def canonical(value):
     ).encode()
 
 
+def digest(value):
+    return hashlib.sha256(canonical(value)).hexdigest()
+
+
