@@ -52,3 +52,12 @@ def digest(value):
     return hashlib.sha256(canonical(value)).hexdigest()
 
 
+def pairs(items):
+    output = {}
+    for key, value in items:
+        if key in output:
+            raise ValueError(f"duplicate JSON key: {key}")
+        output[key] = value
+    return output
+
+
