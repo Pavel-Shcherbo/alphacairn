@@ -61,3 +61,18 @@ def pairs(items):
     return output
 
 
+def decode(raw):
+    if not isinstance(raw, bytes) or len(raw) > MAX_BYTES:
+        raise ValueError("market input must be bytes no larger than 16 MiB")
+    try:
+        return json.loads(
+            raw,
+            object_pairs_hook=pairs,
+            parse_constant=lambda v: (_ for _ in ()).throw(
+                ValueError("non-finite JSON")
+            ),
+        )
+    except (RecursionError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError("invalid or excessively nested market JSON") from error
+
+
