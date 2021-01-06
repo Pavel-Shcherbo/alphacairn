@@ -76,3 +76,62 @@ def decode(raw):
         raise ValueError("invalid or excessively nested market JSON") from error
 
 
+def observation(kind, row):
+    if not isinstance(row, dict):
+        raise ValueError("each observation must be an object")
+    common = {"instrument", "published_at", "status"}
+    fields = common | (
+        {"session", "opened_at", "closed_at", "open", "high", "low", "close", "volume"}
+        if kind == "bar"
+        else {"universe", "valid_from", "valid_until"}
+    )
+    if kind not in {"bar", "membership"} or set(row) != fields:
+        raise ValueError("observation fields do not match the declared kind")
+    result = dict(row)
+    result["instrument"] = identifier(row["instrument"], "instrument")
+    result["published_at"] = instant(row["published_at"], "published_at")
+    if row["status"] not in {"active", "retracted"}:
+        raise ValueError("status must be active or retracted")
+    if kind == "bar":
+        result["session"] = day(row["session"])
+        for field in ["opened_at", "closed_at"]:
+            result[field] = instant(row[field], field)
+        if (
+            result["opened_at"] >= result["closed_at"]
+            or result["closed_at"] > result["published_at"]
+        ):
+            raise ValueError("bar clocks require opened_at < closed_at <= published_at")
+        numeric = ["open", "high", "low", "close", "volume"]
+        if row["status"] == "retracted":
+            if any(row[field] is not None for field in numeric):
+                raise ValueError("retracted bars must have null numeric fields")
+        else:
+            numbers = {
+                field: decimal_value(
+                    row[field],
+                    field,
+                    positive=field != "volume",
+                    nonnegative=field == "volume",
+                )
+                for field in numeric
+            }
+            if (
+                not numbers["low"]
+                <= min(numbers["open"], numbers["close"])
+                <= max(numbers["open"], numbers["close"])
+                <= numbers["high"]
+            ):
+                raise ValueError("OHLC prices violate the low/high envelope")
+            result.update({field: text(value) for field, value in numbers.items()})
+    else:
+        result["universe"] = identifier(row["universe"], "universe")
+        result["valid_from"] = day(row["valid_from"], "valid_from")
+        if row["valid_until"] is not None:
+            result["valid_until"] = day(row["valid_until"], "valid_until")
+            if result["valid_until"] <= result["valid_from"]:
+                raise ValueError(
+                    "membership intervals are half-open and must have positive length"
+                )
+    return result
+
+
