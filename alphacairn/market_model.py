@@ -135,3 +135,11 @@ def observation(kind, row):
     return result
 
 
+def record_key(kind, row):
+    return digest(
+        [row["instrument"], row["session"]]
+        if kind == "bar"
+        else [row["universe"], row["instrument"], row["valid_from"]]
+    )
+
+
