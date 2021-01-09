@@ -143,3 +143,7 @@ def record_key(kind, row):
     )
 
 
+def snapshot_identity(snapshot):
+    return digest({key: value for key, value in snapshot.items() if key != "sha256"})
+
+
