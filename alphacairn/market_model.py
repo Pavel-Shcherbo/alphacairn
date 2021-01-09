@@ -213,3 +213,27 @@ def verify_snapshot(snapshot):
     }
 
 
+def validate_query(query):
+    if not isinstance(query, dict):
+        raise ValueError("query must be an object")
+    kind = query.get("kind")
+    fields = {"kind", "source", "known_at", "clock"} | (
+        {"instrument", "start", "end"} if kind == "bar" else {"universe", "on"}
+    )
+    if kind not in {"bar", "membership"} or set(query) != fields:
+        raise ValueError("invalid market query fields")
+    result = dict(query)
+    result["source"] = identifier(query["source"], "source")
+    result["known_at"] = instant(query["known_at"], "known_at")
+    if query["clock"] not in {"published", "recorded"}:
+        raise ValueError("clock must explicitly select published or recorded")
+    if kind == "bar":
+        result["instrument"] = identifier(query["instrument"], "instrument")
+        for key in ["start", "end"]:
+            result[key] = day(query[key], key)
+        if result["start"] > result["end"]:
+            raise ValueError("start must not follow end")
+    else:
+        result["universe"] = identifier(query["universe"], "universe")
+        result["on"] = day(query["on"], "on")
+    return result
