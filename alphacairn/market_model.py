@@ -147,3 +147,69 @@ def snapshot_identity(snapshot):
     return digest({key: value for key, value in snapshot.items() if key != "sha256"})
 
 
+def verify_snapshot(snapshot):
+    if (
+        not isinstance(snapshot, dict)
+        or set(snapshot) != {"schema", "query", "records", "sha256"}
+        or type(snapshot["schema"]) is not int
+        or snapshot["schema"] != 1
+    ):
+        raise ValueError("unsupported market snapshot")
+    if snapshot_identity(snapshot) != snapshot["sha256"]:
+        raise ValueError("market snapshot digest mismatch")
+    query = validate_query(snapshot["query"])
+    records = snapshot["records"]
+    if not isinstance(records, list) or len(records) > MAX_ROWS:
+        raise ValueError("invalid snapshot record count")
+    keys = set()
+    for record in records:
+        if not isinstance(record, dict) or set(record) != {
+            "observation",
+            "batch_id",
+            "recorded_at",
+            "observation_sha256",
+        }:
+            raise ValueError("invalid snapshot record")
+        row = observation(query["kind"], record["observation"])
+        if row != record["observation"] or digest(row) != record["observation_sha256"]:
+            raise ValueError("noncanonical or changed snapshot observation")
+        if not isinstance(record["batch_id"], str) or not re.fullmatch(
+            "[0-9a-f]{64}", record["batch_id"]
+        ):
+            raise ValueError("invalid snapshot batch identity")
+        recorded = instant(record["recorded_at"], "recorded_at")
+        available = (
+            max(recorded, row["published_at"])
+            if query["clock"] == "recorded"
+            else row["published_at"]
+        )
+        if available > query["known_at"]:
+            raise ValueError("snapshot contains information after its knowledge cutoff")
+        if row["status"] != "active":
+            raise ValueError("snapshot contains a retracted observation")
+        if query["kind"] == "bar":
+            if (
+                row["instrument"] != query["instrument"]
+                or not query["start"] <= row["session"] <= query["end"]
+                or row["closed_at"] > query["known_at"]
+            ):
+                raise ValueError("bar is outside the snapshot query")
+        elif (
+            row["universe"] != query["universe"]
+            or not row["valid_from"] <= query["on"]
+            or row["valid_until"] is not None
+            and row["valid_until"] <= query["on"]
+        ):
+            raise ValueError("membership is outside the snapshot query")
+        key = row["session"] if query["kind"] == "bar" else row["instrument"]
+        if key in keys:
+            raise ValueError("duplicate snapshot observation or overlapping membership")
+        keys.add(key)
+    return {
+        "passed": True,
+        "records": len(records),
+        "sha256": snapshot["sha256"],
+        "clock": query["clock"],
+    }
+
+
