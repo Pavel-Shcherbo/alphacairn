@@ -51,3 +51,112 @@ def read_snapshot(path):
     return snapshot
 
 
+def decision_windows(catalog, *, source, universe, decisions, start, lookback, clock):
+    """Build features from each decision's own eligible revisions and universe."""
+    source = identifier(source, "source")
+    universe = identifier(universe, "universe")
+    start = day(start, "start")
+    if clock not in {"recorded", "published"}:
+        raise ValueError("clock must explicitly select recorded or published")
+    if type(lookback) is not int or not 1 <= lookback <= 1000:
+        raise ValueError("lookback must be between 1 and 1000")
+    if not isinstance(decisions, list) or not 1 <= len(decisions) <= 100:
+        raise ValueError("between 1 and 100 explicit decisions are required")
+    normalized = []
+    previous = None
+    for decision in decisions:
+        if not isinstance(decision, dict) or set(decision) != {"at", "session"}:
+            raise ValueError("each decision requires at and session")
+        at = instant(decision["at"], "decision time")
+        session = day(decision["session"])
+        if previous is not None and at <= previous or session < start:
+            raise ValueError(
+                "decision times must increase and sessions must not precede start"
+            )
+        previous = at
+        normalized.append({"at": at, "session": session})
+    with catalog.read_view() as view:
+        output = []
+        record_budget = 0
+        for decision in normalized:
+            universe_snapshot = view.snapshot(
+                {
+                    "kind": "membership",
+                    "source": source,
+                    "universe": universe,
+                    "on": decision["session"],
+                    "known_at": decision["at"],
+                    "clock": clock,
+                }
+            )
+            members = universe_snapshot["records"]
+            if len(members) > 100:
+                raise ValueError("decision window exceeds 100 instruments")
+            features = []
+            for member in members:
+                instrument = member["observation"]["instrument"]
+                snapshot = view.snapshot(
+                    {
+                        "kind": "bar",
+                        "source": source,
+                        "instrument": instrument,
+                        "start": start,
+                        "end": decision["session"],
+                        "known_at": decision["at"],
+                        "clock": clock,
+                    }
+                )
+                records = snapshot["records"][-lookback:]
+                record_budget += len(snapshot["records"])
+                if record_budget > 100_000:
+                    raise ValueError(
+                        "decision window exceeds the 100,000 observation work budget"
+                    )
+                item = {
+                    "instrument": instrument,
+                    "snapshot_sha256": snapshot["sha256"],
+                    "observations": [
+                        record["observation_sha256"] for record in records
+                    ],
+                    "sessions": [
+                        record["observation"]["session"] for record in records
+                    ],
+                    "available": len(records),
+                    "ready": len(records) == lookback,
+                    "last_close": None,
+                    "mean_close": None,
+                    "above_mean": None,
+                }
+                if records:
+                    with arithmetic():
+                        prices = [
+                            decimal_value(record["observation"]["close"], positive=True)
+                            for record in records
+                        ]
+                        item["last_close"] = text(prices[-1])
+                        if item["ready"]:
+                            mean = sum(prices, Decimal(0)) / Decimal(lookback)
+                            item["mean_close"] = text(mean)
+                            item["above_mean"] = prices[-1] > mean
+                features.append(item)
+            output.append(
+                {
+                    "decision": decision,
+                    "universe_sha256": universe_snapshot["sha256"],
+                    "features": features,
+                }
+            )
+    result = {
+        "schema": 1,
+        "source": source,
+        "universe": universe,
+        "clock": clock,
+        "start": start,
+        "lookback": lookback,
+        "windows": output,
+        "assumptions": "Daily raw prices; publication clock is source-declared; recorded clock additionally gates local ingestion. Features are not fills, forecasts or investment recommendations. No automatic corporate-action adjustment or session calendar inference.",
+    }
+    result["sha256"] = digest(result)
+    return result
+
+
