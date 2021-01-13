@@ -44,3 +44,10 @@ def write_snapshot(snapshot, destination):
     }
 
 
+def read_snapshot(path):
+    with Path(path).open("rb") as stream:
+        snapshot = decode(stream.read(MAX_BYTES + 1))
+    verify_snapshot(snapshot)
+    return snapshot
+
+
