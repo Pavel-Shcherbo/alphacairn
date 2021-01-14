@@ -160,3 +160,20 @@ def decision_windows(catalog, *, source, universe, decisions, start, lookback, c
     return result
 
 
+def snapshot_bars(snapshot):
+    """Convert one verified daily vintage to the existing float analytics input."""
+    import csv
+    import io
+    from .backtest import parse_bars
+
+    verify_snapshot(snapshot)
+    if snapshot["query"]["kind"] != "bar":
+        raise ValueError("research requires a bar snapshot")
+    stream = io.StringIO()
+    writer = csv.writer(stream)
+    writer.writerow(["date", "open", "close"])
+    for record in snapshot["records"]:
+        row = record["observation"]
+        writer.writerow([row["session"], row["open"], row["close"]])
+    stream.seek(0)
+    return parse_bars(stream)
