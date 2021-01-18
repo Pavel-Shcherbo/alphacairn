@@ -92,3 +92,10 @@ class MarketCatalog:
                         raise
                     time.sleep(0.02)
 
+    @contextmanager
+    def _connect(self):
+        with closing(sqlite3.connect(self.path, timeout=10)) as db:
+            db.row_factory = sqlite3.Row
+            db.execute("PRAGMA foreign_keys=ON")
+            yield db
+
