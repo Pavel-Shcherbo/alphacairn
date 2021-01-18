@@ -110,3 +110,87 @@ class MarketCatalog:
                 db.rollback()
                 raise
 
+    def ingest(self, source, kind, raw, *, request_key):
+        source = identifier(source, "source")
+        request_key = identifier(request_key, "request_key")
+        if kind not in {"bar", "membership"}:
+            raise ValueError("kind must be bar or membership")
+        rows = decode(raw)
+        if not isinstance(rows, list) or not 1 <= len(rows) <= MAX_ROWS:
+            raise ValueError("a batch requires between 1 and 100,000 observations")
+        normalized = [observation(kind, row) for row in rows]
+        identities = [
+            (record_key(kind, row), row["published_at"]) for row in normalized
+        ]
+        if len(set(identities)) != len(identities):
+            raise ValueError(
+                "duplicate observation identity/publication within one batch"
+            )
+        raw_sha = hashlib.sha256(raw).hexdigest()
+        normalized_sha = digest(normalized)
+        batch_id = digest([source, kind, raw_sha, normalized_sha])
+        recorded = datetime.now(timezone.utc).isoformat(timespec="microseconds")
+        with self._transaction() as db:
+            prior = db.execute(
+                "SELECT batch_id FROM imports WHERE source=? AND request_key=?",
+                (source, request_key),
+            ).fetchone()
+            if prior and prior["batch_id"] != batch_id:
+                raise ValueError("request key was already used for different input")
+            existing = db.execute(
+                "SELECT * FROM batches WHERE id=?", (batch_id,)
+            ).fetchone()
+            if not existing:
+                db.execute(
+                    "INSERT INTO batches VALUES(?,?,?,?,?,?,?,?)",
+                    (
+                        batch_id,
+                        source,
+                        kind,
+                        recorded,
+                        raw_sha,
+                        raw,
+                        len(normalized),
+                        normalized_sha,
+                    ),
+                )
+                for row, (key, published) in zip(normalized, identities):
+                    row_sha = digest(row)
+                    prior_row = db.execute(
+                        "SELECT sha256 FROM observations WHERE source=? AND kind=? AND identity=? AND published_at=?",
+                        (source, kind, key, published),
+                    ).fetchone()
+                    if prior_row:
+                        if prior_row["sha256"] != row_sha:
+                            raise ValueError(
+                                "conflicting values at the same publication time; use a new revision time"
+                            )
+                        continue
+                    effective = row["session"] if kind == "bar" else row["valid_from"]
+                    db.execute(
+                        "INSERT INTO observations VALUES(?,?,?,?,?,?,?,?,?)",
+                        (
+                            source,
+                            kind,
+                            key,
+                            published,
+                            batch_id,
+                            row["instrument"],
+                            effective,
+                            canonical(row).decode(),
+                            row_sha,
+                        ),
+                    )
+            db.execute(
+                "INSERT OR IGNORE INTO imports VALUES(?,?,?)",
+                (source, request_key, batch_id),
+            )
+            result = dict(
+                db.execute(
+                    "SELECT id,source,kind,recorded_at,raw_sha256,row_count,normalized_sha256 FROM batches WHERE id=?",
+                    (batch_id,),
+                ).fetchone()
+            )
+            result["reused"] = existing is not None
+            return result
+
