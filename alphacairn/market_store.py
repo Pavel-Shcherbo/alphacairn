@@ -99,3 +99,14 @@ class MarketCatalog:
             db.execute("PRAGMA foreign_keys=ON")
             yield db
 
+    @contextmanager
+    def _transaction(self):
+        with self._connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            try:
+                yield db
+                db.commit()
+            except BaseException:
+                db.rollback()
+                raise
+
