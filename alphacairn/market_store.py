@@ -199,3 +199,17 @@ class MarketCatalog:
             raw = stream.read(MAX_BYTES + 1)
         return self.ingest(source, kind, raw, request_key=request_key)
 
+    def batches(self, source, *, after="", limit=100):
+        source = identifier(source, "source")
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("batch page limit must be between 1 and 1000")
+        with self._connect() as db:
+            rows = db.execute(
+                "SELECT id,kind,recorded_at,raw_sha256,row_count,normalized_sha256 FROM batches WHERE source=? AND id>? ORDER BY id LIMIT ?",
+                (source, after, limit + 1),
+            ).fetchall()
+        return {
+            "items": [dict(row) for row in rows[:limit]],
+            "next_cursor": rows[limit - 1]["id"] if len(rows) > limit else None,
+        }
+
