@@ -194,3 +194,8 @@ class MarketCatalog:
             result["reused"] = existing is not None
             return result
 
+    def ingest_file(self, source, kind, path, *, request_key):
+        with Path(path).open("rb") as stream:
+            raw = stream.read(MAX_BYTES + 1)
+        return self.ingest(source, kind, raw, request_key=request_key)
+
