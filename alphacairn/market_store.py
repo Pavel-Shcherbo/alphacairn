@@ -213,3 +213,33 @@ class MarketCatalog:
             "next_cursor": rows[limit - 1]["id"] if len(rows) > limit else None,
         }
 
+    @staticmethod
+    def _verified_record(record):
+        if (
+            record["source"] != record["batch_source"]
+            or record["kind"] != record["batch_kind"]
+            or instant(record["recorded_at"]) != record["recorded_at"]
+        ):
+            raise ValueError("stored observation batch provenance mismatch")
+        payload = decode(record["payload"].encode())
+        row = observation(record["kind"], payload)
+        if (
+            row != payload
+            or digest(row) != record["sha256"]
+            or record_key(record["kind"], row) != record["identity"]
+            or row["published_at"] != record["published_at"]
+            or row["instrument"] != record["instrument"]
+        ):
+            raise ValueError(
+                "stored observation failed canonical identity verification"
+            )
+        effective = row["session"] if record["kind"] == "bar" else row["valid_from"]
+        if effective != record["effective"]:
+            raise ValueError("stored observation index differs from payload")
+        return {
+            "observation": row,
+            "batch_id": record["batch_id"],
+            "recorded_at": record["recorded_at"],
+            "observation_sha256": record["sha256"],
+        }
+
