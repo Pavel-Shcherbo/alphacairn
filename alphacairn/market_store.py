@@ -243,3 +243,11 @@ class MarketCatalog:
             "observation_sha256": record["sha256"],
         }
 
+    @contextmanager
+    def read_view(self):
+        """Hold one SQLite read snapshot across related queries."""
+        with self._connect() as db:
+            db.execute("BEGIN")
+            db.execute("SELECT COUNT(*) FROM batches").fetchone()
+            yield MarketView(self, db)
+
