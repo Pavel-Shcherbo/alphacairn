@@ -251,3 +251,7 @@ class MarketCatalog:
             db.execute("SELECT COUNT(*) FROM batches").fetchone()
             yield MarketView(self, db)
 
+    def snapshot(self, query):
+        with self.read_view() as view:
+            return view.snapshot(query)
+
