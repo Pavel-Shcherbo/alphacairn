@@ -255,3 +255,46 @@ class MarketCatalog:
         with self.read_view() as view:
             return view.snapshot(query)
 
+    def _snapshot(self, query, db):
+        query = validate_query(query)
+        parameters = [query["source"], query["kind"], query["known_at"]]
+        condition = "o.source=? AND o.kind=? AND o.published_at<=?"
+        if query["clock"] == "recorded":
+            condition += " AND b.recorded_at<=?"
+            parameters.append(query["known_at"])
+        if query["kind"] == "bar":
+            condition += " AND o.instrument=? AND o.effective>=? AND o.effective<=?"
+            parameters.extend([query["instrument"], query["start"], query["end"]])
+        else:
+            condition += " AND o.effective<=?"
+            parameters.append(query["on"])
+        # Rank revisions before filtering retractions or membership end dates.
+        # Otherwise an obsolete active value could reappear after a withdrawal.
+        sql = f"""WITH ranked AS (
+          SELECT o.*, b.recorded_at, b.source AS batch_source, b.kind AS batch_kind,
+          ROW_NUMBER() OVER(PARTITION BY o.identity ORDER BY o.published_at DESC) AS rank
+          FROM observations o JOIN batches b ON b.id=o.batch_id WHERE {condition})
+          SELECT * FROM ranked WHERE rank=1 ORDER BY effective,instrument,identity LIMIT ?"""
+        rows = db.execute(sql, [*parameters, MAX_ROWS + 1]).fetchall()
+        if len(rows) > MAX_ROWS:
+            raise ValueError(
+                "snapshot exceeds 100,000 candidate records; narrow the query"
+            )
+        selected = []
+        for record in rows:
+            item = self._verified_record(record)
+            row = item["observation"]
+            if row["status"] == "retracted":
+                continue
+            if query["kind"] == "membership" and (
+                row["universe"] != query["universe"]
+                or row["valid_until"] is not None
+                and row["valid_until"] <= query["on"]
+            ):
+                continue
+            selected.append(item)
+        result = {"schema": 1, "query": query, "records": selected}
+        result["sha256"] = snapshot_identity(result)
+        verify_snapshot(result)
+        return result
+
