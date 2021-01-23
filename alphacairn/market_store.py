@@ -298,3 +298,22 @@ class MarketCatalog:
         verify_snapshot(result)
         return result
 
+    def history(self, source, kind, instrument, *, limit=1000):
+        source = identifier(source, "source")
+        instrument = identifier(instrument, "instrument")
+        if (
+            kind not in {"bar", "membership"}
+            or type(limit) is not int
+            or not 1 <= limit <= 1000
+        ):
+            raise ValueError("invalid history kind or limit")
+        with self._connect() as db:
+            rows = db.execute(
+                "SELECT o.*,b.recorded_at,b.source AS batch_source,b.kind AS batch_kind FROM observations o JOIN batches b ON b.id=o.batch_id WHERE o.source=? AND o.kind=? AND o.instrument=? ORDER BY o.effective,o.published_at LIMIT ?",
+                (source, kind, instrument, limit + 1),
+            ).fetchall()
+        return {
+            "items": [self._verified_record(row) for row in rows[:limit]],
+            "complete": len(rows) <= limit,
+        }
+
