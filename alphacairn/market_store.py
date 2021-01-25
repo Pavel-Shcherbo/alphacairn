@@ -317,3 +317,126 @@ class MarketCatalog:
             "complete": len(rows) <= limit,
         }
 
+    def audit(self, *, limit=1000):
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ValueError("audit limit must be between 1 and 1000")
+        errors = []
+        checked = 0
+        processed_rows = 0
+        processed_bytes = 0
+        allowed_owners = {}
+        with self._connect() as db:
+            db.execute("BEGIN")
+            batches = db.execute(
+                "SELECT id,source,kind,recorded_at,raw_sha256,row_count,normalized_sha256 FROM batches ORDER BY id LIMIT ?",
+                (limit + 1,),
+            ).fetchall()
+            complete = len(batches) <= limit
+            for batch in batches[:limit]:
+                try:
+                    raw = bytes(
+                        db.execute(
+                            "SELECT raw FROM batches WHERE id=?", (batch["id"],)
+                        ).fetchone()[0]
+                    )
+                    processed_bytes += len(raw)
+                    if processed_bytes > 64 * 1024 * 1024:
+                        complete = False
+                        break
+                    rows = decode(raw)
+                    processed_rows += len(rows) if isinstance(rows, list) else 0
+                    if processed_rows > MAX_ROWS:
+                        complete = False
+                        break
+                    if (
+                        batch["kind"] not in {"bar", "membership"}
+                        or not isinstance(rows, list)
+                        or not 1 <= len(rows) <= MAX_ROWS
+                    ):
+                        raise ValueError("invalid stored batch kind or row count")
+                    normalized = [observation(batch["kind"], row) for row in rows]
+                    if (
+                        len(normalized) != batch["row_count"]
+                        or digest(normalized) != batch["normalized_sha256"]
+                        or hashlib.sha256(raw).hexdigest() != batch["raw_sha256"]
+                        or digest(
+                            [
+                                batch["source"],
+                                batch["kind"],
+                                batch["raw_sha256"],
+                                batch["normalized_sha256"],
+                            ]
+                        )
+                        != batch["id"]
+                    ):
+                        raise ValueError("stored raw batch identity mismatch")
+                    if instant(batch["recorded_at"]) != batch["recorded_at"]:
+                        raise ValueError("noncanonical batch recording time")
+                    # An identical observation may first belong to an earlier batch.
+                    for row in normalized:
+                        key = (
+                            batch["source"],
+                            batch["kind"],
+                            record_key(batch["kind"], row),
+                            row["published_at"],
+                        )
+                        allowed_owners.setdefault(key, set()).add(batch["id"])
+                        found = db.execute(
+                            "SELECT o.*, b.recorded_at,b.source AS batch_source,b.kind AS batch_kind FROM observations o JOIN batches b ON b.id=o.batch_id WHERE o.source=? AND o.kind=? AND o.identity=? AND o.published_at=?",
+                            (
+                                batch["source"],
+                                batch["kind"],
+                                record_key(batch["kind"], row),
+                                row["published_at"],
+                            ),
+                        ).fetchone()
+                        if (
+                            found is None
+                            or self._verified_record(found)["observation"] != row
+                        ):
+                            raise ValueError(
+                                "raw batch and indexed observation disagree"
+                            )
+                    checked += 1
+                except (ValueError, TypeError, KeyError) as error:
+                    errors.append({"batch_id": batch["id"], "error": str(error)})
+            foreign = db.execute("PRAGMA foreign_key_check").fetchone()
+            if foreign:
+                errors.append({"error": "foreign key inconsistency"})
+            indexed = db.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
+            if complete:
+                if indexed != len(allowed_owners):
+                    errors.append(
+                        {
+                            "error": "observation index contains missing or extra revisions"
+                        }
+                    )
+                else:
+                    for row in db.execute(
+                        "SELECT source,kind,identity,published_at,batch_id FROM observations"
+                    ):
+                        key = (
+                            row["source"],
+                            row["kind"],
+                            row["identity"],
+                            row["published_at"],
+                        )
+                        if row["batch_id"] not in allowed_owners.get(key, set()):
+                            errors.append(
+                                {
+                                    "error": "indexed observation does not belong to its raw batch"
+                                }
+                            )
+                            break
+        return {
+            "passed": complete and not errors,
+            "complete": complete,
+            "checked_batches": checked,
+            "indexed_revisions": indexed,
+            "errors": errors,
+        }
+
+
+class MarketView:
+    """Query interface valid only inside MarketCatalog.read_view()."""
+
