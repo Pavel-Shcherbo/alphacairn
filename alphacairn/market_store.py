@@ -444,3 +444,5 @@ class MarketView:
         self._catalog = catalog
         self._database = database
 
+    def snapshot(self, query):
+        return self._catalog._snapshot(query, self._database)
