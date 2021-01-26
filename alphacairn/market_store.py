@@ -440,3 +440,7 @@ class MarketCatalog:
 class MarketView:
     """Query interface valid only inside MarketCatalog.read_view()."""
 
+    def __init__(self, catalog, database):
+        self._catalog = catalog
+        self._database = database
+
