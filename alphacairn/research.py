@@ -14,12 +14,15 @@ from .analytics import (
 )
 from .backtest import dataset_digest, load_bars, simulate
 from .walkforward import walk_forward
+from .market_model import MAX_BYTES, decode
+from .market_research import snapshot_bars
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run an auditable local market study")
     parser.add_argument("action", choices=["risk", "walk-forward"])
-    parser.add_argument("csv", type=Path)
+    parser.add_argument("csv", type=Path, nargs="?")
+    parser.add_argument("--market-snapshot", type=Path)
     parser.add_argument("--lookback", type=int, default=20)
     parser.add_argument("--candidates", type=int, nargs="+", default=[5, 10, 20, 40])
     parser.add_argument("--train-size", type=int, default=100)
@@ -33,7 +36,18 @@ def main():
     parser.add_argument("--resample", action="store_true")
     args = parser.parse_args()
     try:
-        bars = load_bars(args.csv)
+        if (args.csv is None) == (args.market_snapshot is None):
+            raise ValueError("provide exactly one CSV file or --market-snapshot")
+        market_snapshot = None
+        if args.market_snapshot is not None:
+            with args.market_snapshot.open("rb") as stream:
+                raw = stream.read(MAX_BYTES + 1)
+            market_snapshot = decode(raw)
+            bars = snapshot_bars(market_snapshot)
+            source_hash = hashlib.sha256(raw).hexdigest()
+        else:
+            bars = load_bars(args.csv)
+            source_hash = hashlib.sha256(args.csv.read_bytes()).hexdigest()
         costs = {"fee_bps": args.fee_bps, "slippage_bps": args.slippage_bps}
         if args.action == "walk-forward":
             result = walk_forward(
@@ -78,7 +92,13 @@ def main():
                     study["equity"], study["initial_cash"]
                 )
         result["data_sha256"] = dataset_digest(bars)
-        result["source_file_sha256"] = hashlib.sha256(args.csv.read_bytes()).hexdigest()
+        result["source_file_sha256"] = source_hash
+        if market_snapshot is not None:
+            result["market_vintage"] = {
+                "sha256": market_snapshot["sha256"],
+                "query": market_snapshot["query"],
+                "assumptions": "Fixed-vintage raw daily prices converted to floating point for descriptive analytics. The snapshot cutoff applies to the dataset as a whole, not to every historical strategy decision. Use decision-windows for per-decision revision eligibility.",
+            }
         result["digest_policy"] = (
             "Normalized date/open/close records plus a separate original-file hash"
         )
