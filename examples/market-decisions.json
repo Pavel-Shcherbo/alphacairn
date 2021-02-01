@@ -1,0 +1,21 @@
+{
+  "source": "synthetic",
+  "universe": "DEMO",
+  "start": "2020-01-01",
+  "lookback": 2,
+  "clock": "published",
+  "decisions": [
+    {
+      "at": "2020-01-02T17:00:00Z",
+      "session": "2020-01-02"
+    },
+    {
+      "at": "2020-01-03T17:00:00Z",
+      "session": "2020-01-03"
+    },
+    {
+      "at": "2020-01-06T17:00:00Z",
+      "session": "2020-01-06"
+    }
+  ]
+}
