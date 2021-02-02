@@ -1,0 +1,9 @@
+{
+  "kind": "bar",
+  "source": "synthetic",
+  "instrument": "DEMO-A",
+  "start": "2020-01-01",
+  "end": "2020-01-03",
+  "known_at": "2020-01-04T00:00:00Z",
+  "clock": "published"
+}
