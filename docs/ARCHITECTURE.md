@@ -18,10 +18,14 @@ authorization or organization model yet.
 
 ## Next architectural increment
 
-Introduce instrument and data-version contracts, then add hand-checked corporate actions and historical-universe fixtures before multi-asset evaluation.
+Expose the market catalog in management views, then add corporate-action-aware prices and session calendars before multi-asset execution evaluation.
 
 ## Portfolio journal
 
 `instruments` declares stable account and instrument identities. `money` supplies a private exact-decimal arithmetic context, bounded values, increments and explicit currency rounding. `ledger` appends normalized idempotent events, applies FIFO lots and balanced postings under one SQLite write transaction, and reconciles against independent supplied balances. Its audit rebuilds accepted events into a separate database and compares receipts and materialized state.
 
 `valuation` applies explicit as-of marks and FX rates without treating missing prices as zero. `portfolio` exposes persistent operator commands; `portfolio_web` runs bounded disposable scenarios with exportable normalized inputs. The browser invalidates obsolete results on input edits and discards delayed responses. Details and limits are specified in PORTFOLIO.md.
+
+## Market data clocks
+
+`market_model` validates bounded exact-decimal daily observations, explicit publication clocks, interval memberships and portable snapshot identity. `market_store` retains original batches and immutable revisions under SQLite transactions; a consistent read view spans related queries during concurrent ingestion. `market_research` exports and verifies snapshots and rebuilds each decision window from its eligible revisions and membership. `market_cli` exposes local operations; the research CLI accepts a verified fixed-vintage snapshot and retains its distinct timing assumptions. No remote market source or brokerage connection is configured. See MARKET_DATA.md.
