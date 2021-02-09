@@ -1,7 +1,10 @@
 {
-  "scope": "Clean wheel installation and public entry points, not full portfolio acceptance",
-  "wheel_sha256": "517c044c03f2dafc2c746c9ec5d49d93e7e8b2bc461b8eea37ec877365377da7",
+  "wheel_sha256": "260b27c838882095cd7d49728e3ade094a3a49cbce6c25c0b655a626ea79e4f6",
   "examples_exported": [
+    "market-bars.json",
+    "market-decisions.json",
+    "market-query.json",
+    "market-universe.json",
     "portfolio-account.json",
     "portfolio-events.json",
     "portfolio-quotes.json",
@@ -15,5 +18,5 @@
   "state_outside_package": true,
   "portfolio_cli_lifecycle_passed": true,
   "portfolio_http_success_and_failures_passed": true,
-  "full_portfolio_acceptance": false
+  "market_revision_windows_and_snapshot_study_passed": true
 }
