@@ -1,0 +1,76 @@
+{
+  "scope": "Installed synthetic market catalog and research integration; not real exchange coverage",
+  "passed": true,
+  "snapshot_sha256": "734708fbd1ed85c484eec5b565865cfaa19ad50254f0f1bea2e64a23231bcb44",
+  "snapshot_file_sha256": "7d55766df899a71bf9edf835e560eb895a1cddb001e38ccbd78e1641728ba127",
+  "decision_panel_sha256": "1c363211936cd4002f6f10032ab611b6d528b259790421815d91818dfb89ab21",
+  "second_decision": {
+    "DELISTED-DEMO": {
+      "instrument": "DELISTED-DEMO",
+      "snapshot_sha256": "8ccc15c3ad90738d0d57c51a70eaf44309733332cf3f1ca5167bbac6d933b9bd",
+      "observations": [],
+      "sessions": [],
+      "available": 0,
+      "ready": false,
+      "last_close": null,
+      "mean_close": null,
+      "above_mean": null
+    },
+    "DEMO-A": {
+      "instrument": "DEMO-A",
+      "snapshot_sha256": "a0c4910316c22d5e8ca9ffbb5d595c38e114dd9b295ce83409915566a1a805cf",
+      "observations": [
+        "3d3cea1bbca225e78aa70756bc330adc8e90a36118215ad0e60bc6bdcdc938f0",
+        "7527be221193ffaef2e50dd175c2eb0932d4e44bc32ccab2ef514a7ee08ceb29"
+      ],
+      "sessions": [
+        "2020-01-02",
+        "2020-01-03"
+      ],
+      "available": 2,
+      "ready": true,
+      "last_close": "20",
+      "mean_close": "15",
+      "above_mean": true
+    }
+  },
+  "third_decision": {
+    "DEMO-A": {
+      "instrument": "DEMO-A",
+      "snapshot_sha256": "564a8c5923e7bf6537e8b468d63c21b135fca669af66e44b0af2ae28f384cd60",
+      "observations": [
+        "3afb5e9450a420348c4b467dfa764e45c032233ba4c58ccca9434d3a2a46c154",
+        "7527be221193ffaef2e50dd175c2eb0932d4e44bc32ccab2ef514a7ee08ceb29"
+      ],
+      "sessions": [
+        "2020-01-02",
+        "2020-01-03"
+      ],
+      "available": 2,
+      "ready": true,
+      "last_close": "20",
+      "mean_close": "25",
+      "above_mean": false
+    }
+  },
+  "audit": {
+    "passed": true,
+    "complete": true,
+    "checked_batches": 2,
+    "indexed_revisions": 5,
+    "errors": []
+  },
+  "research_vintage": {
+    "sha256": "734708fbd1ed85c484eec5b565865cfaa19ad50254f0f1bea2e64a23231bcb44",
+    "query": {
+      "clock": "published",
+      "end": "2020-01-03",
+      "instrument": "DEMO-A",
+      "kind": "bar",
+      "known_at": "2020-01-04T00:00:00.000000+00:00",
+      "source": "synthetic",
+      "start": "2020-01-01"
+    },
+    "assumptions": "Fixed-vintage raw daily prices converted to floating point for descriptive analytics. The snapshot cutoff applies to the dataset as a whole, not to every historical strategy decision. Use decision-windows for per-decision revision eligibility."
+  }
+}
