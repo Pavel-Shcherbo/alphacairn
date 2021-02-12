@@ -38,3 +38,19 @@ def bar(session="2020-01-02", close="10", published=None, instrument="STOCK-A"):
     }
 
 
+def member(
+    instrument="STOCK-A",
+    start="2020-01-01",
+    until=None,
+    published="2019-12-31T12:00:00Z",
+):
+    return {
+        "instrument": instrument,
+        "universe": "TEST",
+        "valid_from": start,
+        "valid_until": until,
+        "published_at": published,
+        "status": "active",
+    }
+
+
