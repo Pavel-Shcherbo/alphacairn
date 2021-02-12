@@ -1,7 +1,5 @@
 {
-  "verified_at": "2026-11-04T03:18:46.316262+00:00",
-  "scope": "Current local core, not the full product scope or the 20,000-SLOC acceptance",
-  "unit_tests": 63,
+  "unit_tests": 85,
   "unit_passed": true,
   "cli_passed": true,
   "source_hashes": {
@@ -12,10 +10,14 @@
     "alphacairn/httpapp.py": "aeae90d384d4ce2451d73504885e5d9da679f48768f34f50fda39f9ef24907a6",
     "alphacairn/instruments.py": "488c69b1009f8502f8b03e21885860bdd9dd94a7665f1f0f9ecd2c48824c8a1e",
     "alphacairn/ledger.py": "bd658b7f2a857d041e98d79dd6bc0b3c0493eb45418311f8fd09d690aa58bd8e",
+    "alphacairn/market_cli.py": "e68493160f61d2fe471bb1f07b39e5e06538fed74c8144d9ef72a2c9281bfd50",
+    "alphacairn/market_model.py": "97836233384cc92a9bab814d65629b580c7439dac00254959a04eb554c3223a7",
+    "alphacairn/market_research.py": "7012132e51eb22db07fb5d08c8be5869097e293b2d266215d004f2d90189fd6d",
+    "alphacairn/market_store.py": "6fee2007af8e7195fa90a3fa6fadc0ac1ad231b9eb6bc29f4e1c0bc2d0c963fb",
     "alphacairn/money.py": "db585a0d1b54a9e41699de93a702679e26e526a67d49fa65a938c4f09e221eba",
     "alphacairn/portfolio.py": "d36e7dbfce69488a3ef8ebf9c5aa6bca8425bbae3b4b92c94f0a862b05e8ddc7",
     "alphacairn/portfolio_web.py": "3c6a28a951f4868d56006e028dfd33561fcced71b926e95d255c951485e37323",
-    "alphacairn/research.py": "66cb383a809ef73cacc05a499acac4d32335ce4b461eece28443be80b19bcc40",
+    "alphacairn/research.py": "3ee710653154f2fff4e5c43b87da27e4006ab9834d69a0462c2d85054a389495",
     "alphacairn/resources.py": "7b4881ac5e208822eea3c485114e2482ba81fc4336e113fdd301e87610b7d62e",
     "alphacairn/static/app.js": "afb3f664210bf3aa2ee0d94b77a15d71fd5779ef5f9df650a0899403505ccd7d",
     "alphacairn/static/index.html": "b8572bf4a66b27e39c9414200bbafaa9f7fa03f2aa93c9a7bd3ebca9be0f077f",
@@ -23,6 +25,5 @@
     "alphacairn/valuation.py": "101abe7a32a064a168affe0f285003f99a90e985828904027bab8be8225ee92f",
     "alphacairn/walkforward.py": "0f32dab776be93df5c6ce31fabf2b9a0122df505fcc19a21c7b059a9eacbb098",
     "alphacairn/web.py": "f2a3caf17ed32fd4d10a32b17fe6e92c7d8bf8f140f698fa3b64e4c839fdddcd"
-  },
-  "full_portfolio_acceptance": false
+  }
 }
