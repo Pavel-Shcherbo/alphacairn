@@ -22,3 +22,19 @@ from alphacairn.market_store import MarketCatalog
 from alphacairn.market_research import decision_windows, read_snapshot, write_snapshot
 
 
+def bar(session="2020-01-02", close="10", published=None, instrument="STOCK-A"):
+    return {
+        "instrument": instrument,
+        "session": session,
+        "opened_at": session + "T09:00:00Z",
+        "closed_at": session + "T16:00:00Z",
+        "published_at": published or session + "T16:01:00Z",
+        "status": "active",
+        "open": "10",
+        "high": "30",
+        "low": "1",
+        "close": close,
+        "volume": "100",
+    }
+
+
