@@ -54,3 +54,17 @@ def member(
     }
 
 
+def query(known="2020-01-02T17:00:00Z", clock="published"):
+    return {
+        "kind": "bar",
+        "source": "demo",
+        "instrument": "STOCK-A",
+        "start": "2020-01-01",
+        "end": "2020-01-31",
+        "known_at": known,
+        "clock": clock,
+    }
+
+
+class MarketTests(unittest.TestCase):
+    pass
