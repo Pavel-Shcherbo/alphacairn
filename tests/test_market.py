@@ -67,4 +67,9 @@ def query(known="2020-01-02T17:00:00Z", clock="published"):
 
 
 class MarketTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.db = MarketCatalog(self.root / "market.sqlite", create=True)
+
