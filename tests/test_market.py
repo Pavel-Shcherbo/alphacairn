@@ -73,3 +73,6 @@ class MarketTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.db = MarketCatalog(self.root / "market.sqlite", create=True)
 
+    def ingest(self, rows, kind="bar", key="first", source="demo"):
+        return self.db.ingest(source, kind, canonical(rows), request_key=key)
+
