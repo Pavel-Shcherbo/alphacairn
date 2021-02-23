@@ -76,3 +76,17 @@ class MarketTests(unittest.TestCase):
     def ingest(self, rows, kind="bar", key="first", source="demo"):
         return self.db.ingest(source, kind, canonical(rows), request_key=key)
 
+    def test_revisions_use_publication_not_latest_loaded_value(self):
+        self.ingest([bar()])
+        self.ingest([bar(close="20", published="2020-01-05T10:00:00Z")], key="revision")
+        for cutoff, expected in [
+            ("2020-01-02T16:00:00Z", []),
+            ("2020-01-03T00:00:00Z", ["10"]),
+            ("2020-01-06T00:00:00Z", ["20"]),
+        ]:
+            actual = self.db.snapshot(query(cutoff))
+            self.assertEqual(
+                [x["observation"]["close"] for x in actual["records"]], expected
+            )
+        self.assertTrue(self.db.audit()["passed"])
+
