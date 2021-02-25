@@ -90,3 +90,9 @@ class MarketTests(unittest.TestCase):
             )
         self.assertTrue(self.db.audit()["passed"])
 
+    def test_recorded_clock_refuses_claimed_historical_availability(self):
+        loaded = self.ingest([bar()])
+        self.assertEqual(self.db.snapshot(query(clock="recorded"))["records"], [])
+        current = query(loaded["recorded_at"], clock="recorded")
+        self.assertEqual(len(self.db.snapshot(current)["records"]), 1)
+
