@@ -96,3 +96,12 @@ class MarketTests(unittest.TestCase):
         current = query(loaded["recorded_at"], clock="recorded")
         self.assertEqual(len(self.db.snapshot(current)["records"]), 1)
 
+    def test_future_publication_also_blocks_recorded_clock(self):
+        self.ingest([bar(published="2099-01-01T00:00:00Z")])
+        self.assertEqual(
+            self.db.snapshot(query("2098-01-01T00:00:00Z", clock="recorded"))[
+                "records"
+            ],
+            [],
+        )
+
