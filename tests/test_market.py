@@ -105,3 +105,14 @@ class MarketTests(unittest.TestCase):
             [],
         )
 
+    def test_retraction_does_not_resurrect_old_bar(self):
+        self.ingest([bar()])
+        withdrawn = bar(published="2020-01-04T00:00:00Z")
+        withdrawn["status"] = "retracted"
+        for key in ["open", "close", "high", "low", "volume"]:
+            withdrawn[key] = None
+        self.ingest([withdrawn], key="withdraw")
+        self.assertEqual(len(self.db.snapshot(query())["records"]), 1)
+        self.assertEqual(self.db.snapshot(query("2020-01-06T00:00:00Z"))["records"], [])
+        self.assertEqual(len(self.db.history("demo", "bar", "STOCK-A")["items"]), 2)
+
