@@ -129,3 +129,30 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(len(self.db.batches("demo")["items"]), 1)
         self.assertEqual(len(self.db.snapshot(query())["records"]), 1)
 
+    def test_exact_numbers_clocks_and_unknown_fields(self):
+        controls = [
+            dict(close="NaN"),
+            dict(high="9"),
+            dict(low="11"),
+            dict(volume="-1"),
+            dict(open=10.0),
+            dict(opened_at="2020-01-02T16:00:00Z"),
+            dict(published_at="2020-01-02T15:00:00Z"),
+            dict(closed_at="2020-01-02T16:00:00"),
+            dict(extra=1),
+            dict(session="20200102"),
+        ]
+        for changed in controls:
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                observation("bar", {**bar(), **changed})
+        with localcontext() as context:
+            context.prec = 2
+            self.assertEqual(
+                observation("bar", {**bar(), "close": "10.123456789"})["close"],
+                "10.123456789",
+            )
+        shifted = observation(
+            "bar", {**bar(), "published_at": "2020-01-02T19:01:00+03:00"}
+        )
+        self.assertEqual(shifted["published_at"], "2020-01-02T16:01:00.000000+00:00")
+
