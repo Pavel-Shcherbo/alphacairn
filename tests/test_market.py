@@ -116,3 +116,16 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(self.db.snapshot(query("2020-01-06T00:00:00Z"))["records"], [])
         self.assertEqual(len(self.db.history("demo", "bar", "STOCK-A")["items"]), 2)
 
+    def test_bad_batch_is_atomic_and_idempotency_conflict_is_rejected(self):
+        first = self.ingest([bar()])
+        self.assertTrue(self.ingest([bar()])["reused"])
+        self.assertEqual(
+            first["recorded_at"], self.ingest([bar()], key="other")["recorded_at"]
+        )
+        with self.assertRaises(ValueError):
+            self.ingest([bar(close="11")])
+        with self.assertRaises(ValueError):
+            self.ingest([bar("2020-01-03"), bar(close="12")], key="conflict")
+        self.assertEqual(len(self.db.batches("demo")["items"]), 1)
+        self.assertEqual(len(self.db.snapshot(query())["records"]), 1)
+
