@@ -156,3 +156,15 @@ class MarketTests(unittest.TestCase):
         )
         self.assertEqual(shifted["published_at"], "2020-01-02T16:01:00.000000+00:00")
 
+    def test_duplicate_json_and_duplicate_rows_rejected(self):
+        with self.assertRaises(ValueError):
+            self.db.ingest(
+                "demo",
+                "bar",
+                b'[{"instrument":"A","instrument":"B"}]',
+                request_key="bad",
+            )
+        with self.assertRaises(ValueError):
+            self.ingest([bar(), bar()])
+        self.assertEqual(self.db.batches("demo")["items"], [])
+
