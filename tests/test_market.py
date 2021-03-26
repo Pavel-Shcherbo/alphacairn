@@ -168,3 +168,15 @@ class MarketTests(unittest.TestCase):
             self.ingest([bar(), bar()])
         self.assertEqual(self.db.batches("demo")["items"], [])
 
+    def test_sources_are_never_silently_combined(self):
+        self.ingest([bar()])
+        self.ingest([bar(close="20")], source="alternate")
+        self.assertEqual(
+            self.db.snapshot(query())["records"][0]["observation"]["close"], "10"
+        )
+        other = query()
+        other["source"] = "alternate"
+        self.assertEqual(
+            self.db.snapshot(other)["records"][0]["observation"]["close"], "20"
+        )
+
