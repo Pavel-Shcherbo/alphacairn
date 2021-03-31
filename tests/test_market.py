@@ -180,3 +180,31 @@ class MarketTests(unittest.TestCase):
             self.db.snapshot(other)["records"][0]["observation"]["close"], "20"
         )
 
+    def test_membership_delisting_and_revisions(self):
+        self.ingest([member(), member("FAILED", until="2020-01-04")], kind="membership")
+
+        def members(on, cutoff):
+            snap = self.db.snapshot(
+                {
+                    "kind": "membership",
+                    "source": "demo",
+                    "universe": "TEST",
+                    "on": on,
+                    "known_at": cutoff,
+                    "clock": "published",
+                }
+            )
+            return {x["observation"]["instrument"] for x in snap["records"]}
+
+        self.assertEqual(
+            members("2020-01-03", "2020-01-03T12:00:00Z"), {"STOCK-A", "FAILED"}
+        )
+        self.assertEqual(members("2020-01-04", "2020-01-04T12:00:00Z"), {"STOCK-A"})
+        self.ingest(
+            [member(until="2020-01-03", published="2020-01-06T12:00:00Z")],
+            kind="membership",
+            key="late-delisting",
+        )
+        self.assertEqual(members("2020-01-04", "2020-01-04T12:00:00Z"), {"STOCK-A"})
+        self.assertEqual(members("2020-01-04", "2020-01-07T12:00:00Z"), set())
+
