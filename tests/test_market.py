@@ -208,3 +208,17 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(members("2020-01-04", "2020-01-04T12:00:00Z"), {"STOCK-A"})
         self.assertEqual(members("2020-01-04", "2020-01-07T12:00:00Z"), set())
 
+    def test_overlapping_memberships_fail_explicitly(self):
+        self.ingest([member(), member(start="2020-01-02")], kind="membership")
+        with self.assertRaisesRegex(ValueError, "overlapping"):
+            self.db.snapshot(
+                {
+                    "kind": "membership",
+                    "source": "demo",
+                    "universe": "TEST",
+                    "on": "2020-01-03",
+                    "known_at": "2020-01-03T12:00:00Z",
+                    "clock": "published",
+                }
+            )
+
