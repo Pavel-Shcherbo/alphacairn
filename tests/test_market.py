@@ -222,3 +222,29 @@ class MarketTests(unittest.TestCase):
                 }
             )
 
+    def test_decision_features_use_each_time_and_keep_failed_members(self):
+        self.ingest([member(), member("NO-DATA")], kind="membership")
+        self.ingest([bar(), bar("2020-01-03", close="20")], key="bars")
+        args = dict(
+            source="demo",
+            universe="TEST",
+            decisions=[
+                {"at": "2020-01-02T17:00:00Z", "session": "2020-01-02"},
+                {"at": "2020-01-03T17:00:00Z", "session": "2020-01-03"},
+            ],
+            start="2020-01-01",
+            lookback=2,
+            clock="published",
+        )
+        before = decision_windows(self.db, **args)
+        self.ingest(
+            [bar(close="30", published="2020-01-04T12:00:00Z")], key="correction"
+        )
+        self.assertEqual(before, decision_windows(self.db, **args))
+        features = {f["instrument"]: f for f in before["windows"][1]["features"]}
+        self.assertEqual(features["STOCK-A"]["mean_close"], "15")
+        self.assertTrue(features["STOCK-A"]["above_mean"])
+        self.assertFalse(features["NO-DATA"]["ready"])
+        self.assertIsNone(features["NO-DATA"]["mean_close"])
+        self.assertFalse(before["windows"][0]["features"][-1]["ready"])
+
