@@ -248,3 +248,19 @@ class MarketTests(unittest.TestCase):
         self.assertIsNone(features["NO-DATA"]["mean_close"])
         self.assertFalse(before["windows"][0]["features"][-1]["ready"])
 
+    def test_read_view_remains_consistent_across_concurrent_revision(self):
+        self.ingest([bar()])
+        q = query("2020-01-06T00:00:00Z")
+        with self.db.read_view() as view:
+            first = view.snapshot(q)
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                pool.submit(
+                    self.ingest,
+                    [bar(close="20", published="2020-01-04T12:00:00Z")],
+                    key="revision",
+                ).result(timeout=10)
+            self.assertEqual(view.snapshot(q), first)
+        self.assertEqual(
+            self.db.snapshot(q)["records"][0]["observation"]["close"], "20"
+        )
+
