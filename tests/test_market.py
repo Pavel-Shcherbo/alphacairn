@@ -264,3 +264,15 @@ class MarketTests(unittest.TestCase):
             self.db.snapshot(q)["records"][0]["observation"]["close"], "20"
         )
 
+    def test_concurrent_identical_imports_are_one_batch(self):
+        def load(_):
+            return MarketCatalog(self.db.path).ingest(
+                "demo", "bar", canonical([bar()]), request_key="same"
+            )
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(pool.map(load, range(8)))
+        self.assertEqual(len({r["id"] for r in results}), 1)
+        self.assertEqual(sum(not r["reused"] for r in results), 1)
+        self.assertTrue(self.db.audit()["passed"])
+
