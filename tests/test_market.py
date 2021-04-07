@@ -276,3 +276,31 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(sum(not r["reused"] for r in results), 1)
         self.assertTrue(self.db.audit()["passed"])
 
+    def test_export_verification_and_no_overwrite(self):
+        self.ingest([bar()])
+        snap = self.db.snapshot(query())
+        path = self.root / "snapshot.json"
+        write_snapshot(snap, path)
+        self.assertEqual(read_snapshot(path), snap)
+        with self.assertRaises(FileExistsError):
+            write_snapshot(snap, path)
+        invalid_schema = copy.deepcopy(snap)
+        invalid_schema["schema"] = True
+        invalid_schema["sha256"] = snapshot_identity(invalid_schema)
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            verify_snapshot(invalid_schema)
+        changed = copy.deepcopy(snap)
+        changed["records"][0]["observation"]["close"] = "22"
+        with self.assertRaisesRegex(ValueError, "digest"):
+            verify_snapshot(changed)
+        changed = copy.deepcopy(snap)
+        changed["query"]["known_at"] = "2020-01-01T00:00:00.000000+00:00"
+        changed["sha256"] = snapshot_identity(changed)
+        with self.assertRaisesRegex(ValueError, "cutoff"):
+            verify_snapshot(changed)
+        link = self.root / "link.json"
+        link.symlink_to(path)
+        with self.assertRaises(FileExistsError):
+            write_snapshot(snap, link)
+        self.assertEqual(len(list(self.root.glob(".market-*"))), 0)
+
