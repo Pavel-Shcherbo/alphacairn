@@ -304,3 +304,16 @@ class MarketTests(unittest.TestCase):
             write_snapshot(snap, link)
         self.assertEqual(len(list(self.root.glob(".market-*"))), 0)
 
+    def test_audit_detects_raw_and_index_corruption_and_partial_is_not_pass(self):
+        self.ingest([bar()])
+        self.ingest([bar("2020-01-03")], key="second")
+        self.assertFalse(self.db.audit(limit=1)["passed"])
+        self.assertFalse(self.db.audit(limit=1)["complete"])
+        with closing(sqlite3.connect(self.db.path)) as db, db:
+            db.execute(
+                "UPDATE observations SET payload=replace(payload,'100','101') WHERE effective='2020-01-02'"
+            )
+        with self.assertRaisesRegex(ValueError, "identity"):
+            self.db.snapshot(query())
+        self.assertFalse(self.db.audit()["passed"])
+
