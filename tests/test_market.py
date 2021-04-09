@@ -317,3 +317,19 @@ class MarketTests(unittest.TestCase):
             self.db.snapshot(query())
         self.assertFalse(self.db.audit()["passed"])
 
+    def test_pagination_missing_db_and_future_schema(self):
+        self.ingest([bar()])
+        self.ingest([bar("2020-01-03")], key="second")
+        first = self.db.batches("demo", limit=1)
+        second = self.db.batches("demo", limit=1, after=first["next_cursor"])
+        self.assertEqual(len(first["items"]) + len(second["items"]), 2)
+        self.assertIsNone(second["next_cursor"])
+        absent = self.root / "absent.sqlite"
+        with self.assertRaises(ValueError):
+            MarketCatalog(absent)
+        self.assertFalse(absent.exists())
+        with closing(sqlite3.connect(self.db.path)) as db, db:
+            db.execute("PRAGMA user_version=99")
+        with self.assertRaises(ValueError):
+            MarketCatalog(self.db.path)
+
