@@ -333,3 +333,50 @@ class MarketTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MarketCatalog(self.db.path)
 
+    def test_cli_lifecycle_and_offline_verify_without_database(self):
+        source = self.root / "bars.json"
+        source.write_bytes(canonical([bar()]))
+        q = self.root / "query.json"
+        q.write_bytes(canonical(query()))
+        out = self.root / "export.json"
+
+        def cli(*args, expected=0):
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "alphacairn.market_cli",
+                    "--database",
+                    str(self.db.path),
+                    *map(str, args),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            self.assertEqual(result.returncode, expected, result.stderr)
+            return json.loads(result.stdout) if result.stdout else None
+
+        cli("ingest", "demo", "bar", source, "--request-key", "cli")
+        cli("snapshot", q, "--output", out)
+        self.assertTrue(cli("verify-snapshot", out)["passed"])
+        self.assertTrue(cli("audit")["passed"])
+        cli("snapshot", q, "--output", out, expected=2)
+        missing = self.root / "never-created.sqlite"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "alphacairn.market_cli",
+                "--database",
+                str(missing),
+                "verify-snapshot",
+                str(out),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(missing.exists())
+
