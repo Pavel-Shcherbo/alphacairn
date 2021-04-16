@@ -380,3 +380,32 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(missing.exists())
 
+    def test_randomized_revision_selection_against_plain_timeline_oracle(self):
+        import random
+
+        rng = random.Random(71)
+        timeline = []
+        for day_number in range(2, 8):
+            for revision in range(3):
+                row = bar(
+                    f"2020-01-{day_number:02d}",
+                    close=str(rng.randint(2, 29)),
+                    published=f"2020-01-{day_number+revision:02d}T17:00:00Z",
+                )
+                timeline.append(row)
+        rng.shuffle(timeline)
+        for index, row in enumerate(timeline):
+            self.ingest([row], key=f"row-{index}")
+        for cutoff_day in range(2, 12):
+            cutoff = f"2020-01-{cutoff_day:02d}T18:00:00Z"
+            eligible = [r for r in timeline if r["published_at"] <= cutoff]
+            expected = {}
+            for session in sorted({r["session"] for r in eligible}):
+                known = [r for r in eligible if r["session"] == session]
+                expected[session] = max(known, key=lambda r: r["published_at"])["close"]
+            actual = {
+                r["observation"]["session"]: r["observation"]["close"]
+                for r in self.db.snapshot(query(cutoff))["records"]
+            }
+            self.assertEqual(actual, expected)
+
