@@ -409,3 +409,16 @@ class MarketTests(unittest.TestCase):
             }
             self.assertEqual(actual, expected)
 
+    def test_raw_blob_and_wrong_batch_ownership_detected(self):
+        self.ingest([bar()])
+        other = self.ingest([bar("2020-01-03")], key="other")
+        with closing(sqlite3.connect(self.db.path)) as db, db:
+            db.execute(
+                "UPDATE observations SET batch_id=? WHERE effective='2020-01-02'",
+                (other["id"],),
+            )
+        self.assertFalse(self.db.audit()["passed"])
+        with closing(sqlite3.connect(self.db.path)) as db, db:
+            db.execute("UPDATE batches SET raw=? WHERE id=?", (b"[]", other["id"]))
+        self.assertFalse(self.db.audit()["passed"])
+
