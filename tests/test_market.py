@@ -457,3 +457,20 @@ class MarketTests(unittest.TestCase):
             )
         self.assertTrue(catalogs[0].audit()["passed"])
 
+    def test_unrelated_database_is_not_adopted(self):
+        path = self.root / "unrelated.sqlite"
+        with closing(sqlite3.connect(path)) as db, db:
+            db.execute("CREATE TABLE customer_records(id TEXT)")
+            db.execute("INSERT INTO customer_records VALUES('kept')")
+        with self.assertRaisesRegex(ValueError, "unrelated"):
+            MarketCatalog(path, create=True)
+        with closing(sqlite3.connect(path)) as db:
+            self.assertEqual(
+                db.execute("SELECT * FROM customer_records").fetchall(), [("kept",)]
+            )
+            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 0)
+            self.assertEqual(db.execute("PRAGMA journal_mode").fetchone()[0], "delete")
+
+
+if __name__ == "__main__":
+    unittest.main()
