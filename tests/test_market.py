@@ -449,3 +449,11 @@ class MarketTests(unittest.TestCase):
             "not to every historical", output["market_vintage"]["assumptions"]
         )
 
+    def test_cold_start_concurrent_initializers(self):
+        path = self.root / "fresh.sqlite"
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            catalogs = list(
+                pool.map(lambda _: MarketCatalog(path, create=True), range(8))
+            )
+        self.assertTrue(catalogs[0].audit()["passed"])
+
