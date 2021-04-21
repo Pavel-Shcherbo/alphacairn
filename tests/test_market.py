@@ -422,3 +422,30 @@ class MarketTests(unittest.TestCase):
             db.execute("UPDATE batches SET raw=? WHERE id=?", (b"[]", other["id"]))
         self.assertFalse(self.db.audit()["passed"])
 
+    def test_snapshot_study_uses_selected_revision_and_exposes_vintage(self):
+        self.ingest([bar(), bar("2020-01-03", close="20")])
+        snapshot = self.db.snapshot(query("2020-01-04T00:00:00Z"))
+        path = self.root / "study.json"
+        write_snapshot(snapshot, path)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "alphacairn.research",
+                "risk",
+                "--market-snapshot",
+                str(path),
+                "--lookback",
+                "1",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        self.assertEqual(output["market_vintage"]["sha256"], snapshot["sha256"])
+        self.assertIn(
+            "not to every historical", output["market_vintage"]["assumptions"]
+        )
+
