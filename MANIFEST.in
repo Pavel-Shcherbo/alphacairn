@@ -8,3 +8,4 @@ include examples/market-bars.json
 include examples/market-universe.json
 include examples/market-query.json
 include examples/market-decisions.json
+include examples/execution-scenario.json
