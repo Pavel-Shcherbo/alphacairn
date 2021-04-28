@@ -73,3 +73,7 @@ This exports the reviewed examples to a new directory without overwriting an exi
 This repository was assembled starting in November 2026. Earlier Git timestamps,
 where used, represent reconstructed development stages, not verified original
 work in those years. The 2019–2026 roadmap is proposed scope, not a completed-work record.
+
+## Multi-instrument execution
+
+The execution CLI models explicit market/limit orders across instruments and currencies, known liquidity budgets, partial fills, tick-rounded slippage, per-fill fees, IOC/DAY/GTC, deferred cancellations and expiry. Its cash/positions reconcile through the portfolio journal; deterministic bundles include fills, orders, equity and replayable ledger events. See [execution guide](docs/EXECUTION.md) for model assumptions, a hand-calculated synthetic example and complete commands. This engine has no brokerage endpoint.
