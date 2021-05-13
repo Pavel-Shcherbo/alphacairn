@@ -74,3 +74,14 @@ class ExecutionBook:
             {"sequence": len(self.events) + 1, "kind": kind, "at": at, **fields}
         )
 
+    def terminal(self, order, status, at, reason):
+        order["status"] = status
+        order["completed_at"] = at
+        self.emit(
+            status,
+            at,
+            order_id=order["definition"]["id"],
+            reason=reason,
+            remaining=text(order["remaining"]),
+        )
+
