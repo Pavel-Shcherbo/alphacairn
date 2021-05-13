@@ -67,3 +67,10 @@ class ExecutionBook:
                 "eligible": set(),
             }
 
+    def emit(self, kind, at, **fields):
+        if len(self.events) >= 20000:
+            raise ValueError("execution trace exceeds 20,000 events")
+        self.events.append(
+            {"sequence": len(self.events) + 1, "kind": kind, "at": at, **fields}
+        )
+
