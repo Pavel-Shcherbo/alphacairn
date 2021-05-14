@@ -85,3 +85,28 @@ class ExecutionBook:
             remaining=text(order["remaining"]),
         )
 
+    def command(self, command):
+        if command["action"] == "submit":
+            order = self.orders[command["id"]]
+            order["status"] = "open"
+            self.emit("submitted", command["at"], order_id=command["id"])
+        else:
+            order = self.orders[command["order_id"]]
+            if order["status"] in LIVE:
+                if order["cancel_requested_at"] is None:
+                    order["cancel_requested_at"] = command["at"]
+                self.emit(
+                    "cancel_requested",
+                    command["at"],
+                    order_id=command["order_id"],
+                    command_id=command["id"],
+                )
+            else:
+                self.emit(
+                    "cancel_ignored",
+                    command["at"],
+                    order_id=command["order_id"],
+                    command_id=command["id"],
+                    status=order["status"],
+                )
+
