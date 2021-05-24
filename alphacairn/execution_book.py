@@ -110,3 +110,8 @@ class ExecutionBook:
                     status=order["status"],
                 )
 
+    def expire(self, order_id, at):
+        order = self.orders[order_id]
+        if order["status"] in LIVE:
+            self.terminal(order, "expired", at, "explicit_expiry_or_instrument_end")
+
