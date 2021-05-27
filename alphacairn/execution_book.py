@@ -118,3 +118,97 @@ class ExecutionBook:
     def priority(self, order):
         return order["definition"]["at"], order["sequence"]
 
+    def _fill(self, order, bar, at, phase, price):
+        definition = order["definition"]
+        instrument = self.account.instrument(definition["instrument"])
+        currency = instrument.quote_currency
+        order["attempts"] += 1
+        if price <= 0:
+            order["last_block_reason"] = "nonpositive_execution_price"
+            return
+        maximum = min(order["remaining"], bar["remaining"])
+        position = self.positions.get(instrument.id, ZERO)
+        if maximum < instrument.quantity_step:
+            order["last_block_reason"] = "liquidity_or_quantity_step"
+            return
+        if definition["side"] == "sell" and position < instrument.quantity_step:
+            order["last_block_reason"] = "insufficient_position"
+            return
+        quantity = affordable_quantity(
+            instrument,
+            maximum,
+            price,
+            definition["side"],
+            self.cash[currency],
+            position,
+            self.account.places(currency),
+            self.rate,
+            self.minimum[currency],
+        )
+        if not quantity:
+            order["last_block_reason"] = "insufficient_cash_fee_or_positive_notional"
+            return
+        notional, fee = fill_cost(
+            quantity,
+            price,
+            self.account.places(currency),
+            self.rate,
+            self.minimum[currency],
+        )
+        if len(self.ledger_events) >= 10000:
+            raise ValueError("execution exceeds 10,000 funding/fill journal events")
+        sign = 1 if definition["side"] == "buy" else -1
+        self.cash[currency] = decimal_value(
+            (
+                self.cash[currency] - notional - fee
+                if sign == 1
+                else self.cash[currency] + notional - fee
+            ),
+            "cash after fill",
+            nonnegative=True,
+        )
+        self.positions[instrument.id] = decimal_value(
+            position + sign * quantity, "position after fill", nonnegative=True
+        )
+        bar["remaining"] -= quantity
+        order["remaining"] -= quantity
+        order["filled"] += quantity
+        order["price_quantity"] += quantity * price
+        order["fees"] += fee
+        order["last_block_reason"] = None
+        fill_id = "simfill-" + str(len(self.fills) + 1).zfill(6)
+        fill = {
+            "id": fill_id,
+            "order_id": definition["id"],
+            "instrument": instrument.id,
+            "side": definition["side"],
+            "at": at,
+            "phase": phase,
+            "session": bar["definition"]["session"],
+            "quantity": text(quantity),
+            "price": text(price),
+            "notional": text(notional),
+            "fee": text(fee),
+            "currency": currency,
+            "cash_after": text(self.cash[currency]),
+            "position_after": text(self.positions[instrument.id]),
+        }
+        self.fills.append(fill)
+        self.ledger_events.append(
+            {
+                "id": fill_id,
+                "timestamp": at,
+                "kind": "trade",
+                "instrument": instrument.id,
+                "side": definition["side"],
+                "quantity": text(quantity),
+                "price": text(price),
+                "fee": text(fee),
+            }
+        )
+        self.emit("fill", at, order_id=definition["id"], fill_id=fill_id)
+        if order["remaining"] == 0:
+            self.terminal(order, "filled", at, "quantity_executed")
+        else:
+            order["status"] = "partially_filled"
+
