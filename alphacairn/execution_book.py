@@ -212,3 +212,63 @@ class ExecutionBook:
         else:
             order["status"] = "partially_filled"
 
+    def open_bars(self, at, indices):
+        opening = {
+            self.bars[index]["definition"]["instrument"]: index for index in indices
+        }
+        candidates = sorted(
+            (
+                order
+                for order in self.orders.values()
+                if order["status"] in LIVE
+                and order["definition"]["instrument"] in opening
+                and order["definition"]["at"] < at
+            ),
+            key=self.priority,
+        )
+        with arithmetic():
+            for order in candidates:
+                definition = order["definition"]
+                index = opening[definition["instrument"]]
+                bar = self.bars[index]
+                if (
+                    order["cancel_requested_at"] is not None
+                    and order["cancel_requested_at"] < at
+                ):
+                    self.terminal(
+                        order,
+                        "cancelled",
+                        at,
+                        "cancel_effective_at_next_instrument_open",
+                    )
+                    continue
+                if order["first_bar"] is None:
+                    order["first_bar"] = index
+                bar["eligible"].add(definition["id"])
+                opening_price = Decimal(bar["definition"]["open"])
+                limit = (
+                    Decimal(definition["limit"])
+                    if definition["limit"] is not None
+                    else None
+                )
+                marketable = (
+                    limit is None
+                    or definition["side"] == "buy"
+                    and opening_price <= limit
+                    or definition["side"] == "sell"
+                    and opening_price >= limit
+                )
+                if marketable:
+                    price = execution_price(
+                        self.account.instrument(definition["instrument"]),
+                        opening_price,
+                        definition["side"],
+                        self.slip,
+                        limit,
+                    )
+                    self._fill(order, bar, at, "open", price)
+                else:
+                    order["last_block_reason"] = "limit_not_marketable_at_open"
+                if definition["time_in_force"] == "IOC" and order["status"] in LIVE:
+                    self.terminal(order, "cancelled", at, "IOC_remainder_after_open")
+
