@@ -272,3 +272,44 @@ class ExecutionBook:
                 if definition["time_in_force"] == "IOC" and order["status"] in LIVE:
                     self.terminal(order, "cancelled", at, "IOC_remainder_after_open")
 
+    def close_bars(self, at, indices):
+        closing = {
+            self.bars[index]["definition"]["instrument"]: index for index in indices
+        }
+        candidates = sorted(
+            (
+                order
+                for order in self.orders.values()
+                if order["status"] in LIVE
+                and order["definition"]["instrument"] in closing
+                and order["definition"]["id"]
+                in self.bars[closing[order["definition"]["instrument"]]]["eligible"]
+            ),
+            key=self.priority,
+        )
+        with arithmetic():
+            for order in candidates:
+                definition = order["definition"]
+                bar = self.bars[closing[definition["instrument"]]]
+                if definition["kind"] == "limit" and (
+                    definition["expires_at"] is None or definition["expires_at"] > at
+                ):
+                    limit = Decimal(definition["limit"])
+                    touched = (
+                        Decimal(bar["definition"]["low"]) <= limit
+                        if definition["side"] == "buy"
+                        else Decimal(bar["definition"]["high"]) >= limit
+                    )
+                    if touched:
+                        self._fill(order, bar, at, "limit_touch_at_close", limit)
+                    else:
+                        order["last_block_reason"] = "limit_not_touched"
+            for order in candidates:
+                if (
+                    order["status"] in LIVE
+                    and order["definition"]["time_in_force"] == "DAY"
+                ):
+                    self.terminal(
+                        order, "cancelled", at, "DAY_remainder_after_first_eligible_bar"
+                    )
+
