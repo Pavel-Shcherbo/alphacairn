@@ -313,3 +313,30 @@ class ExecutionBook:
                         order, "cancelled", at, "DAY_remainder_after_first_eligible_bar"
                     )
 
+    def order_reports(self):
+        result = []
+        with arithmetic():
+            for order in sorted(
+                self.orders.values(), key=lambda item: item["sequence"]
+            ):
+                definition = order["definition"]
+                result.append(
+                    {
+                        **definition,
+                        "status": order["status"],
+                        "remaining_quantity": text(order["remaining"]),
+                        "filled_quantity": text(order["filled"]),
+                        "average_fill_price": (
+                            text(order["price_quantity"] / order["filled"])
+                            if order["filled"]
+                            else None
+                        ),
+                        "fees": text(order["fees"]),
+                        "attempts": order["attempts"],
+                        "last_block_reason": order["last_block_reason"],
+                        "cancel_requested_at": order["cancel_requested_at"],
+                        "completed_at": order["completed_at"],
+                    }
+                )
+        return result
+
