@@ -340,3 +340,15 @@ class ExecutionBook:
                 )
         return result
 
+    def bar_reports(self):
+        return [
+            {
+                "instrument": item["definition"]["instrument"],
+                "session": item["definition"]["session"],
+                "liquidity_known_at": item["definition"]["liquidity_known_at"],
+                "usable_liquidity": text(item["initial"]),
+                "consumed": text(item["initial"] - item["remaining"]),
+                "remaining": text(item["remaining"]),
+            }
+            for item in self.bars.values()
+        ]
