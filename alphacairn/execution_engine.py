@@ -31,3 +31,20 @@ ASSUMPTIONS = [
 ]
 
 
+def simulate_execution(definition, *, should_cancel=None):
+    if should_cancel is not None and not callable(should_cancel):
+        raise ValueError("execution cancellation must be callable")
+    plan = (
+        definition
+        if isinstance(definition, ExecutionPlan)
+        else compile_execution(definition)
+    )
+    if (
+        digest(plan.definition) != plan.sha256
+        or plan.account.definition() != plan.definition["account"]
+    ):
+        raise ValueError("compiled execution plan was mutated after validation")
+    with arithmetic():
+        return _simulate(plan, should_cancel)
+
+
