@@ -26,3 +26,9 @@ FILES = frozenset(
 )
 
 
+def json_data(value):
+    return (
+        json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + "\n"
+    ).encode()
+
+
