@@ -32,3 +32,18 @@ def json_data(value):
     ).encode()
 
 
+def parse_data(raw, limit=FILE_LIMIT):
+    if not isinstance(raw, bytes) or len(raw) > limit:
+        raise ValueError("execution JSON file exceeds its byte limit")
+    try:
+        return json.loads(
+            raw,
+            object_pairs_hook=pairs,
+            parse_constant=lambda _: (_ for _ in ()).throw(
+                ValueError("non-finite execution JSON")
+            ),
+        )
+    except (RecursionError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError("invalid or excessively nested execution JSON") from error
+
+
