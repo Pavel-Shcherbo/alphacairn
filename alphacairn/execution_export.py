@@ -47,3 +47,14 @@ def parse_data(raw, limit=FILE_LIMIT):
         raise ValueError("invalid or excessively nested execution JSON") from error
 
 
+def csv_data(rows, fields):
+    stream = io.StringIO(newline="")
+    writer = csv.DictWriter(
+        stream, fieldnames=fields, extrasaction="ignore", lineterminator="\n"
+    )
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    return stream.getvalue().encode()
+
+
