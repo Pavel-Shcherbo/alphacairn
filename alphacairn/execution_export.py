@@ -58,3 +58,81 @@ def csv_data(rows, fields):
     return stream.getvalue().encode()
 
 
+def payloads(definition, report):
+    plan = compile_execution(definition)
+    if (
+        not isinstance(report, dict)
+        or report.get("format") != "alphacairn.execution-report.v1"
+        or report.get("scenario_sha256") != plan.sha256
+        or report.get("completed") is not True
+        or report.get("accounting_reconciled") is not True
+        or report.get("sha256")
+        != digest({key: value for key, value in report.items() if key != "sha256"})
+    ):
+        raise ValueError("execution report identity or completion fields are invalid")
+    result = {
+        "scenario.json": json_data(plan.definition),
+        "report.json": json_data(report),
+        "ledger-events.json": json_data(report["ledger_events"]),
+        "fills.csv": csv_data(
+            report["fills"],
+            [
+                "id",
+                "order_id",
+                "instrument",
+                "side",
+                "at",
+                "phase",
+                "session",
+                "quantity",
+                "price",
+                "notional",
+                "fee",
+                "currency",
+                "cash_after",
+                "position_after",
+            ],
+        ),
+        "orders.csv": csv_data(
+            report["orders"],
+            [
+                "id",
+                "instrument",
+                "side",
+                "kind",
+                "at",
+                "time_in_force",
+                "status",
+                "quantity",
+                "filled_quantity",
+                "remaining_quantity",
+                "average_fill_price",
+                "fees",
+                "attempts",
+                "last_block_reason",
+                "completed_at",
+            ],
+        ),
+        "equity.csv": csv_data(
+            report["equity_curve"],
+            [
+                "at",
+                "complete",
+                "equity",
+                "known_base_value",
+                "missing_count",
+                "missing_diagnostics_complete",
+            ],
+        ),
+    }
+    if (
+        any(len(value) > FILE_LIMIT for value in result.values())
+        or len(result["scenario.json"]) > 8 * 1024 * 1024
+        or sum(map(len, result.values())) > BUNDLE_LIMIT
+    ):
+        raise ValueError(
+            "rendered execution bundle exceeds file or combined byte budget"
+        )
+    return plan, result
+
+
