@@ -172,3 +172,71 @@ def write_execution(definition, report, destination):
     }
 
 
+def verify_execution_bundle(directory, *, should_cancel=None):
+    directory = Path(directory)
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError("execution bundle must be an ordinary directory")
+    if {path.name for path in directory.iterdir()} != FILES | {"manifest.json"}:
+        raise ValueError(
+            "execution bundle is incomplete or contains unexpected entries"
+        )
+
+    def read(name, limit):
+        path = directory / name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("execution bundle files cannot be symlinks or directories")
+        with path.open("rb") as stream:
+            raw = stream.read(limit + 1)
+        if len(raw) > limit:
+            raise ValueError("execution bundle file exceeds its byte budget")
+        return raw
+
+    manifest = parse_data(read("manifest.json", 65536), 65536)
+    if (
+        not isinstance(manifest, dict)
+        or set(manifest) != {"format", "scenario_sha256", "report_sha256", "files"}
+        or manifest["format"] != "alphacairn.execution-bundle.v1"
+        or not isinstance(manifest["files"], dict)
+        or set(manifest["files"]) != FILES
+    ):
+        raise ValueError("invalid execution bundle manifest")
+    files = {}
+    total = 0
+    for name, expected in manifest["files"].items():
+        raw = read(name, 8 * 1024 * 1024 if name == "scenario.json" else FILE_LIMIT)
+        total += len(raw)
+        if total > BUNDLE_LIMIT:
+            raise ValueError("execution bundle exceeds 48 MiB")
+        if (
+            not isinstance(expected, dict)
+            or set(expected) != {"bytes", "sha256"}
+            or type(expected["bytes"]) is not int
+            or expected["bytes"] != len(raw)
+            or expected["sha256"] != hashlib.sha256(raw).hexdigest()
+        ):
+            raise ValueError("execution bundle file hash or size mismatch: " + name)
+        files[name] = raw
+    definition = parse_data(files["scenario.json"], 8 * 1024 * 1024)
+    saved = parse_data(files["report.json"])
+    # Re-execute inputs rather than treating a self-consistent manifest as proof.
+    replayed = simulate_execution(definition, should_cancel=should_cancel)
+    plan, expected = payloads(definition, replayed)
+    if (
+        manifest["scenario_sha256"] != plan.sha256
+        or manifest["report_sha256"] != replayed["sha256"]
+        or saved != replayed
+        or files != expected
+    ):
+        raise ValueError(
+            "saved execution output differs from deterministic scenario replay"
+        )
+    return {
+        "passed": True,
+        "replayed": True,
+        "scenario_sha256": plan.sha256,
+        "report_sha256": replayed["sha256"],
+        "fills": len(replayed["fills"]),
+        "open_orders": replayed["open_order_count"],
+        "accounting_reconciled": replayed["accounting_reconciled"],
+        "valuation_complete": replayed["valuation"]["complete"],
+    }
