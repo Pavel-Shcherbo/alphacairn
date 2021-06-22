@@ -136,3 +136,39 @@ def payloads(definition, report):
     return plan, result
 
 
+def write_execution(definition, report, destination):
+    plan, files = payloads(definition, report)
+    destination = Path(destination)
+    destination.mkdir(mode=0o700, parents=False, exist_ok=False)
+    try:
+        for name, raw in files.items():
+            with (destination / name).open("xb") as stream:
+                stream.write(raw)
+                stream.flush()
+                os.fsync(stream.fileno())
+        manifest = {
+            "format": "alphacairn.execution-bundle.v1",
+            "scenario_sha256": plan.sha256,
+            "report_sha256": report["sha256"],
+            "files": {
+                name: {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+                for name, raw in sorted(files.items())
+            },
+        }
+        raw = json_data(manifest)
+        # Manifest is the final completion marker; readers reject incomplete bundles.
+        with (destination / "manifest.json").open("xb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except BaseException:
+        shutil.rmtree(destination)
+        raise
+    return {
+        "directory": str(destination),
+        "scenario_sha256": plan.sha256,
+        "report_sha256": report["sha256"],
+        "files": manifest["files"],
+    }
+
+
