@@ -26,3 +26,11 @@ def execution_price(instrument, opening, side, slippage_bps, limit=None):
         return decimal_value(price, "execution price", nonnegative=True)
 
 
+def fill_cost(quantity, price, places, rate_bps, minimum):
+    notional = rounded(quantity * price, places)
+    fee = (
+        max(rounded(notional * rate_bps / 10000, places), minimum) if quantity else ZERO
+    )
+    return notional, fee
+
+
