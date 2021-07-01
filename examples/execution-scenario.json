@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "account": {
+    "name": "synthetic-execution-control",
+    "base_currency": "USD",
+    "currencies": {
+      "USD": 2,
+      "EUR": 2
+    },
+    "instruments": [
+      {
+        "id": "equity-us",
+        "symbol": "SYNUS",
+        "venue": "SIMULATED",
+        "kind": "equity",
+        "quote_currency": "USD",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      },
+      {
+        "id": "equity-eu",
+        "symbol": "SYNEU",
+        "venue": "SIMULATED",
+        "kind": "equity",
+        "quote_currency": "EUR",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      },
+      {
+        "id": "crypto-spot",
+        "symbol": "SYNCOIN",
+        "venue": "SIMULATED",
+        "kind": "crypto_spot",
+        "quote_currency": "USD",
+        "quantity_step": "0.1",
+        "price_tick": "0.01"
+      }
+    ]
+  },
+  "starts_at": "2020-01-01T00:00:00Z",
+  "ends_at": "2020-01-04T17:00:00Z",
+  "initial_cash": {
+    "USD": "1000",
+    "EUR": "200"
+  },
+  "fees": {
+    "rate_bps": "10",
+    "minimum": {
+      "USD": "0.50",
+      "EUR": "0.10"
+    }
+  },
+  "slippage_bps": "0",
+  "max_mark_age_seconds": 432000,
+  "bars": [
+    {
+      "instrument": "equity-us",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "9",
+      "close": "11",
+      "liquidity": "3",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "equity-eu",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "20",
+      "high": "23",
+      "low": "18",
+      "close": "22",
+      "liquidity": "2",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "crypto-spot",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "50",
+      "high": "60",
+      "low": "48",
+      "close": "55",
+      "liquidity": "0.5",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "equity-us",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "12",
+      "high": "13",
+      "low": "10",
+      "close": "12",
+      "liquidity": "3",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "equity-eu",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "22",
+      "high": "24",
+      "low": "20",
+      "close": "21",
+      "liquidity": "2",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "crypto-spot",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "55",
+      "high": "58",
+      "low": "50",
+      "close": "54",
+      "liquidity": "0.5",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "equity-us",
+      "session": "2020-01-04",
+      "opened_at": "2020-01-04T09:00:00Z",
+      "closed_at": "2020-01-04T17:00:00Z",
+      "open": "11",
+      "high": "12",
+      "low": "9",
+      "close": "11",
+      "liquidity": "10",
+      "liquidity_known_at": "2020-01-04T08:00:00Z"
+    },
+    {
+      "instrument": "equity-eu",
+      "session": "2020-01-04",
+      "opened_at": "2020-01-04T09:00:00Z",
+      "closed_at": "2020-01-04T17:00:00Z",
+      "open": "21",
+      "high": "22",
+      "low": "20",
+      "close": "21",
+      "liquidity": "10",
+      "liquidity_known_at": "2020-01-04T08:00:00Z"
+    },
+    {
+      "instrument": "crypto-spot",
+      "session": "2020-01-04",
+      "opened_at": "2020-01-04T09:00:00Z",
+      "closed_at": "2020-01-04T17:00:00Z",
+      "open": "54",
+      "high": "56",
+      "low": "52",
+      "close": "54",
+      "liquidity": "10",
+      "liquidity_known_at": "2020-01-04T08:00:00Z"
+    }
+  ],
+  "commands": [
+    {
+      "action": "submit",
+      "id": "buy-equity-us",
+      "at": "2020-01-01T12:00:00Z",
+      "instrument": "equity-us",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "5",
+      "time_in_force": "GTC"
+    },
+    {
+      "action": "submit",
+      "id": "buy-equity-eu",
+      "at": "2020-01-01T12:00:00Z",
+      "instrument": "equity-eu",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "3",
+      "time_in_force": "GTC"
+    },
+    {
+      "action": "submit",
+      "id": "buy-crypto-spot",
+      "at": "2020-01-01T12:00:00Z",
+      "instrument": "crypto-spot",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "0.8",
+      "time_in_force": "GTC"
+    },
+    {
+      "action": "submit",
+      "id": "sell-equity-us",
+      "at": "2020-01-03T18:00:00Z",
+      "instrument": "equity-us",
+      "side": "sell",
+      "kind": "market",
+      "quantity": "2",
+      "time_in_force": "GTC"
+    }
+  ],
+  "fx": [
+    {
+      "currency": "EUR",
+      "at": "2020-01-01T00:00:00Z",
+      "rate": "1.2"
+    }
+  ]
+}
