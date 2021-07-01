@@ -59,3 +59,79 @@ def affordable_quantity(
         return quantity if notional > 0 else ZERO
 
 
+def marked_value(account, cash, positions, marks, fx, *, at, max_age):
+    when = timestamp(at)
+    base_places = account.places(account.base_currency)
+    totals = {}
+    missing = []
+    with arithmetic():
+        components = []
+        required_fx = {
+            code
+            for code, value in cash.items()
+            if value and code != account.base_currency
+        }
+        for code, value in cash.items():
+            totals[code] = value
+            components.append((code, value))
+        for name, quantity in positions.items():
+            if not quantity:
+                continue
+            instrument = account.instrument(name)
+            if instrument.quote_currency != account.base_currency:
+                required_fx.add(instrument.quote_currency)
+            quote = marks.get(name)
+            if (
+                quote is None
+                or (when - timestamp(quote["at"])).total_seconds() > max_age
+            ):
+                missing.append(
+                    {
+                        "kind": "mark",
+                        "instrument": name,
+                        "reason": "missing" if quote is None else "stale",
+                    }
+                )
+                continue
+            value = rounded(
+                quantity * Decimal(quote["price"]),
+                account.places(instrument.quote_currency),
+            )
+            totals[instrument.quote_currency] = (
+                totals.get(instrument.quote_currency, ZERO) + value
+            )
+            components.append((instrument.quote_currency, value))
+        known = ZERO
+        rates = {account.base_currency: Decimal(1)}
+        for currency in sorted(required_fx):
+            quote = fx.get(currency)
+            if (
+                quote is None
+                or (when - timestamp(quote["at"])).total_seconds() > max_age
+            ):
+                missing.append(
+                    {
+                        "kind": "fx",
+                        "currency": currency,
+                        "reason": "missing" if quote is None else "stale",
+                    }
+                )
+            else:
+                rates[currency] = Decimal(quote["rate"])
+        for currency, value in components:
+            if value and currency in rates:
+                known += rounded(value * rates[currency], base_places)
+        known = rounded(known, base_places)
+    return {
+        "at": at,
+        "complete": not missing,
+        "equity": text(known) if not missing else None,
+        "known_base_value": text(known),
+        "quote_currency_values": {
+            code: text(value) for code, value in sorted(totals.items())
+        },
+        "quote_values_partial": any(item["kind"] == "mark" for item in missing),
+        "missing_count": len(missing),
+        "missing_sample": missing[:20],
+        "missing_diagnostics_complete": len(missing) <= 20,
+    }
