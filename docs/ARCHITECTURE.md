@@ -29,3 +29,7 @@ Expose the market catalog in management views, then add corporate-action-aware p
 ## Market data clocks
 
 `market_model` validates bounded exact-decimal daily observations, explicit publication clocks, interval memberships and portable snapshot identity. `market_store` retains original batches and immutable revisions under SQLite transactions; a consistent read view spans related queries during concurrent ingestion. `market_research` exports and verifies snapshots and rebuilds each decision window from its eligible revisions and membership. `market_cli` exposes local operations; the research CLI accepts a verified fixed-vintage snapshot and retains its distinct timing assumptions. No remote market source or brokerage connection is configured. See MARKET_DATA.md.
+
+## Multi-instrument execution
+
+`execution_model` validates explicit bar clocks, pre-open liquidity knowledge, account/cost contracts and ordered instructions. `execution_book` allocates simultaneous cross-instrument fills by command priority under cash, holding, lot and shared-liquidity bounds. `execution_money` provides exact affordability and marked values; `execution_engine` processes expiry/close/command/open phases and independently reconciles funding/fills through the existing portfolio journal and valuation. `execution_export` publishes create-only deterministic bundles and verifies them by re-running the scenario; `execution` is the local operator CLI. Strategy generation and live execution are outside this boundary. See EXECUTION.md.
