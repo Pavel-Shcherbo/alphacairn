@@ -2,7 +2,7 @@
 
 Verified locally on 2026-11-04. This is not full product acceptance.
 
-- 85 domain, integration and negative-path tests passed.
+- 113 domain, integration and negative-path tests passed.
 - The documented CLI control scenario completed and its result was checked.
 - Local HTTP success/failure scenarios and foreign-Origin rejection were checked.
 - Desktop and mobile workbench screens were inspected; the review includes defect corrections.
@@ -17,3 +17,7 @@ Portfolio verification includes hand-calculated multi-currency balances, FIFO pa
 Verified increment: explicit-source market catalog, immutable raw batches, publication/recording clocks, revision-aware historical universes, portable snapshots and per-decision feature windows. 22 new subsystem tests and 85 total Alphacairn tests passed. Clean installed ingestion, decision windows, snapshot verification and fixed-vintage research passed. Evidence: `docs/MARKET_DATA.md`, `docs/market-catalog-verification.json`. Remote data adapters, corporate-action normalization, catalog UI, multi-asset simulation and the 20,000 useful-SLOC requirement remain open.
 
 The market controls include a shuffled independent revision-timeline oracle, source separation, same-time conflicts, late corrections, retractions, half-open delisting intervals, overlapping-universe rejection, partial audits, raw/index tampering, concurrent ingestion and consistent read views. Browser evidence above applies to the existing strategy and portfolio screens; market catalog UI is not implemented.
+
+Verified increment: exact multi-instrument market/limit execution, known liquidity, partial fills, currency cash/position protection, per-fill fees, IOC/DAY/GTC, deferred cancellation/expiry, journal/FIFO/valuation reconciliation and deterministic replayable bundles. 28 new execution/export checks and 113 total Alphacairn tests passed. Installed CLI/export/replay and independent CSV Fraction accounting/final valuation passed. Evidence: `docs/EXECUTION.md`, `docs/execution-verification.json`. Strategy/catalog integration, calendars/actions, initial holdings, execution UI and ≥20,000 useful SLOC remain open.
+
+Execution controls include a seeded independent integer-cent/Fraction affordability model, tick/slippage limits, shared-cash and liquidity priority across instruments, step sizing, fees above sale proceeds, intrabar/expiry ambiguity, missing or stale FX/marks including near-zero foreign positions, future extensions, hostile ambient Decimal context, report/CSV tampering after rehash, no-overwrite bundles and full deterministic re-execution. Existing browser evidence applies to the strategy and portfolio screens; the execution engine is CLI/library only.
