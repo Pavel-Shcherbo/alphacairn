@@ -1,0 +1,41 @@
+{
+  "scope": "Clean installed synthetic execution scenario; not historical market fills or strategy performance",
+  "passed": true,
+  "report_sha256": "98b757650525233ffb48f284edb794b3f2f6e6568da9e11a16f8efbe06a4bb91",
+  "scenario_sha256": "fd925640372284fd873cd9dc92945ceff3def6fc307154816b3a9ca3d3492a52",
+  "fills": 7,
+  "filled_orders": 4,
+  "cash": {
+    "EUR": "137.80",
+    "USD": "924.00"
+  },
+  "positions": {
+    "crypto-spot": {
+      "basis": "42.50",
+      "quantity": "0.8"
+    },
+    "equity-eu": {
+      "basis": "62.20",
+      "quantity": "3"
+    },
+    "equity-us": {
+      "basis": "34.67",
+      "quantity": "3"
+    }
+  },
+  "fees_by_currency": {
+    "EUR": "0.20",
+    "USD": "2.50"
+  },
+  "equity": "1241.16",
+  "independent_csv_fraction_accounting_passed": true,
+  "independent_final_valuation_passed": true,
+  "deterministic_replay_passed": true,
+  "ledger_audit": {
+    "issues": [],
+    "passed": true,
+    "scope": "journal hashes, balanced postings, cash and lot checks, full event replay; not external statement verification",
+    "sequence": 9
+  },
+  "manifest_hashes_verified": true
+}
