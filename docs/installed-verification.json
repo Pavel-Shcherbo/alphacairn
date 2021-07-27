@@ -1,6 +1,7 @@
 {
-  "wheel_sha256": "260b27c838882095cd7d49728e3ade094a3a49cbce6c25c0b655a626ea79e4f6",
+  "wheel_sha256": "04ec7d6e1dbd3e611fd074c9ef8773bd6926ef0af057eab3476f6d7ab43b5f9e",
   "examples_exported": [
+    "execution-scenario.json",
     "market-bars.json",
     "market-decisions.json",
     "market-query.json",
@@ -18,5 +19,6 @@
   "state_outside_package": true,
   "portfolio_cli_lifecycle_passed": true,
   "portfolio_http_success_and_failures_passed": true,
-  "market_revision_windows_and_snapshot_study_passed": true
+  "market_revision_windows_and_snapshot_study_passed": true,
+  "multi_asset_execution_replay_and_fraction_control_passed": true
 }
