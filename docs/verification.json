@@ -1,5 +1,5 @@
 {
-  "unit_tests": 85,
+  "unit_tests": 113,
   "unit_passed": true,
   "cli_passed": true,
   "source_hashes": {
@@ -7,6 +7,12 @@
     "alphacairn/__main__.py": "c8a2c19447874e2900a510bf3e5deafee5704cf550e262ba5844d92366ff6d22",
     "alphacairn/analytics.py": "dbf49a0bd59261e3a7ce6c66c0083d9fdc9960fa2dc0fecca7266ddcc7fd0a23",
     "alphacairn/backtest.py": "60212fb005aba51c2870b9205af1d7ad199f2285b16d76cbc41a5f5b6da930ac",
+    "alphacairn/execution.py": "02fa0cd6d2b0479db433db9722e03bc59200a7f8ebb7fe036522b0be9982da7a",
+    "alphacairn/execution_book.py": "d1052d2bfdfa9fe6f1aea03c5f394d40a299f6e66cdd340dcf8c91d3992c2be9",
+    "alphacairn/execution_engine.py": "fe3123b8ba6c7f93b1918d7b4830410213a89458386498e364adbb50bccd9726",
+    "alphacairn/execution_export.py": "cd363200c4fc1200684b9942458e947142747033e000d6199817374da9e666b5",
+    "alphacairn/execution_model.py": "b06cc26c9a54de0a09ac80e73bcb663a9a9325a3b1c4935162e515acca67db0a",
+    "alphacairn/execution_money.py": "5177f1c3a366c9b375255999f2867496c520f44f5257bf0a35750782d17ffd5f",
     "alphacairn/httpapp.py": "aeae90d384d4ce2451d73504885e5d9da679f48768f34f50fda39f9ef24907a6",
     "alphacairn/instruments.py": "488c69b1009f8502f8b03e21885860bdd9dd94a7665f1f0f9ecd2c48824c8a1e",
     "alphacairn/ledger.py": "bd658b7f2a857d041e98d79dd6bc0b3c0493eb45418311f8fd09d690aa58bd8e",
