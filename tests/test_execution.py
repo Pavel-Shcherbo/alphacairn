@@ -38,3 +38,28 @@ def bar(day=2, name="A", opening="10", close="11", low="8", high="12", liquidity
     }
 
 
+def order(
+    name="buy",
+    quantity="5",
+    side="buy",
+    kind="market",
+    limit=None,
+    tif="GTC",
+    at="2020-01-01T12:00:00Z",
+    asset="A",
+    expires=None,
+):
+    return {
+        "action": "submit",
+        "id": name,
+        "at": at,
+        "instrument": asset,
+        "side": side,
+        "kind": kind,
+        "quantity": quantity,
+        "limit": limit,
+        "time_in_force": tif,
+        "expires_at": expires,
+    }
+
+
