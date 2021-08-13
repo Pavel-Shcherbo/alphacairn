@@ -93,3 +93,20 @@ class ExecutionTests(unittest.TestCase):
         self.assertTrue(result["ledger_audit"]["passed"])
         self.assertTrue(result["accounting_reconciled"])
 
+    def test_initial_cash_competing_assets_use_command_priority_not_symbol_order(self):
+        data = scenario()
+        data["account"]["instruments"].append(instrument("B"))
+        data["bars"] = [bar(name="A"), bar(name="B")]
+        data["commands"] = [
+            order("first", quantity="8", asset="B"),
+            order("second", quantity="8", asset="A"),
+        ]
+        result = simulate_execution(data)
+        self.assertEqual(
+            [(f["instrument"], f["quantity"]) for f in result["fills"]],
+            [("B", "8"), ("A", "2")],
+        )
+        self.assertEqual(result["cash"]["USD"], "0.00")
+        data["bars"].reverse()
+        self.assertEqual(simulate_execution(data)["sha256"], result["sha256"])
+
