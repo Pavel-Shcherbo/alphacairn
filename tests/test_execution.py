@@ -85,4 +85,11 @@ def scenario():
 
 
 class ExecutionTests(unittest.TestCase):
-    pass
+    def test_hand_calculated_purchase_and_journal_reconciliation(self):
+        result = simulate_execution(scenario())
+        self.assertEqual(result["cash"], {"USD": "50.00"})
+        self.assertEqual(result["positions"]["A"], {"quantity": "5", "basis": "50.00"})
+        self.assertEqual(result["valuation"]["equity"], "105.00")
+        self.assertTrue(result["ledger_audit"]["passed"])
+        self.assertTrue(result["accounting_reconciled"])
+
