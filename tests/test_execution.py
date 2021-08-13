@@ -63,3 +63,26 @@ def order(
     }
 
 
+def scenario():
+    return {
+        "version": 1,
+        "account": {
+            "name": "execution",
+            "base_currency": "USD",
+            "currencies": {"USD": 2},
+            "instruments": [instrument()],
+        },
+        "starts_at": "2020-01-01T00:00:00Z",
+        "ends_at": "2020-01-04T17:00:00Z",
+        "initial_cash": {"USD": "100"},
+        "fees": {"rate_bps": "0", "minimum": {}},
+        "slippage_bps": "0",
+        "max_mark_age_seconds": 86400 * 5,
+        "bars": [bar()],
+        "commands": [order()],
+        "fx": [],
+    }
+
+
+class ExecutionTests(unittest.TestCase):
+    pass
