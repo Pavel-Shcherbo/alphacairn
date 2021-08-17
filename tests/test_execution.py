@@ -110,3 +110,20 @@ class ExecutionTests(unittest.TestCase):
         data["bars"].reverse()
         self.assertEqual(simulate_execution(data)["sha256"], result["sha256"])
 
+    def test_partial_fills_share_liquidity_and_charge_each_minimum_fee(self):
+        data = scenario()
+        data["initial_cash"]["USD"] = "1000"
+        data["fees"]["minimum"] = {"USD": "1"}
+        data["bars"] = [
+            bar(liquidity="2"),
+            bar(3, liquidity="2"),
+            bar(4, liquidity="2"),
+        ]
+        result = simulate_execution(data)
+        self.assertEqual(
+            [fill["quantity"] for fill in result["fills"]], ["2", "2", "1"]
+        )
+        self.assertEqual(result["fees_by_currency"]["USD"], "3.00")
+        self.assertEqual(result["cash"]["USD"], "947.00")
+        self.assertEqual(result["orders"][0]["status"], "filled")
+
