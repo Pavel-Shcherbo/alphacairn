@@ -127,3 +127,14 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["cash"]["USD"], "947.00")
         self.assertEqual(result["orders"][0]["status"], "filled")
 
+    def test_no_same_open_or_intrabar_submission_fill(self):
+        data = scenario()
+        data["bars"] = [bar(), bar(3)]
+        data["commands"] = [order(at="2020-01-02T09:00:00Z")]
+        result = simulate_execution(data)
+        self.assertEqual(result["fills"][0]["at"], "2020-01-03T09:00:00.000000Z")
+        data["commands"][0]["at"] = "2020-01-02T12:00:00Z"
+        self.assertEqual(
+            simulate_execution(data)["fills"][0]["at"], "2020-01-03T09:00:00.000000Z"
+        )
+
