@@ -138,3 +138,13 @@ class ExecutionTests(unittest.TestCase):
             simulate_execution(data)["fills"][0]["at"], "2020-01-03T09:00:00.000000Z"
         )
 
+    def test_limit_touch_occurs_at_close_without_open_lookahead(self):
+        data = scenario()
+        data["commands"] = [order(kind="limit", limit="9")]
+        result = simulate_execution(data)
+        fill = result["fills"][0]
+        self.assertEqual(fill["phase"], "limit_touch_at_close")
+        self.assertEqual(fill["at"], "2020-01-02T17:00:00.000000Z")
+        self.assertEqual(fill["price"], "9")
+        self.assertEqual(result["cash"]["USD"], "55.00")
+
