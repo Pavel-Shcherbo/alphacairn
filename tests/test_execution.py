@@ -148,3 +148,13 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(fill["price"], "9")
         self.assertEqual(result["cash"]["USD"], "55.00")
 
+    def test_limit_gap_improvement_and_slippage_never_break_limit(self):
+        data = scenario()
+        data["commands"] = [order(kind="limit", limit="11")]
+        data["slippage_bps"] = "2000"
+        fill = simulate_execution(data)["fills"][0]
+        self.assertEqual(fill["price"], "11")
+        self.assertEqual(fill["phase"], "open")
+        data["slippage_bps"] = "0"
+        self.assertEqual(simulate_execution(data)["fills"][0]["price"], "10")
+
