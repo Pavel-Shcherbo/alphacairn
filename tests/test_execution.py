@@ -158,3 +158,17 @@ class ExecutionTests(unittest.TestCase):
         data["slippage_bps"] = "0"
         self.assertEqual(simulate_execution(data)["fills"][0]["price"], "10")
 
+    def test_tick_rounding_is_adverse_for_both_sides(self):
+        data = scenario()
+        data["initial_cash"]["USD"] = "1000"
+        data["slippage_bps"] = "1"
+        data["bars"] = [bar(), bar(3)]
+        data["commands"] = [
+            order(quantity="1"),
+            order("sell", quantity="1", side="sell", at="2020-01-02T18:00:00Z"),
+        ]
+        result = simulate_execution(data)
+        self.assertEqual([f["price"] for f in result["fills"]], ["10.01", "9.99"])
+        self.assertEqual(result["cash"]["USD"], "999.98")
+        self.assertEqual(result["positions"], {})
+
