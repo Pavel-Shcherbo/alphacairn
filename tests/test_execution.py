@@ -172,3 +172,20 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["cash"]["USD"], "999.98")
         self.assertEqual(result["positions"], {})
 
+    def test_ioc_and_day_remainders_and_untouched_limit(self):
+        for tif, completion in [
+            ("IOC", "2020-01-02T09:00:00.000000Z"),
+            ("DAY", "2020-01-02T17:00:00.000000Z"),
+        ]:
+            data = scenario()
+            data["bars"] = [bar(liquidity="2"), bar(3)]
+            data["commands"] = [order(tif=tif)]
+            result = simulate_execution(data)
+            self.assertEqual(len(result["fills"]), 1)
+            self.assertEqual(result["orders"][0]["remaining_quantity"], "3")
+            self.assertEqual(result["orders"][0]["status"], "cancelled")
+            self.assertEqual(result["orders"][0]["completed_at"], completion)
+        data = scenario()
+        data["commands"] = [order(kind="limit", limit="1", tif="IOC")]
+        self.assertEqual(simulate_execution(data)["fills"], [])
+
