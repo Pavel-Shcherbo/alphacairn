@@ -189,3 +189,22 @@ class ExecutionTests(unittest.TestCase):
         data["commands"] = [order(kind="limit", limit="1", tif="IOC")]
         self.assertEqual(simulate_execution(data)["fills"], [])
 
+    def test_cancellation_is_effective_at_next_instrument_open(self):
+        data = scenario()
+        data["bars"] = [bar(liquidity="2"), bar(3)]
+        data["commands"] = [
+            order(),
+            {
+                "action": "cancel",
+                "id": "cancel-buy",
+                "at": "2020-01-02T18:00:00Z",
+                "order_id": "buy",
+            },
+        ]
+        result = simulate_execution(data)
+        self.assertEqual(len(result["fills"]), 1)
+        self.assertEqual(result["orders"][0]["status"], "cancelled")
+        self.assertEqual(
+            result["orders"][0]["completed_at"], "2020-01-03T09:00:00.000000Z"
+        )
+
