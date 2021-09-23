@@ -208,3 +208,17 @@ class ExecutionTests(unittest.TestCase):
             result["orders"][0]["completed_at"], "2020-01-03T09:00:00.000000Z"
         )
 
+    def test_expiry_preempts_close_touch_and_instrument_end(self):
+        data = scenario()
+        data["commands"] = [
+            order(kind="limit", limit="9", expires="2020-01-02T17:00:00Z")
+        ]
+        result = simulate_execution(data)
+        self.assertEqual(result["fills"], [])
+        self.assertEqual(result["orders"][0]["status"], "expired")
+        data = scenario()
+        data["account"]["instruments"][0]["active_until"] = "2020-01-03T00:00:00Z"
+        data["bars"] = [bar(liquidity="0")]
+        result = simulate_execution(data)
+        self.assertEqual(result["orders"][0]["status"], "expired")
+
