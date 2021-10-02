@@ -222,3 +222,18 @@ class ExecutionTests(unittest.TestCase):
         result = simulate_execution(data)
         self.assertEqual(result["orders"][0]["status"], "expired")
 
+    def test_no_short_positions_or_double_selling(self):
+        data = scenario()
+        data["bars"] = [bar(), bar(3)]
+        data["commands"] = [
+            order(quantity="2"),
+            order("sell-1", quantity="5", side="sell", at="2020-01-02T18:00:00Z"),
+            order("sell-2", quantity="5", side="sell", at="2020-01-02T18:00:00Z"),
+        ]
+        result = simulate_execution(data)
+        self.assertEqual([f["quantity"] for f in result["fills"]], ["2", "2"])
+        self.assertEqual(result["positions"], {})
+        self.assertEqual(
+            result["orders"][2]["last_block_reason"], "insufficient_position"
+        )
+
