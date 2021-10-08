@@ -237,3 +237,18 @@ class ExecutionTests(unittest.TestCase):
             result["orders"][2]["last_block_reason"], "insufficient_position"
         )
 
+    def test_quote_currencies_do_not_implicitly_fund_each_other(self):
+        data = scenario()
+        data["account"]["currencies"]["EUR"] = 2
+        data["account"]["instruments"].append(instrument("B", "EUR"))
+        data["bars"].append(bar(name="B"))
+        data["commands"] = [order(asset="B")]
+        result = simulate_execution(data)
+        self.assertEqual(result["fills"], [])
+        self.assertEqual(result["cash"]["USD"], "100.00")
+        data["initial_cash"]["EUR"] = "100"
+        data["fx"] = [{"currency": "EUR", "at": "2020-01-01T00:00:00Z", "rate": "1.2"}]
+        result = simulate_execution(data)
+        self.assertEqual(result["cash"]["EUR"], "50.00")
+        self.assertEqual(result["valuation"]["equity"], "226.00")
+
