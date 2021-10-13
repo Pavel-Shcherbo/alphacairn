@@ -252,3 +252,17 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["cash"]["EUR"], "50.00")
         self.assertEqual(result["valuation"]["equity"], "226.00")
 
+    def test_missing_or_stale_fx_and_marks_are_incomplete_not_zero(self):
+        data = scenario()
+        data["account"]["currencies"]["EUR"] = 2
+        data["initial_cash"]["EUR"] = "5"
+        result = simulate_execution(data)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertIsNone(result["valuation"]["equity"])
+        data = scenario()
+        data["max_mark_age_seconds"] = 0
+        result = simulate_execution(data)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertIsNone(result["valuation"]["equity"])
+        self.assertEqual(result["equity_curve"][-1]["missing_count"], 1)
+
