@@ -266,3 +266,14 @@ class ExecutionTests(unittest.TestCase):
         self.assertIsNone(result["valuation"]["equity"])
         self.assertEqual(result["equity_curve"][-1]["missing_count"], 1)
 
+    def test_fractional_step_and_fee_affordability(self):
+        data = scenario()
+        data["account"]["instruments"][0]["quantity_step"] = "0.25"
+        data["initial_cash"]["USD"] = "10.10"
+        data["fees"]["rate_bps"] = "100"
+        data["commands"] = [order(quantity="2")]
+        result = simulate_execution(data)
+        self.assertEqual(result["fills"][0]["quantity"], "1.00")
+        self.assertEqual(result["fills"][0]["fee"], "0.10")
+        self.assertEqual(result["cash"]["USD"], "0.00")
+
