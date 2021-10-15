@@ -277,3 +277,16 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["fills"][0]["fee"], "0.10")
         self.assertEqual(result["cash"]["USD"], "0.00")
 
+    def test_future_extension_cannot_change_earlier_fills(self):
+        original = scenario()
+        first = simulate_execution(original)
+        extended = copy.deepcopy(original)
+        extended["bars"].append(bar(3, opening="20", close="22", low="18", high="25"))
+        extended["commands"].append(
+            order("future", quantity="1", at="2020-01-02T18:00:00Z")
+        )
+        second = simulate_execution(extended)
+        self.assertEqual(
+            first["fills"], [f for f in second["fills"] if f["at"] < "2020-01-03"]
+        )
+
