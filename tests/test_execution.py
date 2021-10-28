@@ -290,3 +290,15 @@ class ExecutionTests(unittest.TestCase):
             first["fills"], [f for f in second["fills"] if f["at"] < "2020-01-03"]
         )
 
+    def test_exact_context_determinism_and_compiled_plan_mutation_guard(self):
+        data = scenario()
+        expected = simulate_execution(data)
+        with localcontext() as context:
+            context.prec = 2
+            context.traps[Inexact] = True
+            self.assertEqual(simulate_execution(data), expected)
+        plan = compile_execution(data)
+        plan.definition["initial_cash"]["USD"] = "999"
+        with self.assertRaisesRegex(ValueError, "mutated"):
+            simulate_execution(plan)
+
