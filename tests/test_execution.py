@@ -302,3 +302,35 @@ class ExecutionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "mutated"):
             simulate_execution(plan)
 
+    def test_preflight_rejects_future_liquidity_bad_envelopes_and_overlap(self):
+        controls = []
+        data = scenario()
+        data["bars"][0]["liquidity_known_at"] = "2020-01-02T10:00:00Z"
+        controls.append(data)
+        data = scenario()
+        data["bars"][0]["low"] = "13"
+        controls.append(data)
+        data = scenario()
+        data["bars"].append(bar())
+        controls.append(data)
+        data = scenario()
+        data["commands"][0]["quantity"] = "0.5"
+        controls.append(data)
+        data = scenario()
+        data["commands"][0]["at"] = "2020-01-01T00:00:00"
+        controls.append(data)
+        data = scenario()
+        data["commands"].insert(
+            0,
+            {
+                "action": "cancel",
+                "id": "bad",
+                "at": "2020-01-01T12:00:00Z",
+                "order_id": "buy",
+            },
+        )
+        controls.append(data)
+        for data in controls:
+            with self.subTest(data=data), self.assertRaises(ValueError):
+                compile_execution(data)
+
