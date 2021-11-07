@@ -334,3 +334,7 @@ class ExecutionTests(unittest.TestCase):
             with self.subTest(data=data), self.assertRaises(ValueError):
                 compile_execution(data)
 
+    def test_cancellation_returns_no_completed_report(self):
+        with self.assertRaisesRegex(ValueError, "cancelled"):
+            simulate_execution(scenario(), should_cancel=lambda: True)
+
