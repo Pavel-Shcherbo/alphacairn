@@ -338,3 +338,15 @@ class ExecutionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cancelled"):
             simulate_execution(scenario(), should_cancel=lambda: True)
 
+    def test_order_after_final_bar_remains_open_and_zero_capital_is_supported(self):
+        data = scenario()
+        data["commands"][0]["at"] = "2020-01-03T12:00:00Z"
+        result = simulate_execution(data)
+        self.assertEqual(result["open_order_count"], 1)
+        self.assertEqual(result["fills"], [])
+        data = scenario()
+        data["initial_cash"]["USD"] = "0"
+        result = simulate_execution(data)
+        self.assertEqual(result["valuation"]["equity"], "0.00")
+        self.assertEqual(result["fills"], [])
+
