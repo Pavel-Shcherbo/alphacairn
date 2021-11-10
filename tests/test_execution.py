@@ -350,3 +350,18 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["valuation"]["equity"], "0.00")
         self.assertEqual(result["fills"], [])
 
+    def test_close_phase_cash_priority_is_global_across_instruments(self):
+        data = scenario()
+        data["account"]["instruments"].append(instrument("B"))
+        data["bars"] = [bar(name="A"), bar(name="B")]
+        data["commands"] = [
+            order("first", quantity="8", kind="limit", limit="9", asset="B"),
+            order("second", quantity="8", kind="limit", limit="9", asset="A"),
+        ]
+        result = simulate_execution(data)
+        self.assertEqual(
+            [(f["instrument"], f["quantity"], f["phase"]) for f in result["fills"]],
+            [("B", "8", "limit_touch_at_close"), ("A", "3", "limit_touch_at_close")],
+        )
+        self.assertEqual(result["cash"]["USD"], "1.00")
+
