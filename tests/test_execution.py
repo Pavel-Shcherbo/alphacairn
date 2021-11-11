@@ -365,3 +365,20 @@ class ExecutionTests(unittest.TestCase):
         )
         self.assertEqual(result["cash"]["USD"], "1.00")
 
+    def test_sell_minimum_fee_cannot_overdraw_cash(self):
+        data = scenario()
+        data["fees"]["minimum"] = {"USD": "20"}
+        data["commands"] = [
+            order(quantity="1"),
+            order("sell", quantity="1", side="sell", at="2020-01-02T18:00:00Z"),
+        ]
+        data["bars"] = [bar(), bar(3)]
+        result = simulate_execution(data)
+        self.assertEqual(result["cash"]["USD"], "60.00")
+        self.assertEqual(result["positions"], {})
+        data["initial_cash"]["USD"] = "30"
+        result = simulate_execution(data)
+        self.assertEqual(len(result["fills"]), 1)
+        self.assertEqual(result["cash"]["USD"], "0.00")
+        self.assertEqual(result["positions"]["A"]["quantity"], "1")
+
