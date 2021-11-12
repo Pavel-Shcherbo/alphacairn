@@ -443,3 +443,21 @@ class ExecutionTests(unittest.TestCase):
                 Decimal(result["cash"]["USD"]) * 100, cash - expected * price - fee
             )
 
+    def test_near_zero_foreign_position_still_requires_explicit_fx(self):
+        data = scenario()
+        data["account"]["currencies"]["EUR"] = 2
+        data["account"]["instruments"].append(instrument("B", "EUR", step="0.0001"))
+        data["initial_cash"]["EUR"] = "1"
+        data["bars"] = [
+            bar(name="B", opening="10000", high="10000", low="0.01", close="0.01")
+        ]
+        data["commands"] = [order(asset="B", quantity="0.0001")]
+        result = simulate_execution(data)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertIsNone(result["valuation"]["equity"])
+        self.assertEqual(result["valuation"]["known_base_value"], "100.00")
+        self.assertEqual(result["cash"]["EUR"], "0.00")
+
+
+if __name__ == "__main__":
+    unittest.main()
