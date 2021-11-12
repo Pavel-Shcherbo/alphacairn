@@ -382,3 +382,64 @@ class ExecutionTests(unittest.TestCase):
         self.assertEqual(result["cash"]["USD"], "0.00")
         self.assertEqual(result["positions"]["A"]["quantity"], "1")
 
+    def test_affordability_matches_small_integer_cent_oracle(self):
+        import random
+        from fractions import Fraction
+
+        rng = random.Random(3)
+
+        def half_even(value):
+            integer, remainder = divmod(value.numerator, value.denominator)
+            return integer + int(
+                2 * remainder > value.denominator
+                or 2 * remainder == value.denominator
+                and integer % 2 == 1
+            )
+
+        for _ in range(24):
+            price = rng.randint(100, 1500)
+            cash = rng.randint(1000, 10000)
+            quantity = rng.randint(1, 20)
+            bps = rng.choice([0, 7, 25, 100])
+            minimum = rng.choice([0, 5, 25])
+            data = scenario()
+            data["initial_cash"]["USD"] = str(Decimal(cash) / 100)
+            data["fees"] = {
+                "rate_bps": str(bps),
+                "minimum": {"USD": str(Decimal(minimum) / 100)},
+            }
+            price_text = str(Decimal(price) / 100)
+            data["bars"] = [
+                bar(
+                    opening=price_text,
+                    close=price_text,
+                    low=price_text,
+                    high=price_text,
+                )
+            ]
+            data["commands"] = [order(quantity=str(quantity))]
+            eligible = [
+                n
+                for n in range(quantity + 1)
+                if n * price
+                + (
+                    max(half_even(Fraction(n * price * bps, 10000)), minimum)
+                    if n
+                    else 0
+                )
+                <= cash
+            ]
+            expected = max(eligible)
+            result = simulate_execution(data)
+            self.assertEqual(
+                sum(Decimal(fill["quantity"]) for fill in result["fills"]), expected
+            )
+            fee = (
+                max(half_even(Fraction(expected * price * bps, 10000)), minimum)
+                if expected
+                else 0
+            )
+            self.assertEqual(
+                Decimal(result["cash"]["USD"]) * 100, cash - expected * price - fee
+            )
+
