@@ -14,4 +14,10 @@ from test_execution import scenario
 
 
 class ExecutionExportTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.data = scenario()
+        self.report = simulate_execution(self.data)
+
