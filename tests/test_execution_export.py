@@ -21,3 +21,17 @@ class ExecutionExportTests(unittest.TestCase):
         self.data = scenario()
         self.report = simulate_execution(self.data)
 
+    def test_complete_export_replays_byte_identically_without_overwrite(self):
+        first = self.root / "first"
+        second = self.root / "second"
+        a = write_execution(self.data, self.report, first)
+        b = write_execution(self.data, simulate_execution(self.data), second)
+        self.assertEqual(a["files"], b["files"])
+        self.assertEqual(
+            (first / "manifest.json").read_bytes(),
+            (second / "manifest.json").read_bytes(),
+        )
+        self.assertTrue(verify_execution_bundle(first)["passed"])
+        with self.assertRaises(FileExistsError):
+            write_execution(self.data, self.report, first)
+
