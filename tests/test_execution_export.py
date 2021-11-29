@@ -35,3 +35,20 @@ class ExecutionExportTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             write_execution(self.data, self.report, first)
 
+    def test_csv_tampering_is_rejected_even_after_manifest_hash_is_updated(self):
+        target = self.root / "bundle"
+        write_execution(self.data, self.report, target)
+        csv = target / "fills.csv"
+        csv.write_bytes(csv.read_bytes().replace(b"50.00", b"49.00"))
+        with self.assertRaisesRegex(ValueError, "hash"):
+            verify_execution_bundle(target)
+        manifest_path = target / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["files"]["fills.csv"] = {
+            "bytes": csv.stat().st_size,
+            "sha256": hashlib.sha256(csv.read_bytes()).hexdigest(),
+        }
+        manifest_path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "replay"):
+            verify_execution_bundle(target)
+
