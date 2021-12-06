@@ -69,3 +69,24 @@ class ExecutionExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "symlink"):
             verify_execution_bundle(target)
 
+    def test_cli_run_verify_and_existing_destination(self):
+        source = self.root / "scenario.json"
+        source.write_text(json.dumps(self.data))
+        output = self.root / "result"
+
+        def cli(*args, expected=0):
+            result = subprocess.run(
+                [sys.executable, "-m", "alphacairn.execution", *map(str, args)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            self.assertEqual(result.returncode, expected, result.stderr)
+            return json.loads(result.stdout) if result.stdout else None
+
+        generated = cli("run", source, "--output", output)
+        verified = cli("verify", output)
+        self.assertTrue(verified["passed"])
+        self.assertEqual(generated["report_sha256"], verified["report_sha256"])
+        cli("run", source, "--output", output, expected=2)
+
