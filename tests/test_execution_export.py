@@ -52,3 +52,20 @@ class ExecutionExportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "replay"):
             verify_execution_bundle(target)
 
+    def test_incomplete_extra_files_and_symlinks_are_refused(self):
+        target = self.root / "bundle"
+        write_execution(self.data, self.report, target)
+        extra = target / "unexpected"
+        extra.write_text("extra")
+        with self.assertRaisesRegex(ValueError, "unexpected"):
+            verify_execution_bundle(target)
+        extra.unlink()
+        report = target / "report.json"
+        raw = report.read_bytes()
+        report.unlink()
+        external = self.root / "external"
+        external.write_bytes(raw)
+        report.symlink_to(external)
+        with self.assertRaisesRegex(ValueError, "symlink"):
+            verify_execution_bundle(target)
+
