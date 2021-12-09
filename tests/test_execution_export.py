@@ -90,3 +90,17 @@ class ExecutionExportTests(unittest.TestCase):
         self.assertEqual(generated["report_sha256"], verified["report_sha256"])
         cli("run", source, "--output", output, expected=2)
 
+    def test_report_identity_and_cancelled_verification(self):
+        target = self.root / "bundle"
+        wrong = dict(self.report)
+        wrong["cash"] = {"USD": "999"}
+        with self.assertRaisesRegex(ValueError, "identity"):
+            write_execution(self.data, wrong, target)
+        self.assertFalse(target.exists())
+        write_execution(self.data, self.report, target)
+        with self.assertRaisesRegex(ValueError, "cancelled"):
+            verify_execution_bundle(target, should_cancel=lambda: True)
+
+
+if __name__ == "__main__":
+    unittest.main()
