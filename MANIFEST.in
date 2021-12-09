@@ -9,3 +9,6 @@ include examples/market-universe.json
 include examples/market-query.json
 include examples/market-decisions.json
 include examples/execution-scenario.json
+include examples/strategy-bars.json
+include examples/strategy-universe.json
+include examples/strategy-control.json
