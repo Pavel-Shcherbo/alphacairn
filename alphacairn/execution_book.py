@@ -42,20 +42,7 @@ class ExecutionBook:
                 )
         for sequence, command in enumerate(self.definition["commands"]):
             if command["action"] == "submit":
-                self.orders[command["id"]] = {
-                    "definition": command,
-                    "sequence": sequence,
-                    "status": "scheduled",
-                    "remaining": Decimal(command["quantity"]),
-                    "filled": ZERO,
-                    "price_quantity": ZERO,
-                    "fees": ZERO,
-                    "attempts": 0,
-                    "first_bar": None,
-                    "last_block_reason": None,
-                    "cancel_requested_at": None,
-                    "completed_at": None,
-                }
+                self._register_submission(command, sequence)
         for index, bar in enumerate(self.definition["bars"]):
             instrument = self.account.instrument(bar["instrument"])
             quantity = Decimal(bar["liquidity"])
@@ -66,6 +53,25 @@ class ExecutionBook:
                 "remaining": budget,
                 "eligible": set(),
             }
+
+    def _register_submission(self, command, sequence):
+        """Install a normalized submission before activation by a trusted planner."""
+        if command["id"] in self.orders:
+            raise ValueError("duplicate execution-book order ID")
+        self.orders[command["id"]] = {
+            "definition": command,
+            "sequence": sequence,
+            "status": "scheduled",
+            "remaining": Decimal(command["quantity"]),
+            "filled": ZERO,
+            "price_quantity": ZERO,
+            "fees": ZERO,
+            "attempts": 0,
+            "first_bar": None,
+            "last_block_reason": None,
+            "cancel_requested_at": None,
+            "completed_at": None,
+        }
 
     def emit(self, kind, at, **fields):
         if len(self.events) >= 20000:
