@@ -25,3 +25,35 @@ ALL_FILES = ROOT_FILES | {
 TOTAL_LIMIT = 128 * 1024 * 1024
 
 
+def decision_csv(report):
+    rows = []
+    for decision in report["decisions"]:
+        for action in decision["actions"]:
+            rows.append(
+                {
+                    "decision": decision["index"],
+                    "at": decision["at"],
+                    "session": decision["session"],
+                    **action,
+                    "pending_orders": ";".join(action["pending_orders"]),
+                }
+            )
+    return csv_data(
+        rows,
+        [
+            "decision",
+            "at",
+            "session",
+            "instrument",
+            "signal_reason",
+            "current_quantity",
+            "target_quantity",
+            "delta_quantity",
+            "outcome",
+            "order_id",
+            "pending_orders",
+            "feature_snapshot_sha256",
+        ],
+    )
+
+
