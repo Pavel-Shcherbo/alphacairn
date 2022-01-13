@@ -163,3 +163,82 @@ def write_strategy(inputs, report, destination):
     return {"directory": str(destination), **manifest}
 
 
+def verify_strategy_bundle(directory, *, should_cancel=None):
+    directory = Path(directory)
+    if (
+        directory.is_symlink()
+        or not directory.is_dir()
+        or {item.name for item in directory.iterdir()}
+        != ROOT_FILES | {"manifest.json", "execution"}
+    ):
+        raise ValueError("strategy bundle directory has missing or unexpected entries")
+
+    def read(name, limit):
+        path = directory / name
+        if (
+            path.is_symlink()
+            or (directory / "execution").is_symlink()
+            or not path.is_file()
+        ):
+            raise ValueError("strategy bundle files must be ordinary files")
+        with path.open("rb") as stream:
+            raw = stream.read(limit + 1)
+        if len(raw) > limit:
+            raise ValueError("strategy bundle file exceeds its byte limit")
+        return raw
+
+    manifest = parse_data(read("manifest.json", 32768), 32768)
+    if (
+        not isinstance(manifest, dict)
+        or set(manifest) != {"format", "inputs_sha256", "report_sha256", "files"}
+        or manifest["format"] != "alphacairn.strategy-bundle.v1"
+        or not isinstance(manifest["files"], dict)
+        or set(manifest["files"]) != ALL_FILES
+    ):
+        raise ValueError("unsupported strategy manifest or file inventory")
+    files, total = {}, 0
+    for name in sorted(ALL_FILES):
+        limit = (
+            MAX_BYTES
+            if name == "inputs.json"
+            else 8 * 1024 * 1024 if name == "decisions.csv" else 32 * 1024 * 1024
+        )
+        raw = read(name, limit)
+        total += len(raw)
+        item = manifest["files"][name]
+        if total > TOTAL_LIMIT:
+            raise ValueError("strategy bundle exceeds 128 MiB")
+        if (
+            not isinstance(item, dict)
+            or set(item) != {"bytes", "sha256"}
+            or type(item["bytes"]) is not int
+            or item["bytes"] != len(raw)
+            or item["sha256"] != hashlib.sha256(raw).hexdigest()
+        ):
+            raise ValueError("strategy bundle file size/hash mismatch: " + name)
+        files[name] = raw
+    inputs = parse_data(files["inputs.json"], MAX_BYTES)
+    replayed = simulate_strategy(inputs, should_cancel=should_cancel)
+    saved = parse_data(files["strategy-report.json"], 32 * 1024 * 1024)
+    execution = verify_execution_bundle(
+        directory / "execution", should_cancel=should_cancel
+    )
+    if (
+        manifest["inputs_sha256"] != inputs["sha256"]
+        or manifest["report_sha256"] != replayed["sha256"]
+        or saved != replayed
+        or files["decisions.csv"] != decision_csv(replayed)
+        or execution["report_sha256"] != replayed["execution"]["sha256"]
+    ):
+        raise ValueError("strategy export differs from independent replay")
+    return {
+        "passed": True,
+        "inputs_sha256": inputs["sha256"],
+        "report_sha256": replayed["sha256"],
+        "execution_sha256": replayed["execution"]["sha256"],
+        "decisions": len(replayed["decisions"]),
+        "orders": len(replayed["execution"]["orders"]),
+        "fills": len(replayed["execution"]["fills"]),
+        "valuation": replayed["execution"]["valuation"],
+        "source_authenticity_verified": False,
+    }
