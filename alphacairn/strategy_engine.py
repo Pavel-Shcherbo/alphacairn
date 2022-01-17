@@ -25,3 +25,8 @@ ASSUMPTIONS = [
 ]
 
 
+def _cancelled(callback):
+    if callback and callback():
+        raise ValueError("strategy cancelled; no complete report was produced")
+
+
