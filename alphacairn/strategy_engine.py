@@ -30,3 +30,12 @@ def _cancelled(callback):
         raise ValueError("strategy cancelled; no complete report was produced")
 
 
+def simulate_strategy(inputs, *, should_cancel=None):
+    if should_cancel is not None and not callable(should_cancel):
+        raise ValueError("strategy cancellation must be callable")
+    _cancelled(should_cancel)
+    prepared = prepare_strategy_inputs(inputs)
+    with arithmetic():
+        return _simulate(prepared, should_cancel)
+
+
