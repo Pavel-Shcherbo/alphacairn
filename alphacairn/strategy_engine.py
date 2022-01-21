@@ -39,3 +39,168 @@ def simulate_strategy(inputs, *, should_cancel=None):
         return _simulate(prepared, should_cancel)
 
 
+def _simulate(prepared, should_cancel):
+    config, plan = prepared.configuration, prepared.execution
+    book = ExecutionBook(plan)
+    commands, decisions = [], []
+    extras = [
+        (window["decision"]["at"], "decision", index)
+        for index, window in enumerate(prepared.windows)
+    ]
+    for instrument in plan.account.instruments:
+        if instrument.active_until is not None:
+            when = timestamp_text(instrument.active_until)
+            if plan.definition["starts_at"] <= when <= plan.definition["ends_at"]:
+                extras.append((when, "instrument_end", instrument.id))
+    evaluations = 0
+    for at, groups in timeline_groups(plan.definition, extras):
+        _cancelled(should_cancel)
+        if groups.get("instrument_end"):
+            for order in book.orders.values():
+                expiry = order["definition"]["expires_at"]
+                if expiry is not None and expiry <= at:
+                    book.expire(order["definition"]["id"], at)
+        if groups.get("close"):
+            book.close_bars(at, groups["close"])
+        for index in groups.get("decision", []):
+            window = prepared.windows[index]
+            features = {item["instrument"]: item for item in window["features"]}
+            decision = {
+                "index": index + 1,
+                "at": at,
+                "session": window["decision"]["session"],
+                "membership_sha256": window["membership_sha256"],
+                "cash_before": {code: text(value) for code, value in book.cash.items()},
+                "positions_before": {
+                    name: text(value) for name, value in book.positions.items() if value
+                },
+                "actions": [],
+            }
+            for name in config["allocation_order"]:
+                instrument = plan.account.instrument(name)
+                current = book.positions.get(name, ZERO)
+                feature = features.get(name)
+                reason = "outside_universe" if feature is None else feature["reason"]
+                target = ZERO
+                if feature is not None and feature["ready"]:
+                    target = (
+                        Decimal(config["target_quantities"][name])
+                        if feature["above_mean"]
+                        else ZERO
+                    )
+                    reason = (
+                        "above_mean" if feature["above_mean"] else "at_or_below_mean"
+                    )
+                elif feature is not None and config["missing_signal_policy"] == "hold":
+                    target = current
+                pending = [
+                    order["definition"]["id"]
+                    for order in book.orders.values()
+                    if order["definition"]["instrument"] == name
+                    and order["status"] in LIVE
+                ]
+                action = {
+                    "instrument": name,
+                    "signal_reason": reason,
+                    "feature_snapshot_sha256": (
+                        feature["snapshot_sha256"] if feature else None
+                    ),
+                    "current_quantity": text(current),
+                    "target_quantity": text(target),
+                    "delta_quantity": text(target - current),
+                    "pending_orders": pending,
+                    "outcome": "at_target",
+                    "order_id": None,
+                }
+                try:
+                    instrument.require_active(timestamp(at))
+                except ValueError:
+                    action["outcome"] = "inactive_instrument"
+                else:
+                    if pending:
+                        action["outcome"] = "waiting_for_pending_order"
+                    elif (
+                        feature is not None
+                        and not feature["ready"]
+                        and config["missing_signal_policy"] == "hold"
+                    ):
+                        action["outcome"] = "missing_signal_hold"
+                    elif target != current:
+                        if len(commands) >= 1000:
+                            raise ValueError(
+                                "strategy exceeds 1,000 orders; partition the study"
+                            )
+                        evaluations += sum(
+                            bar["instrument"] == name for bar in plan.definition["bars"]
+                        )
+                        if evaluations > 2_000_000:
+                            raise ValueError(
+                                "strategy exceeds two million order/bar evaluations"
+                            )
+                        command = {
+                            "action": "submit",
+                            "id": "decision-"
+                            + str(index + 1)
+                            + "-order-"
+                            + str(len(commands) + 1),
+                            "at": at,
+                            "instrument": name,
+                            "side": "buy" if target > current else "sell",
+                            "kind": "market",
+                            "quantity": text(abs(target - current)),
+                            "limit": None,
+                            "time_in_force": "IOC",
+                            "expires_at": (
+                                timestamp_text(instrument.active_until)
+                                if instrument.active_until is not None
+                                else None
+                            ),
+                        }
+                        book._register_submission(command, len(commands))
+                        book.command(command)
+                        commands.append(command)
+                        action.update(outcome="order_submitted", order_id=command["id"])
+                decision["actions"].append(action)
+            decisions.append(decision)
+        if groups.get("open"):
+            book.open_bars(at, groups["open"])
+    _cancelled(should_cancel)
+    scenario = compile_execution({**plan.definition, "commands": commands})
+    execution = simulate_execution(scenario, should_cancel=should_cancel)
+    # A separate chronological pass must reproduce the planning pass exactly.
+    if (
+        execution["fills"] != book.fills
+        or execution["orders"] != book.order_reports()
+        or execution["events"] != book.events
+        or execution["ledger_events"] != book.ledger_events
+        or execution["liquidity"] != book.bar_reports()
+        or any(
+            Decimal(execution["cash"][code]) != value
+            for code, value in book.cash.items()
+        )
+    ):
+        raise RuntimeError("strategy planning differs from full execution replay")
+    own_positions = {name: value for name, value in book.positions.items() if value}
+    replay_positions = {
+        name: Decimal(value["quantity"])
+        for name, value in execution["positions"].items()
+    }
+    if own_positions != replay_positions:
+        raise RuntimeError("strategy positions differ from replayed journal")
+    result = {
+        "format": "alphacairn.strategy-report.v1",
+        "inputs_sha256": prepared.sha256,
+        "configuration_sha256": digest(config),
+        "completed": True,
+        "planning_replayed": True,
+        "signal": "close_strictly_above_trailing_mean",
+        "windows": copy.deepcopy(prepared.windows),
+        "decisions": decisions,
+        "scenario": scenario.definition,
+        "execution": execution,
+        "assumptions": list(ASSUMPTIONS),
+    }
+    if len(canonical(result)) > 32 * 1024 * 1024:
+        raise ValueError("strategy report exceeds 32 MiB; partition the study")
+    result["sha256"] = digest(result)
+    return result
