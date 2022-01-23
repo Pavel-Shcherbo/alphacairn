@@ -177,3 +177,19 @@ def compile_strategy(definition):
     return result
 
 
+def realization_queries(config):
+    return [
+        validate_query(
+            {
+                "kind": "bar",
+                "source": config["source"],
+                "instrument": name,
+                **config["execution_sessions"],
+                "known_at": config["market_cutoff"],
+                "clock": config["clock"],
+            }
+        )
+        for name in config["allocation_order"]
+    ]
+
+
