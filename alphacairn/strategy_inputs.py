@@ -193,3 +193,16 @@ def realization_queries(config):
     ]
 
 
+def membership_query(config, decision):
+    return validate_query(
+        {
+            "kind": "membership",
+            "source": config["source"],
+            "universe": config["universe"],
+            "on": decision["session"],
+            "known_at": decision["at"],
+            "clock": config["clock"],
+        }
+    )
+
+
