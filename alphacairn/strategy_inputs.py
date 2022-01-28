@@ -206,3 +206,17 @@ def membership_query(config, decision):
     )
 
 
+def feature_query(config, decision, name):
+    return validate_query(
+        {
+            "kind": "bar",
+            "source": config["source"],
+            "instrument": name,
+            "start": config["history_start"],
+            "end": decision["session"],
+            "known_at": decision["at"],
+            "clock": config["clock"],
+        }
+    )
+
+
