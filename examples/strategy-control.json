@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "source": "synthetic-strategy",
+  "universe": "CONTROL",
+  "clock": "published",
+  "history_start": "2020-01-01",
+  "lookback": 2,
+  "max_feature_age_seconds": 10800,
+  "decisions": [
+    {
+      "at": "2020-01-02T18:00:00Z",
+      "session": "2020-01-02"
+    },
+    {
+      "at": "2020-01-03T18:00:00Z",
+      "session": "2020-01-03"
+    },
+    {
+      "at": "2020-01-04T18:00:00Z",
+      "session": "2020-01-04"
+    },
+    {
+      "at": "2020-01-05T18:00:00Z",
+      "session": "2020-01-05"
+    }
+  ],
+  "market_cutoff": "2020-01-08T00:00:00Z",
+  "execution_sessions": {
+    "start": "2020-01-02",
+    "end": "2020-01-06"
+  },
+  "execution": {
+    "version": 1,
+    "account": {
+      "name": "synthetic-strategy-control",
+      "base_currency": "USD",
+      "currencies": {
+        "USD": 2
+      },
+      "instruments": [
+        {
+          "id": "STOCK-A",
+          "symbol": "STOCK-A",
+          "venue": "SIMULATED",
+          "kind": "equity",
+          "quote_currency": "USD",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "COIN-C",
+          "symbol": "COIN-C",
+          "venue": "SIMULATED",
+          "kind": "crypto_spot",
+          "quote_currency": "USD",
+          "quantity_step": "0.5",
+          "price_tick": "0.01"
+        }
+      ]
+    },
+    "starts_at": "2020-01-02T00:00:00Z",
+    "ends_at": "2020-01-06T17:00:00Z",
+    "initial_cash": {
+      "USD": "100.00"
+    },
+    "fees": {
+      "rate_bps": "0",
+      "minimum": {
+        "USD": "0.50"
+      }
+    },
+    "slippage_bps": "0",
+    "max_mark_age_seconds": 432000,
+    "fx": []
+  },
+  "liquidity": [
+    {
+      "instrument": "STOCK-A",
+      "session": "2020-01-02",
+      "quantity": "2",
+      "known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "STOCK-A",
+      "session": "2020-01-03",
+      "quantity": "2",
+      "known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "STOCK-A",
+      "session": "2020-01-04",
+      "quantity": "10",
+      "known_at": "2020-01-04T08:00:00Z"
+    },
+    {
+      "instrument": "STOCK-A",
+      "session": "2020-01-05",
+      "quantity": "10",
+      "known_at": "2020-01-05T08:00:00Z"
+    },
+    {
+      "instrument": "STOCK-A",
+      "session": "2020-01-06",
+      "quantity": "10",
+      "known_at": "2020-01-06T08:00:00Z"
+    },
+    {
+      "instrument": "COIN-C",
+      "session": "2020-01-02",
+      "quantity": "0.5",
+      "known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "COIN-C",
+      "session": "2020-01-03",
+      "quantity": "1",
+      "known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "COIN-C",
+      "session": "2020-01-04",
+      "quantity": "10",
+      "known_at": "2020-01-04T08:00:00Z"
+    },
+    {
+      "instrument": "COIN-C",
+      "session": "2020-01-05",
+      "quantity": "10",
+      "known_at": "2020-01-05T08:00:00Z"
+    },
+    {
+      "instrument": "COIN-C",
+      "session": "2020-01-06",
+      "quantity": "10",
+      "known_at": "2020-01-06T08:00:00Z"
+    }
+  ],
+  "target_quantities": {
+    "STOCK-A": "3",
+    "COIN-C": "1.5"
+  },
+  "allocation_order": [
+    "STOCK-A",
+    "COIN-C"
+  ],
+  "missing_signal_policy": "hold"
+}
