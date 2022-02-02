@@ -220,3 +220,55 @@ def feature_query(config, decision, name):
     )
 
 
+def capture_strategy(catalog, definition):
+    config = compile_strategy(definition)
+    snapshots = {}
+    records, retained_bytes = 0, 0
+    with catalog.read_view() as view:
+
+        def get(query):
+            nonlocal records, retained_bytes
+            key = digest(query)
+            if key not in snapshots:
+                value = view.snapshot(query)
+                records += len(value["records"])
+                retained_bytes += len(canonical(value))
+                if records > 100000 or retained_bytes > MAX_BYTES:
+                    raise ValueError(
+                        "strategy input snapshots exceed record or byte budget"
+                    )
+                snapshots[key] = value
+            return snapshots[key]
+
+        for query in realization_queries(config):
+            get(query)
+        for decision in config["decisions"]:
+            members = get(membership_query(config, decision))["records"]
+            if len(members) > 100:
+                raise ValueError("strategy decision exceeds 100 universe members")
+            for record in members:
+                name = record["observation"]["instrument"]
+                if name not in config["target_quantities"]:
+                    raise ValueError(
+                        "historical universe contains an instrument missing from the account: "
+                        + name
+                    )
+                get(feature_query(config, decision, name))
+    result = {
+        "format": "alphacairn.strategy-inputs.v1",
+        "configuration": config,
+        "snapshots": [snapshots[key] for key in sorted(snapshots)],
+    }
+    result["sha256"] = digest(result)
+    prepare_strategy_inputs(result)
+    return result
+
+
+@dataclass(frozen=True)
+class StrategyInputs:
+    configuration: dict
+    execution: ExecutionPlan
+    windows: list
+    sha256: str
+
+
