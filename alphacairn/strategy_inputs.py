@@ -272,3 +272,157 @@ class StrategyInputs:
     sha256: str
 
 
+def prepare_strategy_inputs(document):
+    if len(canonical(document)) > MAX_BYTES:
+        raise ValueError("strategy inputs exceed 16 MiB")
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"format", "configuration", "snapshots", "sha256"}
+        or document["format"] != "alphacairn.strategy-inputs.v1"
+    ):
+        raise ValueError("unsupported strategy inputs")
+    if (
+        digest({key: value for key, value in document.items() if key != "sha256"})
+        != document["sha256"]
+    ):
+        raise ValueError("strategy input digest mismatch")
+    config = compile_strategy(document["configuration"])
+    if config != document["configuration"]:
+        raise ValueError("strategy configuration is not canonical")
+    items = document["snapshots"]
+    if not isinstance(items, list) or not 1 <= len(items) <= 10200:
+        raise ValueError("strategy inputs require a bounded snapshot list")
+    snapshots, used, records = {}, set(), 0
+    for item in items:
+        verify_snapshot(item)
+        key = digest(validate_query(item["query"]))
+        if key in snapshots:
+            raise ValueError("duplicate strategy snapshot query")
+        snapshots[key] = item
+        records += len(item["records"])
+        if records > 100000:
+            raise ValueError("strategy inputs exceed 100,000 retained observations")
+
+    def get(query):
+        key = digest(query)
+        if key not in snapshots:
+            raise ValueError("strategy inputs are missing a required market query")
+        used.add(key)
+        return snapshots[key]
+
+    liquidity = {
+        (row["instrument"], row["session"]): row for row in config["liquidity"]
+    }
+    consumed, bars = set(), []
+    for query in realization_queries(config):
+        for record in get(query)["records"]:
+            row = record["observation"]
+            opened, closed = timestamp(row["opened_at"]), timestamp(row["closed_at"])
+            # Session labels are caller-declared; execution bounds use actual instants.
+            if (
+                not timestamp(config["execution"]["starts_at"])
+                <= opened
+                < closed
+                <= timestamp(config["execution"]["ends_at"])
+            ):
+                continue
+            key = row["instrument"], row["session"]
+            if key not in liquidity:
+                raise ValueError(
+                    "missing explicit pre-open liquidity for execution bar"
+                )
+            supply = liquidity[key]
+            consumed.add(key)
+            bars.append(
+                {
+                    **{
+                        field: row[field]
+                        for field in (
+                            "instrument",
+                            "session",
+                            "opened_at",
+                            "closed_at",
+                            "open",
+                            "high",
+                            "low",
+                            "close",
+                        )
+                    },
+                    "liquidity": supply["quantity"],
+                    "liquidity_known_at": supply["known_at"],
+                }
+            )
+    if consumed != set(liquidity):
+        raise ValueError("liquidity declaration has no matching execution-vintage bar")
+    plan = compile_execution({**config["execution"], "bars": bars, "commands": []})
+    windows = []
+    with arithmetic():
+        for decision in config["decisions"]:
+            member_snapshot = get(membership_query(config, decision))
+            members = member_snapshot["records"]
+            if len(members) > 100:
+                raise ValueError("strategy decision exceeds 100 members")
+            features = []
+            for member in sorted(
+                members, key=lambda row: row["observation"]["instrument"]
+            ):
+                name = member["observation"]["instrument"]
+                if name not in config["target_quantities"]:
+                    raise ValueError(
+                        "historical universe instrument is undeclared by the account"
+                    )
+                snapshot = get(feature_query(config, decision, name))
+                history = sorted(
+                    snapshot["records"], key=lambda row: row["observation"]["session"]
+                )
+                if any(
+                    timestamp(left["observation"]["closed_at"])
+                    > timestamp(right["observation"]["opened_at"])
+                    for left, right in zip(history, history[1:])
+                ):
+                    raise ValueError(
+                        "feature history bars overlap or contradict session ordering"
+                    )
+                rows = history[-config["lookback"] :]
+                item = {
+                    "instrument": name,
+                    "snapshot_sha256": snapshot["sha256"],
+                    "observations": [row["observation_sha256"] for row in rows],
+                    "sessions": [row["observation"]["session"] for row in rows],
+                    "available": len(rows),
+                    "ready": False,
+                    "reason": "insufficient_history",
+                    "last_close": None,
+                    "mean_close": None,
+                    "above_mean": None,
+                    "age_seconds": None,
+                }
+                if rows:
+                    last = rows[-1]["observation"]
+                    age = (
+                        timestamp(decision["at"]) - timestamp(last["closed_at"])
+                    ).total_seconds()
+                    item.update(last_close=last["close"], age_seconds=age)
+                    if len(rows) == config["lookback"]:
+                        prices = [Decimal(row["observation"]["close"]) for row in rows]
+                        total = sum(prices, Decimal(0))
+                        ready = age <= config["max_feature_age_seconds"]
+                        item.update(
+                            ready=ready,
+                            reason="ready" if ready else "stale_history",
+                            mean_close=text(total / Decimal(len(prices))),
+                            above_mean=(
+                                prices[-1] * len(prices) > total if ready else None
+                            ),
+                        )
+                features.append(item)
+            windows.append(
+                {
+                    "decision": copy.deepcopy(decision),
+                    "membership_sha256": member_snapshot["sha256"],
+                    "features": features,
+                }
+            )
+    if used != set(snapshots):
+        raise ValueError("strategy inputs contain unused market queries")
+    return StrategyInputs(config, plan, windows, document["sha256"])
