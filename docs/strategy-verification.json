@@ -1,0 +1,67 @@
+{
+  "scope": "Clean installed synthetic catalog-to-signal-to-order study; portable content integrity, not historical source authenticity or a return claim",
+  "passed": true,
+  "inputs_sha256": "cf7c47329c7ec5245f6d7b916aad42ec058badd529f8eb5409a9c0b4df171680",
+  "report_sha256": "c4d98c07ebc30b5ffe3bfe0a82e17e3af40477d2b6138edb3cb6e3dfaf84b0cf",
+  "decisions": 4,
+  "fills": 6,
+  "independent_fraction_cash": "77/2",
+  "independent_fraction_positions": {
+    "STOCK-A": "3",
+    "COIN-C": "0"
+  },
+  "fees": "3.00",
+  "equity": "86.50",
+  "independent_csv_arithmetic_passed": true,
+  "partial_fill_sizing_verified": true,
+  "existing_inputs_preserved": true,
+  "catalog_removed_before_verification": true,
+  "offline_strategy_and_execution_replayed": true,
+  "verification": {
+    "passed": true,
+    "inputs_sha256": "cf7c47329c7ec5245f6d7b916aad42ec058badd529f8eb5409a9c0b4df171680",
+    "report_sha256": "c4d98c07ebc30b5ffe3bfe0a82e17e3af40477d2b6138edb3cb6e3dfaf84b0cf",
+    "execution_sha256": "4201b678ee5a216bd606eebbb0d6d784a13ef386b172e34fe024dead12cb8578",
+    "decisions": 4,
+    "orders": 6,
+    "fills": 6,
+    "valuation": {
+      "complete": true,
+      "sequence": 7,
+      "as_of": "2020-01-06T17:00:00.000000Z",
+      "base_currency": "USD",
+      "equity": "86.50",
+      "known_base_value": "86.50",
+      "cash": [
+        {
+          "currency": "USD",
+          "amount": "38.50",
+          "base_value": "38.50"
+        }
+      ],
+      "positions": [
+        {
+          "instrument": "STOCK-A",
+          "symbol": "STOCK-A",
+          "venue": "SIMULATED",
+          "quantity": "3",
+          "quote_currency": "USD",
+          "basis": "45.50",
+          "mark": "16",
+          "market_value": "48.00",
+          "unrealized_quote_pnl": "2.50",
+          "base_value": "48.00",
+          "weight_percent": "55.491329"
+        }
+      ],
+      "missing_inputs": [],
+      "warnings": [],
+      "max_age_seconds": 432000,
+      "fx_direction": "base currency units per one quote currency unit",
+      "rounding_policy": "half-even at each cash/position conversion to base currency",
+      "scope": "current long-only settled-cash journal valuation; no FX profit attribution or tax reporting"
+    },
+    "source_authenticity_verified": false
+  },
+  "full_portfolio_acceptance": false
+}
