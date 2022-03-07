@@ -28,3 +28,7 @@ from alphacairn.strategy_inputs import (
 EXAMPLES = Path(__file__).resolve().parents[1] / "examples"
 
 
+def load(name):
+    return json.loads((EXAMPLES / name).read_text())
+
+
