@@ -32,3 +32,11 @@ def load(name):
     return json.loads((EXAMPLES / name).read_text())
 
 
+def rehash_inputs(document):
+    document["sha256"] = digest(
+        {key: value for key, value in document.items() if key != "sha256"}
+    )
+
+
+class StrategyTests(unittest.TestCase):
+    pass
