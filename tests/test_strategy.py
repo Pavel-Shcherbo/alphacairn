@@ -39,4 +39,14 @@ def rehash_inputs(document):
 
 
 class StrategyTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.catalog = MarketCatalog(self.root / "market.sqlite", create=True)
+        self.definition = load("strategy-control.json")
+        self.bars = load("strategy-bars.json")
+        self.members = load("strategy-universe.json")
+        self.ingest(self.bars, "bar", "bars")
+        self.ingest(self.members, "membership", "members")
+
