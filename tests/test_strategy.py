@@ -50,3 +50,8 @@ class StrategyTests(unittest.TestCase):
         self.ingest(self.bars, "bar", "bars")
         self.ingest(self.members, "membership", "members")
 
+    def ingest(self, rows, kind="bar", key="revision"):
+        return self.catalog.ingest(
+            self.definition["source"], kind, canonical(rows), request_key=key
+        )
+
