@@ -55,3 +55,7 @@ class StrategyTests(unittest.TestCase):
             self.definition["source"], kind, canonical(rows), request_key=key
         )
 
+    def run_study(self, definition=None):
+        inputs = capture_strategy(self.catalog, definition or self.definition)
+        return inputs, simulate_strategy(inputs)
+
