@@ -59,3 +59,30 @@ class StrategyTests(unittest.TestCase):
         inputs = capture_strategy(self.catalog, definition or self.definition)
         return inputs, simulate_strategy(inputs)
 
+    def test_hand_calculated_six_fills_cash_positions_and_equity(self):
+        inputs, result = self.run_study()
+        execution = result["execution"]
+        self.assertTrue(result["planning_replayed"])
+        self.assertTrue(execution["ledger_audit"]["passed"])
+        expected = [
+            ("STOCK-A", "buy", "2", "13"),
+            ("COIN-C", "buy", "1.0", "23"),
+            ("STOCK-A", "sell", "2", "9"),
+            ("COIN-C", "buy", "0.5", "25"),
+            ("STOCK-A", "buy", "3", "15"),
+            ("COIN-C", "sell", "1.5", "20"),
+        ]
+        self.assertEqual(
+            [
+                (fill["instrument"], fill["side"], fill["quantity"], fill["price"])
+                for fill in execution["fills"]
+            ],
+            expected,
+        )
+        # Independent integer cents: 10000-2650-2350+1750-1300-4550+2950.
+        self.assertEqual(execution["cash"], {"USD": "38.50"})
+        self.assertEqual(execution["valuation"]["equity"], "86.50")
+        self.assertEqual(execution["positions"]["STOCK-A"]["quantity"], "3")
+        self.assertEqual(execution["fees_by_currency"], {"USD": "3.00"})
+        self.assertEqual(prepare_strategy_inputs(inputs).sha256, inputs["sha256"])
+
