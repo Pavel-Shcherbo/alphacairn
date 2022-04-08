@@ -86,3 +86,15 @@ class StrategyTests(unittest.TestCase):
         self.assertEqual(execution["fees_by_currency"], {"USD": "3.00"})
         self.assertEqual(prepare_strategy_inputs(inputs).sha256, inputs["sha256"])
 
+    def test_next_decision_sizes_from_partial_fills_instead_of_requested_inventory(
+        self,
+    ):
+        _, result = self.run_study()
+        decision = result["decisions"][1]
+        self.assertEqual(Decimal(decision["positions_before"]["STOCK-A"]), Decimal(2))
+        self.assertEqual(Decimal(decision["positions_before"]["COIN-C"]), Decimal(1))
+        actions = {item["instrument"]: item for item in decision["actions"]}
+        self.assertEqual(actions["STOCK-A"]["delta_quantity"], "-2")
+        self.assertEqual(Decimal(actions["COIN-C"]["delta_quantity"]), Decimal("0.5"))
+        self.assertEqual(result["execution"]["orders"][0]["status"], "cancelled")
+
