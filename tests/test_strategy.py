@@ -98,3 +98,26 @@ class StrategyTests(unittest.TestCase):
         self.assertEqual(Decimal(actions["COIN-C"]["delta_quantity"]), Decimal("0.5"))
         self.assertEqual(result["execution"]["orders"][0]["status"], "cancelled")
 
+    def test_future_realization_revision_changes_valuation_not_earlier_signals_or_orders(
+        self,
+    ):
+        _, before = self.run_study()
+        revised = copy.deepcopy(
+            next(
+                row
+                for row in self.bars
+                if row["instrument"] == "STOCK-A" and row["session"] == "2020-01-06"
+            )
+        )
+        revised.update(close="999", published_at="2020-01-07T12:00:00Z")
+        self.ingest([revised])
+        _, after = self.run_study()
+        self.assertEqual(before["windows"], after["windows"])
+        self.assertEqual(before["decisions"], after["decisions"])
+        self.assertEqual(before["scenario"]["commands"], after["scenario"]["commands"])
+        self.assertEqual(before["execution"]["fills"], after["execution"]["fills"])
+        self.assertNotEqual(
+            before["execution"]["valuation"]["equity"],
+            after["execution"]["valuation"]["equity"],
+        )
+
