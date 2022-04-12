@@ -121,3 +121,25 @@ class StrategyTests(unittest.TestCase):
             after["execution"]["valuation"]["equity"],
         )
 
+    def test_future_open_changes_later_balances_without_rewriting_first_decision(self):
+        _, before = self.run_study()
+        revised = copy.deepcopy(
+            next(
+                row
+                for row in self.bars
+                if row["instrument"] == "STOCK-A" and row["session"] == "2020-01-03"
+            )
+        )
+        revised.update(open="100", published_at="2020-01-07T12:00:00Z")
+        self.ingest([revised])
+        _, after = self.run_study()
+        self.assertEqual(before["decisions"][0], after["decisions"][0])
+        self.assertEqual(
+            before["scenario"]["commands"][:2], after["scenario"]["commands"][:2]
+        )
+        self.assertEqual(before["windows"], after["windows"])
+        self.assertNotEqual(
+            before["decisions"][1]["positions_before"],
+            after["decisions"][1]["positions_before"],
+        )
+
