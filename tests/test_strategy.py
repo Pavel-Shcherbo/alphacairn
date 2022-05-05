@@ -143,3 +143,28 @@ class StrategyTests(unittest.TestCase):
             after["decisions"][1]["positions_before"],
         )
 
+    def test_late_revision_becomes_available_only_to_later_decisions(self):
+        _, before = self.run_study()
+        revised = copy.deepcopy(
+            next(
+                row
+                for row in self.bars
+                if row["instrument"] == "STOCK-A" and row["session"] == "2020-01-03"
+            )
+        )
+        revised.update(close="30", published_at="2020-01-04T12:00:00Z")
+        self.ingest([revised])
+        _, after = self.run_study()
+        self.assertEqual(before["windows"][:2], after["windows"][:2])
+        self.assertEqual(before["decisions"][:2], after["decisions"][:2])
+        a = next(
+            item
+            for item in after["windows"][2]["features"]
+            if item["instrument"] == "STOCK-A"
+        )
+        self.assertFalse(a["above_mean"])
+        self.assertEqual(a["mean_close"], "22")
+        self.assertNotEqual(
+            before["scenario"]["commands"], after["scenario"]["commands"]
+        )
+
