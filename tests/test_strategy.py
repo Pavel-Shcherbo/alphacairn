@@ -168,3 +168,8 @@ class StrategyTests(unittest.TestCase):
             before["scenario"]["commands"], after["scenario"]["commands"]
         )
 
+    def test_recording_clock_does_not_claim_old_data_was_locally_available(self):
+        self.definition["clock"] = "recorded"
+        with self.assertRaisesRegex(ValueError, "no matching execution-vintage"):
+            self.run_study()
+
