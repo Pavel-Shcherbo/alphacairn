@@ -173,3 +173,22 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no matching execution-vintage"):
             self.run_study()
 
+    def test_warmup_produces_explicit_missing_signal_without_fabricated_values(self):
+        self.definition["lookback"] = 3
+        _, result = self.run_study()
+        self.assertEqual(
+            result["windows"][0]["features"][0]["reason"], "insufficient_history"
+        )
+        self.assertTrue(
+            all(
+                item["outcome"] == "missing_signal_hold"
+                for item in result["decisions"][0]["actions"]
+            )
+        )
+        self.assertFalse(
+            any(
+                command["at"] == result["decisions"][0]["at"]
+                for command in result["scenario"]["commands"]
+            )
+        )
+
