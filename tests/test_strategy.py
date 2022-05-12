@@ -192,3 +192,19 @@ class StrategyTests(unittest.TestCase):
             )
         )
 
+    def test_stale_feature_hold_and_exit_policies_act_on_actual_positions(self):
+        self.definition["decisions"][1]["at"] = "2020-01-03T23:00:00Z"
+        _, held = self.run_study()
+        self.definition["missing_signal_policy"] = "exit"
+        _, exited = self.run_study()
+        self.assertEqual(
+            held["decisions"][1]["actions"][0]["outcome"], "missing_signal_hold"
+        )
+        self.assertEqual(
+            exited["decisions"][1]["actions"][0]["signal_reason"], "stale_history"
+        )
+        self.assertEqual(exited["decisions"][1]["actions"][0]["delta_quantity"], "-2")
+        self.assertEqual(
+            exited["decisions"][1]["actions"][0]["outcome"], "order_submitted"
+        )
+
