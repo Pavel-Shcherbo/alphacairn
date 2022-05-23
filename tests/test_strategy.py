@@ -208,3 +208,21 @@ class StrategyTests(unittest.TestCase):
             exited["decisions"][1]["actions"][0]["outcome"], "order_submitted"
         )
 
+    def test_historical_universe_exit_is_explicit_and_keeps_instrument_evidence(self):
+        revision = {
+            **self.members[0],
+            "valid_until": "2020-01-03",
+            "published_at": "2020-01-02T19:00:00Z",
+        }
+        self.ingest([revision], "membership")
+        _, result = self.run_study()
+        action = result["decisions"][1]["actions"][0]
+        self.assertEqual(action["signal_reason"], "outside_universe")
+        self.assertEqual(action["delta_quantity"], "-2")
+        self.assertEqual(action["outcome"], "order_submitted")
+        self.assertTrue(
+            any(
+                fill["instrument"] == "STOCK-A" for fill in result["execution"]["fills"]
+            )
+        )
+
