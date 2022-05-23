@@ -226,3 +226,8 @@ class StrategyTests(unittest.TestCase):
             )
         )
 
+    def test_undeclared_historical_member_cannot_be_silently_removed(self):
+        self.ingest([{**self.members[0], "instrument": "FAILED-COMPANY"}], "membership")
+        with self.assertRaisesRegex(ValueError, "missing from the account"):
+            self.run_study()
+
