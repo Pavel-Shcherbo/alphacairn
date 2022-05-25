@@ -231,3 +231,24 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing from the account"):
             self.run_study()
 
+    def test_missing_future_and_unmatched_liquidity_are_rejected(self):
+        for mutate in (
+            lambda d: d["liquidity"].pop(),
+            lambda d: d["liquidity"][0].update(known_at="2020-01-02T10:00:00Z"),
+            lambda d: d["liquidity"].append(
+                {
+                    "instrument": "STOCK-A",
+                    "session": "2020-01-07",
+                    "quantity": "1",
+                    "known_at": "2020-01-07T08:00:00Z",
+                }
+            ),
+        ):
+            definition = copy.deepcopy(self.definition)
+            mutate(definition)
+            with (
+                self.subTest(definition=definition["liquidity"]),
+                self.assertRaises(ValueError),
+            ):
+                self.run_study(definition)
+
