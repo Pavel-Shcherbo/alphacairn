@@ -252,3 +252,14 @@ class StrategyTests(unittest.TestCase):
             ):
                 self.run_study(definition)
 
+    def test_realized_volume_is_never_used_as_pre_open_liquidity(self):
+        _, before = self.run_study()
+        revisions = [
+            {**row, "volume": "0", "published_at": "2020-01-07T12:00:00Z"}
+            for row in self.bars
+        ]
+        self.ingest(revisions)
+        _, after = self.run_study()
+        self.assertEqual(before["execution"]["fills"], after["execution"]["fills"])
+        self.assertEqual(before["scenario"]["commands"], after["scenario"]["commands"])
+
