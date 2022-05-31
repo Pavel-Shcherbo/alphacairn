@@ -263,3 +263,32 @@ class StrategyTests(unittest.TestCase):
         self.assertEqual(before["execution"]["fills"], after["execution"]["fills"])
         self.assertEqual(before["scenario"]["commands"], after["scenario"]["commands"])
 
+    def test_declared_allocation_order_controls_competition_for_cash(self):
+        self.definition["execution"]["initial_cash"]["USD"] = "30"
+        _, stock_first = self.run_study()
+        self.definition["allocation_order"].reverse()
+        _, coin_first = self.run_study()
+        first_time = stock_first["execution"]["fills"][0]["at"]
+        self.assertEqual(
+            [
+                fill["instrument"]
+                for fill in stock_first["execution"]["fills"]
+                if fill["at"] == first_time
+            ],
+            ["STOCK-A"],
+        )
+        self.assertEqual(
+            [
+                fill["instrument"]
+                for fill in coin_first["execution"]["fills"]
+                if fill["at"] == first_time
+            ],
+            ["COIN-C"],
+        )
+        self.assertTrue(
+            all(
+                Decimal(value) >= 0
+                for value in coin_first["execution"]["cash"].values()
+            )
+        )
+
