@@ -292,3 +292,16 @@ class StrategyTests(unittest.TestCase):
             )
         )
 
+    def test_pending_ioc_waits_for_first_eligible_open_without_duplicate_order(self):
+        self.definition["decisions"].insert(
+            1, {"at": "2020-01-02T19:00:00Z", "session": "2020-01-02"}
+        )
+        _, result = self.run_study()
+        self.assertTrue(
+            all(
+                action["outcome"] == "waiting_for_pending_order"
+                for action in result["decisions"][1]["actions"]
+            )
+        )
+        self.assertEqual(len(result["scenario"]["commands"]), 6)
+
