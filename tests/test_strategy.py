@@ -305,3 +305,17 @@ class StrategyTests(unittest.TestCase):
         )
         self.assertEqual(len(result["scenario"]["commands"]), 6)
 
+    def test_decision_at_open_cannot_fill_at_the_same_open(self):
+        self.definition["max_feature_age_seconds"] = 86400
+        self.definition["decisions"] = [
+            {"at": "2020-01-03T09:00:00Z", "session": "2020-01-02"}
+        ]
+        _, result = self.run_study()
+        self.assertTrue(result["execution"]["fills"])
+        self.assertTrue(
+            all(
+                fill["at"].startswith("2020-01-04")
+                for fill in result["execution"]["fills"]
+            )
+        )
+
