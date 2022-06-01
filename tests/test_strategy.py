@@ -319,3 +319,12 @@ class StrategyTests(unittest.TestCase):
             )
         )
 
+    def test_after_last_open_order_remains_unfilled_instead_of_fake_liquidation(self):
+        self.definition["decisions"] = [
+            {"at": "2020-01-06T17:00:00Z", "session": "2020-01-06"}
+        ]
+        _, result = self.run_study()
+        self.assertEqual(result["execution"]["fills"], [])
+        self.assertEqual(result["execution"]["open_order_count"], 1)
+        self.assertEqual(result["execution"]["cash"], {"USD": "100.00"})
+
