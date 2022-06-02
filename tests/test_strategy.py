@@ -328,3 +328,27 @@ class StrategyTests(unittest.TestCase):
         self.assertEqual(result["execution"]["open_order_count"], 1)
         self.assertEqual(result["execution"]["cash"], {"USD": "100.00"})
 
+    def test_inactive_instrument_is_visible_and_unfilled_exit_expires(self):
+        self.definition["execution"]["account"]["instruments"][0][
+            "active_until"
+        ] = "2020-01-04T09:00:00Z"
+        self.definition["execution_sessions"]["end"] = "2020-01-03"
+        self.definition["liquidity"] = [
+            row
+            for row in self.definition["liquidity"]
+            if row["session"] <= "2020-01-03"
+        ]
+        _, result = self.run_study()
+        self.assertEqual(
+            result["decisions"][2]["actions"][0]["outcome"], "inactive_instrument"
+        )
+        self.assertEqual(result["execution"]["positions"]["STOCK-A"]["quantity"], "2")
+        self.assertEqual(
+            next(
+                order
+                for order in result["execution"]["orders"]
+                if order["instrument"] == "STOCK-A" and order["side"] == "sell"
+            )["status"],
+            "expired",
+        )
+
