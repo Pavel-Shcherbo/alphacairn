@@ -352,3 +352,22 @@ class StrategyTests(unittest.TestCase):
             "expired",
         )
 
+    def test_input_binding_rejects_missing_unused_duplicate_and_mutated_snapshots(self):
+        inputs, _ = self.run_study()
+        for mode in ("missing", "unused", "duplicate", "changed"):
+            bad = copy.deepcopy(inputs)
+            if mode == "missing":
+                bad["snapshots"].pop()
+            elif mode == "duplicate":
+                bad["snapshots"].append(copy.deepcopy(bad["snapshots"][0]))
+            elif mode == "unused":
+                item = copy.deepcopy(bad["snapshots"][0])
+                item["query"]["known_at"] = "2020-02-01T00:00:00.000000+00:00"
+                item["sha256"] = snapshot_identity(item)
+                bad["snapshots"].append(item)
+            else:
+                bad["snapshots"][0]["sha256"] = "0" * 64
+            rehash_inputs(bad)
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                simulate_strategy(bad)
+
