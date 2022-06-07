@@ -371,3 +371,19 @@ class StrategyTests(unittest.TestCase):
             with self.subTest(mode=mode), self.assertRaises(ValueError):
                 simulate_strategy(bad)
 
+    def test_cancelled_or_invalid_study_cannot_return_a_completed_report(self):
+        inputs, _ = self.run_study()
+        with self.assertRaisesRegex(ValueError, "cancelled"):
+            simulate_strategy(inputs, should_cancel=lambda: True)
+        count = 0
+
+        def cancel():
+            nonlocal count
+            count += 1
+            return count >= 6
+
+        with self.assertRaisesRegex(ValueError, "cancelled"):
+            simulate_strategy(inputs, should_cancel=cancel)
+        with self.assertRaises(ValueError):
+            simulate_strategy(inputs, should_cancel=True)
+
