@@ -387,3 +387,26 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             simulate_strategy(inputs, should_cancel=True)
 
+    def test_decimal_context_isolation_and_invalid_configuration_preflight(self):
+        inputs, expected = self.run_study()
+        with localcontext() as context:
+            context.prec = 3
+            context.traps[Inexact] = True
+            self.assertEqual(simulate_strategy(inputs), expected)
+        for field, value in (
+            ("lookback", True),
+            ("lookback", 1),
+            ("allocation_order", ["STOCK-A", "STOCK-A"]),
+            ("target_quantities", {"STOCK-A": 2.5, "COIN-C": "1.5"}),
+            ("max_feature_age_seconds", -1),
+            ("missing_signal_policy", "ignore"),
+        ):
+            bad = copy.deepcopy(self.definition)
+            bad[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                compile_strategy(bad)
+        bad = copy.deepcopy(self.definition)
+        bad["decisions"].reverse()
+        with self.assertRaises(ValueError):
+            compile_strategy(bad)
+
