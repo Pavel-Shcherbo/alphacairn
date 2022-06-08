@@ -410,3 +410,11 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             compile_strategy(bad)
 
+    def test_overlapping_history_cannot_count_as_two_distinct_feature_periods(self):
+        changed = copy.deepcopy(self.bars[0])
+        changed.update(session="2019-12-31", published_at="2020-01-01T16:02:00Z")
+        self.ingest([changed])
+        self.definition["history_start"] = "2019-12-31"
+        with self.assertRaisesRegex(ValueError, "overlap"):
+            self.run_study()
+
