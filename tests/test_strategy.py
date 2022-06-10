@@ -466,3 +466,24 @@ class StrategyTests(unittest.TestCase):
             ):
                 verify_strategy_bundle(destination)
 
+    def test_export_rejects_unexpected_files_symlinks_and_incomplete_inventory(self):
+        inputs, report = self.run_study()
+        destination = self.root / "bundle"
+        write_strategy(inputs, report, destination)
+        extra = destination / "unexpected"
+        extra.write_text("extra")
+        with self.assertRaises(ValueError):
+            verify_strategy_bundle(destination)
+        extra.unlink()
+        target = destination / "decisions.csv"
+        target.unlink()
+        target.symlink_to(self.root / "missing")
+        with self.assertRaises(ValueError):
+            verify_strategy_bundle(destination)
+        symlink = self.root / "alias"
+        symlink.symlink_to(destination, target_is_directory=True)
+        with self.assertRaises(ValueError):
+            write_strategy(inputs, report, symlink)
+        with self.assertRaises(ValueError):
+            verify_strategy_bundle(symlink)
+
