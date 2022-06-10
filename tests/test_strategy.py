@@ -418,3 +418,21 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlap"):
             self.run_study()
 
+    def test_portable_bundle_replays_without_catalog_and_preserves_existing_destination(
+        self,
+    ):
+        inputs, report = self.run_study()
+        destination = self.root / "bundle"
+        write_strategy(inputs, report, destination)
+        with self.assertRaises(FileExistsError):
+            write_strategy(inputs, report, destination)
+        self.assertEqual(
+            json.loads((destination / "strategy-report.json").read_text()), report
+        )
+        # The verifier must use portable inputs, not the live catalog or example files.
+        (self.root / "market.sqlite").unlink()
+        verified = verify_strategy_bundle(destination)
+        self.assertTrue(verified["passed"])
+        self.assertEqual(verified["fills"], 6)
+        self.assertEqual(verified["valuation"]["equity"], "86.50")
+
