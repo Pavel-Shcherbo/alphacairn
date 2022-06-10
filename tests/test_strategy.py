@@ -436,3 +436,33 @@ class StrategyTests(unittest.TestCase):
         self.assertEqual(verified["fills"], 6)
         self.assertEqual(verified["valuation"]["equity"], "86.50")
 
+    def test_rehashed_forged_report_or_csv_is_rejected_by_actual_reexecution(self):
+        inputs, report = self.run_study()
+        for filename in ("strategy-report.json", "decisions.csv"):
+            destination = self.root / filename.replace(".", "-")
+            write_strategy(inputs, report, destination)
+            path = destination / filename
+            if filename.endswith(".json"):
+                fake = json.loads(path.read_text())
+                fake["decisions"][0]["actions"][0]["target_quantity"] = "999"
+                fake["sha256"] = digest(
+                    {k: v for k, v in fake.items() if k != "sha256"}
+                )
+                path.write_bytes(json_data(fake))
+            else:
+                path.write_bytes(
+                    path.read_bytes().replace(b"order_submitted", b"invented_action", 1)
+                )
+            raw = path.read_bytes()
+            manifest = json.loads((destination / "manifest.json").read_text())
+            manifest["files"][filename] = {
+                "bytes": len(raw),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+            }
+            (destination / "manifest.json").write_bytes(json_data(manifest))
+            with (
+                self.subTest(filename=filename),
+                self.assertRaisesRegex(ValueError, "replay"),
+            ):
+                verify_strategy_bundle(destination)
+
