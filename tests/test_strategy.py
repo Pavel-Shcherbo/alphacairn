@@ -487,3 +487,34 @@ class StrategyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             verify_strategy_bundle(symlink)
 
+    def test_create_only_inputs_file_and_real_cli_capture_run_verify(self):
+        inputs, _ = self.run_study()
+        file = self.root / "inputs.json"
+        write_strategy_inputs(inputs, file)
+        with self.assertRaises(FileExistsError):
+            write_strategy_inputs(inputs, file)
+
+        def command(*args):
+            result = subprocess.run(
+                [sys.executable, "-m", "alphacairn.strategy", *map(str, args)],
+                cwd=EXAMPLES.parent,
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return json.loads(result.stdout)
+
+        captured = command(
+            "capture",
+            EXAMPLES / "strategy-control.json",
+            "--database",
+            self.root / "market.sqlite",
+            "--output",
+            self.root / "cli-inputs.json",
+        )
+        self.assertEqual(captured["inputs_sha256"], inputs["sha256"])
+        command(
+            "run", self.root / "cli-inputs.json", "--output", self.root / "cli-bundle"
+        )
+        self.assertTrue(command("verify", self.root / "cli-bundle")["passed"])
