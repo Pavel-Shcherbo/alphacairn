@@ -12,3 +12,5 @@ include examples/execution-scenario.json
 include examples/strategy-bars.json
 include examples/strategy-universe.json
 include examples/strategy-control.json
+include examples/session-schedule.json
+include examples/session-execution.json
