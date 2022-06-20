@@ -81,3 +81,5 @@ work in those years. The 2019–2026 roadmap is proposed scope, not a completed-
 ## Multi-instrument execution
 
 The execution CLI models explicit market/limit orders across instruments and currencies, known liquidity budgets, partial fills, tick-rounded slippage, per-fill fees, IOC/DAY/GTC, deferred cancellations and expiry. Its cash/positions reconcile through the portfolio journal; deterministic bundles include fills, orders, equity and replayable ledger events. See [execution guide](docs/EXECUTION.md) for model assumptions, a hand-calculated synthetic example and complete commands. This engine has no brokerage endpoint.
+
+Retained operator calendars and version-2 session-checked execution: [session guide](docs/SESSIONS.md). Synthetic stock/crypto control: `examples/session-execution.json`.
