@@ -171,6 +171,12 @@ def _simulate(plan, should_cancel):
         "ledger_audit": replay,
         "assumptions": list(ASSUMPTIONS),
     }
+    if scenario["version"] == 2:
+        from .session_calendar import validate_execution_calendar
+
+        result["calendar_validation"] = validate_execution_calendar(
+            scenario, plan.account
+        )
     if len(canonical(result)) > 24 * 1024 * 1024:
         raise ValueError("execution report exceeds 24 MiB; partition the study")
     result["sha256"] = digest(result)
