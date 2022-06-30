@@ -38,14 +38,17 @@ def compile_execution(definition):
         "commands",
         "fx",
     }
+    version = definition.get("version") if isinstance(definition, dict) else None
+    if type(version) is int and version == 2:
+        required |= {"calendar", "calendar_policy"}
     if (
         not isinstance(definition, dict)
         or set(definition) != required
         or type(definition["version"]) is not int
-        or definition["version"] != 1
+        or definition["version"] not in (1, 2)
     ):
         raise ValueError(
-            "execution requires version 1 and explicit account/time/cost/data/command fields"
+            "execution requires version 1 or 2 and explicit account/time/cost/data/command fields"
         )
     account = AccountSpec.compile(definition["account"])
     currencies = dict(account.currencies)
@@ -302,7 +305,7 @@ def compile_execution(definition):
                 {"currency": currency, "at": timestamp_text(when), "rate": text(value)}
             )
     result = {
-        "version": 1,
+        "version": version,
         "account": account.definition(),
         "starts_at": timestamp_text(start),
         "ends_at": timestamp_text(end),
@@ -316,4 +319,10 @@ def compile_execution(definition):
         "commands": normalized_commands,
         "fx": sorted(normalized_fx, key=lambda row: (row["at"], row["currency"])),
     }
+    if version == 2:
+        from .session_calendar import validate_execution_calendar
+
+        result["calendar"] = copy.deepcopy(definition["calendar"])
+        result["calendar_policy"] = copy.deepcopy(definition["calendar_policy"])
+        validate_execution_calendar(result, account)
     return ExecutionPlan(copy.deepcopy(result), account, digest(result))
