@@ -43,3 +43,8 @@ class SessionCalendar:
             name: [row["session"] for row in rows] for name, rows in self.rows.items()
         }
 
+    def _name(self, name):
+        if not isinstance(name, str) or name not in self.calendars:
+            raise ValueError("unknown calendar ID")
+        return name
+
