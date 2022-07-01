@@ -56,3 +56,22 @@ class SessionCalendar:
         except KeyError as error:
             raise ValueError("session is outside retained horizon") from error
 
+    def _covered_instant(self, name, when):
+        zone = self.zones[self.calendars[self._name(name)]["timezone"]]
+        local = when.astimezone(zone).date()
+        # Require all labels that could contribute a segment at this instant.
+        calendar = self.calendars[name]
+        windows = list(calendar["segments"])
+        for exception in calendar["exceptions"]:
+            windows.extend(exception["segments"])
+        lower = local - dt.timedelta(
+            days=max([0] + [row["close"]["day_offset"] for row in windows])
+        )
+        upper = local - dt.timedelta(
+            days=min([0] + [row["open"]["day_offset"] for row in windows])
+        )
+        if lower < day(self.definition["starts_on"]) or upper > day(
+            self.definition["ends_on"]
+        ):
+            raise ValueError("retained horizon needs neighboring session labels")
+
