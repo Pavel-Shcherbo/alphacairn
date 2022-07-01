@@ -48,3 +48,11 @@ class SessionCalendar:
             raise ValueError("unknown calendar ID")
         return name
 
+    def session(self, name, label):
+        self._name(name)
+        day(label)
+        try:
+            return copy.deepcopy(self.labels[name, label])
+        except KeyError as error:
+            raise ValueError("session is outside retained horizon") from error
+
