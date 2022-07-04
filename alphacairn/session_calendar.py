@@ -75,3 +75,18 @@ class SessionCalendar:
         ):
             raise ValueError("retained horizon needs neighboring session labels")
 
+    def locate(self, name, at):
+        when = timestamp(at)
+        self._covered_instant(name, when)
+        index = bisect_right(self.segment_opens[name], when) - 1
+        if index >= 0:
+            opened, closed, label = self.segments[name][index]
+            if opened <= when < closed:
+                return {
+                    "calendar": name,
+                    "session": label,
+                    "opens_at": timestamp_text(opened),
+                    "closes_at": timestamp_text(closed),
+                }
+        return None
+
