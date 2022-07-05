@@ -90,3 +90,21 @@ class SessionCalendar:
                 }
         return None
 
+    def next_open(self, name, at, *, inclusive=True):
+        if type(inclusive) is not bool:
+            raise ValueError("inclusive must be boolean")
+        when = timestamp(at)
+        self._covered_instant(name, when)
+        index = (bisect_left if inclusive else bisect_right)(
+            self.segment_opens[name], when
+        )
+        if index == len(self.segments[name]):
+            raise ValueError("no next opening within retained horizon")
+        opened, closed, label = self.segments[name][index]
+        return {
+            "calendar": name,
+            "session": label,
+            "opens_at": timestamp_text(opened),
+            "closes_at": timestamp_text(closed),
+        }
+
