@@ -108,3 +108,23 @@ class SessionCalendar:
             "closes_at": timestamp_text(closed),
         }
 
+    def advance(self, name, label, count, *, roll="raise"):
+        row = self.session(name, label)
+        if type(count) is not int or not -25000 <= count <= 25000:
+            raise ValueError("session offset must be an integer within ±25,000")
+        if roll not in ("raise", "following", "preceding"):
+            raise ValueError("roll must be raise, following or preceding")
+        labels = self.open_labels[name]
+        index = bisect_left(labels, label)
+        if not row["segments"]:
+            if roll == "raise":
+                raise ValueError("base label is a closed session")
+            if roll == "preceding":
+                index -= 1
+            if not 0 <= index < len(labels):
+                raise ValueError("rolled session is outside retained horizon")
+        target = index + count
+        if not 0 <= target < len(labels):
+            raise ValueError("session offset extends beyond retained horizon")
+        return self.session(name, labels[target])
+
