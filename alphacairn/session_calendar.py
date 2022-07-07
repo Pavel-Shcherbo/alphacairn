@@ -128,3 +128,14 @@ class SessionCalendar:
             raise ValueError("session offset extends beyond retained horizon")
         return self.session(name, labels[target])
 
+    def overlapping(self, name, start, end):
+        self._name(name)
+        if start >= end:
+            return []
+        self._covered_instant(name, start)
+        self._covered_instant(name, end - dt.timedelta(microseconds=1))
+        left = bisect_right(self.closes[name], start)
+        right = bisect_left(self.opens[name], end)
+        return self.rows[name][left:right]
+
+
