@@ -139,3 +139,64 @@ class SessionCalendar:
         return self.rows[name][left:right]
 
 
+def validate_execution_calendar(scenario, account):
+    index = SessionCalendar(scenario["calendar"])
+    policy = scenario["calendar_policy"]
+    if (
+        not isinstance(policy, dict)
+        or set(policy) != {"require_all_sessions"}
+        or type(policy["require_all_sessions"]) is not bool
+    ):
+        raise ValueError("calendar policy requires boolean require_all_sessions")
+    bindings = index.definition["instruments"]
+    if set(bindings) != {item.id for item in account.instruments}:
+        raise ValueError("calendar must bind every account instrument exactly once")
+    supplied = {(bar["instrument"], bar["session"]): bar for bar in scenario["bars"]}
+    for bar in supplied.values():
+        row = index.session(bindings[bar["instrument"]], bar["session"])
+        windows = row["segments"]
+        if (
+            not windows
+            or timestamp(bar["opened_at"]) != timestamp(windows[0]["opens_at"])
+            or timestamp(bar["closed_at"]) != timestamp(windows[-1]["closes_at"])
+        ):
+            raise ValueError("bar must match the full declared open-session envelope")
+    expected, missing, samples = 0, 0, []
+    for instrument in account.instruments:
+        start = timestamp(scenario["starts_at"])
+        end = timestamp(scenario["ends_at"])
+        if instrument.active_from is not None:
+            start = max(start, instrument.active_from)
+        if instrument.active_until is not None:
+            end = min(end, instrument.active_until)
+        for row in index.overlapping(bindings[instrument.id], start, end):
+            expected += 1
+            if expected > 200000:
+                raise ValueError(
+                    "calendar coverage exceeds 200,000 instrument/session checks"
+                )
+            windows = row["segments"]
+            if (
+                timestamp(windows[0]["opens_at"]) < start
+                or timestamp(windows[-1]["closes_at"]) > end
+            ):
+                raise ValueError("execution/active interval cuts a declared session")
+            if (instrument.id, row["session"]) not in supplied:
+                missing += 1
+                if len(samples) < 100:
+                    samples.append(
+                        {"instrument": instrument.id, "session": row["session"]}
+                    )
+    if missing and policy["require_all_sessions"]:
+        raise ValueError(f"missing bars for {missing} declared instrument/sessions")
+    return {
+        "calendar_sha256": index.document["sha256"],
+        "expected_sessions": expected,
+        "provided_bars": len(supplied),
+        "missing_sessions": missing,
+        "missing_sample": samples,
+        "sample_truncated": missing > len(samples),
+        "complete": missing == 0,
+        "source_authenticated": False,
+        "fill_phases": "existing full-session bar opens/closes only; no synthetic prices",
+    }
