@@ -26,3 +26,11 @@ def day(value):
     return result
 
 
+def bounded_json(value):
+    try:
+        if len(canonical(value)) > MAX_BYTES:
+            raise ValueError("calendar exceeds 8 MiB")
+    except (TypeError, RecursionError) as error:
+        raise ValueError("calendar requires bounded finite JSON") from error
+
+
