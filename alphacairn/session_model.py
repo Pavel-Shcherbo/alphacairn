@@ -17,3 +17,12 @@ def fields(value, expected, label):
         raise ValueError(f"{label} fields do not match contract")
 
 
+def day(value):
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        raise ValueError("session label requires YYYY-MM-DD")
+    result = dt.date.fromisoformat(value)
+    if not 1900 <= result.year <= 2200:
+        raise ValueError("calendar dates must be within 1900–2200")
+    return result
+
+
