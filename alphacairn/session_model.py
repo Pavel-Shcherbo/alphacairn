@@ -70,3 +70,92 @@ def segments(value):
     return result
 
 
+def compile_schedule(definition):
+    bounded_json(definition)
+    fields(
+        definition, "version source starts_on ends_on calendars instruments", "schedule"
+    )
+    if type(definition["version"]) is not int or definition["version"] != 1:
+        raise ValueError("schedule requires version 1")
+    source = definition["source"]
+    if (
+        not isinstance(source, str)
+        or not source.strip()
+        or len(source) > 256
+        or any(ord(c) < 32 for c in source)
+    ):
+        raise ValueError("schedule requires a bounded source description")
+    start, end = day(definition["starts_on"]), day(definition["ends_on"])
+    if not 0 <= (end - start).days <= 3660:
+        raise ValueError("schedule horizon must span 1–3661 days")
+    calendars = definition["calendars"]
+    if not isinstance(calendars, list) or not 1 <= len(calendars) <= 16:
+        raise ValueError("schedule requires 1–16 calendars")
+    if len(calendars) * ((end - start).days + 1) > 25000:
+        raise ValueError("schedule exceeds 25,000 calendar/day records")
+    result, names = [], set()
+    for item in calendars:
+        fields(item, "id timezone weekdays segments exceptions", "calendar")
+        name = identity(item["id"], "calendar ID")
+        if name in names:
+            raise ValueError("duplicate calendar ID")
+        names.add(name)
+        weekdays = item["weekdays"]
+        if (
+            not isinstance(weekdays, list)
+            or len(weekdays) > 7
+            or any(type(n) is not int or not 0 <= n <= 6 for n in weekdays)
+            or len(set(weekdays)) != len(weekdays)
+        ):
+            raise ValueError("weekdays require unique integers 0–6")
+        exceptions = item["exceptions"]
+        if not isinstance(exceptions, list) or len(exceptions) > 1000:
+            raise ValueError("calendar supports at most 1000 explicit exceptions")
+        normalized, labels = [], set()
+        for exception in exceptions:
+            fields(exception, "session segments reason", "calendar exception")
+            label = day(exception["session"])
+            reason = exception["reason"]
+            if label in labels or not start <= label <= end:
+                raise ValueError("exception labels must be unique and inside horizon")
+            if (
+                not isinstance(reason, str)
+                or not reason.strip()
+                or len(reason) > 256
+                or any(ord(c) < 32 for c in reason)
+            ):
+                raise ValueError("exception requires a bounded reason")
+            labels.add(label)
+            normalized.append(
+                {
+                    "session": label.isoformat(),
+                    "segments": segments(exception["segments"]),
+                    "reason": reason,
+                }
+            )
+        result.append(
+            {
+                "id": name,
+                "timezone": zone_key(item["timezone"]),
+                "weekdays": sorted(weekdays),
+                "segments": segments(item["segments"]),
+                "exceptions": sorted(normalized, key=lambda row: row["session"]),
+            }
+        )
+    bindings = definition["instruments"]
+    if not isinstance(bindings, dict) or len(bindings) > 1000:
+        raise ValueError("schedule supports at most 1000 instrument bindings")
+    for name, calendar in bindings.items():
+        identity(name, "instrument ID")
+        if not isinstance(calendar, str) or calendar not in names:
+            raise ValueError("binding requires a declared calendar")
+    return {
+        "version": 1,
+        "source": source,
+        "starts_on": start.isoformat(),
+        "ends_on": end.isoformat(),
+        "calendars": sorted(result, key=lambda row: row["id"]),
+        "instruments": dict(sorted(bindings.items())),
+    }
+
+
