@@ -159,3 +159,56 @@ def compile_schedule(definition):
     }
 
 
+def materialize(definition, zones):
+    from .session_zones import resolve_local
+
+    records, count = [], 0
+    for calendar in definition["calendars"]:
+        zone = zones[calendar["timezone"]]
+        exceptions = {row["session"]: row for row in calendar["exceptions"]}
+        previous = None
+        label = day(definition["starts_on"])
+        end = day(definition["ends_on"])
+        while label <= end:
+            exception = exceptions.get(label.isoformat())
+            windows = (
+                exception["segments"]
+                if exception is not None
+                else (
+                    calendar["segments"]
+                    if label.weekday() in calendar["weekdays"]
+                    else []
+                )
+            )
+            converted = []
+            for window in windows:
+                opened = resolve_local(label, window["open"], zone)
+                closed = resolve_local(label, window["close"], zone)
+                if opened >= closed or previous is not None and opened < previous:
+                    raise ValueError(
+                        "segments/session envelopes overlap or reverse in UTC"
+                    )
+                previous = closed
+                converted.append(
+                    {
+                        "opens_at": timestamp_text(opened),
+                        "closes_at": timestamp_text(closed),
+                    }
+                )
+                count += 1
+                if count > 50000:
+                    raise ValueError("schedule exceeds 50,000 segments")
+            records.append(
+                {
+                    "calendar": calendar["id"],
+                    "session": label.isoformat(),
+                    "segments": converted,
+                    "reason": (
+                        exception["reason"] if exception is not None else "weekly"
+                    ),
+                }
+            )
+            label += dt.timedelta(days=1)
+    return records
+
+
