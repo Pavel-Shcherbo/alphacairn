@@ -212,3 +212,13 @@ def materialize(definition, zones):
     return records
 
 
+def build_calendar(definition):
+    normalized = compile_schedule(definition)
+    records = [
+        load_zone(key)
+        for key in sorted({item["timezone"] for item in normalized["calendars"]})
+    ]
+    zones = {record["key"]: decode_zone(record) for record in records}
+    return _document(normalized, records, materialize(normalized, zones))
+
+
