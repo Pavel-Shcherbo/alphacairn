@@ -222,3 +222,15 @@ def build_calendar(definition):
     return _document(normalized, records, materialize(normalized, zones))
 
 
+def _document(definition, zones, sessions):
+    result = {
+        "format": FORMAT,
+        "definition": definition,
+        "zones": zones,
+        "sessions": sessions,
+    }
+    result["sha256"] = digest(result)
+    bounded_json(result)
+    return result
+
+
