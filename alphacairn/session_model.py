@@ -234,3 +234,27 @@ def _document(definition, zones, sessions):
     return result
 
 
+def verify_calendar(document):
+    bounded_json(document)
+    fields(document, "format definition zones sessions sha256", "calendar document")
+    if document["format"] != FORMAT:
+        raise ValueError("unsupported calendar format")
+    normalized = compile_schedule(document["definition"])
+    records = document["zones"]
+    expected = sorted({item["timezone"] for item in normalized["calendars"]})
+    if not isinstance(records, list) or len(records) != len(expected):
+        raise ValueError("calendar timezone inventory mismatch")
+    zones = {}
+    for record in records:
+        zone = decode_zone(record)
+        if zone.key in zones:
+            raise ValueError("duplicate timezone entity")
+        zones[zone.key] = zone
+    if [record["key"] for record in records] != expected:
+        raise ValueError("calendar timezone inventory/order mismatch")
+    if sum(len(record["tzif_base64"]) for record in records) > 3 * 1024 * 1024:
+        raise ValueError("calendar timezone inventory exceeds limit")
+    rebuilt = _document(normalized, records, materialize(normalized, zones))
+    if canonical(document) != canonical(rebuilt):
+        raise ValueError("calendar differs from regenerated schedule or digest")
+    return copy.deepcopy(rebuilt), zones
