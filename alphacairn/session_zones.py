@@ -13,3 +13,14 @@ import zoneinfo
 MAX_ZONE_BYTES = 1024 * 1024
 
 
+def zone_key(value):
+    if (
+        not isinstance(value, str)
+        or len(value) > 128
+        or not re.fullmatch(r"[A-Za-z0-9_+./-]+", value)
+        or any(part in ("", ".", "..") for part in value.split("/"))
+    ):
+        raise ValueError("timezone requires a bounded relative IANA key")
+    return value
+
+
