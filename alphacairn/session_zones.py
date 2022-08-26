@@ -24,3 +24,49 @@ def zone_key(value):
     return value
 
 
+def check_tzif(raw):
+    if not isinstance(raw, bytes) or not 44 <= len(raw) <= MAX_ZONE_BYTES:
+        raise ValueError("timezone entity exceeds limits or is truncated")
+
+    def block(offset, width):
+        if raw[offset : offset + 4] != b"TZif" or offset + 44 > len(raw):
+            raise ValueError("invalid TZif header")
+        version = raw[offset + 4 : offset + 5]
+        if version not in (b"\0", b"2", b"3"):
+            raise ValueError("unsupported TZif version")
+        ut, std, leap, times, types, chars = struct.unpack_from(">6I", raw, offset + 20)
+        if (
+            not 1 <= types <= 256
+            or times > 20000
+            or chars > 65536
+            or leap > 2048
+            or std not in (0, types)
+            or ut not in (0, types)
+        ):
+            raise ValueError("TZif counts exceed supported bounds")
+        end = (
+            offset
+            + 44
+            + times * (width + 1)
+            + types * 6
+            + chars
+            + leap * (width + 4)
+            + std
+            + ut
+        )
+        if end > len(raw):
+            raise ValueError("truncated TZif block")
+        return version, end
+
+    version, end = block(0, 4)
+    if version != b"\0":
+        other, end = block(end, 8)
+        if other != version:
+            raise ValueError("TZif header versions disagree")
+        if len(raw) - end > 4096:
+            raise ValueError("TZif rule tail exceeds limits")
+    elif end != len(raw):
+        raise ValueError("unexpected TZif v1 tail")
+    return raw
+
+
