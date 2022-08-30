@@ -70,3 +70,24 @@ def check_tzif(raw):
     return raw
 
 
+def load_zone(key):
+    key = zone_key(key)
+    for root in zoneinfo.TZPATH:
+        path = Path(root).joinpath(*key.split("/"))
+        try:
+            with path.open("rb") as stream:
+                raw = stream.read(MAX_ZONE_BYTES + 1)
+            return zone_record(key, raw, "system")
+        except FileNotFoundError:
+            pass
+    try:
+        resource = importlib.resources.files("tzdata.zoneinfo").joinpath(
+            *key.split("/")
+        )
+        with resource.open("rb") as stream:
+            raw = stream.read(MAX_ZONE_BYTES + 1)
+        return zone_record(key, raw, "tzdata")
+    except (ModuleNotFoundError, FileNotFoundError) as error:
+        raise ValueError(f"timezone data unavailable for {key}") from error
+
+
