@@ -91,3 +91,13 @@ def load_zone(key):
         raise ValueError(f"timezone data unavailable for {key}") from error
 
 
+def zone_record(key, raw, provider):
+    check_tzif(raw)
+    return {
+        "key": key,
+        "provider": provider,
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "tzif_base64": base64.b64encode(raw).decode("ascii"),
+    }
+
+
