@@ -101,3 +101,29 @@ def zone_record(key, raw, provider):
     }
 
 
+def decode_zone(record):
+    if not isinstance(record, dict) or set(record) != {
+        "key",
+        "provider",
+        "sha256",
+        "tzif_base64",
+    }:
+        raise ValueError("timezone record fields do not match portable contract")
+    key = zone_key(record["key"])
+    if record["provider"] not in ("system", "tzdata"):
+        raise ValueError("unknown timezone provider label")
+    encoded = record["tzif_base64"]
+    if not isinstance(encoded, str) or len(encoded) > (MAX_ZONE_BYTES + 2) // 3 * 4:
+        raise ValueError("encoded timezone exceeds limits")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+        if base64.b64encode(raw).decode("ascii") != encoded:
+            raise ValueError("timezone base64 must be canonical")
+        check_tzif(raw)
+        if hashlib.sha256(raw).hexdigest() != record["sha256"]:
+            raise ValueError("timezone entity hash mismatch")
+        return zoneinfo.ZoneInfo.from_file(io.BytesIO(raw), key=key)
+    except (ValueError, TypeError, OverflowError, struct.error) as error:
+        raise ValueError("invalid portable timezone entity") from error
+
+
