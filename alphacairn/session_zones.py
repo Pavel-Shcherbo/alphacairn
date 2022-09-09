@@ -127,3 +127,21 @@ def decode_zone(record):
         raise ValueError("invalid portable timezone entity") from error
 
 
+def resolve_local(label, endpoint, zone):
+    naive = dt.datetime.combine(
+        label, dt.time.fromisoformat(endpoint["time"])
+    ) + dt.timedelta(days=endpoint["day_offset"])
+    candidates = {}
+    for fold in (0, 1):
+        utc = naive.replace(tzinfo=zone, fold=fold).astimezone(dt.timezone.utc)
+        if utc.astimezone(zone).replace(tzinfo=None) == naive:
+            candidates[fold] = utc
+    if not candidates:
+        raise ValueError(f"nonexistent local time {naive.isoformat()} in {zone.key}")
+    if len(set(candidates.values())) > 1 and endpoint["fold"] is None:
+        raise ValueError(
+            f"ambiguous local time {naive.isoformat()} requires explicit fold"
+        )
+    return candidates[
+        endpoint["fold"] if endpoint["fold"] is not None else min(candidates)
+    ]
