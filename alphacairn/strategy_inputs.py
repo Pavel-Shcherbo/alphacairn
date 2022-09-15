@@ -77,7 +77,14 @@ def compile_strategy(definition):
     if type(age) is not int or not 0 <= age <= 366 * 86400:
         raise ValueError("feature age must be an explicit 0–366 day budget")
     execution = result["execution"]
-    if not isinstance(execution, dict) or set(execution) != EXECUTION_FIELDS:
+    expected_execution = EXECUTION_FIELDS
+    if (
+        isinstance(execution, dict)
+        and type(execution.get("version")) is int
+        and execution["version"] == 2
+    ):
+        expected_execution = EXECUTION_FIELDS | {"calendar", "calendar_policy"}
+    if not isinstance(execution, dict) or set(execution) != expected_execution:
         raise ValueError("strategy execution template excludes bars and commands")
     account = AccountSpec.compile(execution["account"])
     if len(account.instruments) > 100:
