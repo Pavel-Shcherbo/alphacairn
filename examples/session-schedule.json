@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "source": "Synthetic operator control; no exchange holiday claims",
+  "starts_on": "2019-12-30",
+  "ends_on": "2020-01-08",
+  "calendars": [
+    {
+      "id": "demo",
+      "timezone": "UTC",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "segments": [
+        {
+          "open": {
+            "time": "09:00",
+            "day_offset": 0,
+            "fold": null
+          },
+          "close": {
+            "time": "17:00",
+            "day_offset": 0,
+            "fold": null
+          }
+        }
+      ],
+      "exceptions": [
+        {
+          "session": "2020-01-01",
+          "segments": [],
+          "reason": "control closure"
+        }
+      ]
+    },
+    {
+      "id": "continuous",
+      "timezone": "UTC",
+      "weekdays": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "segments": [
+        {
+          "open": {
+            "time": "00:00",
+            "day_offset": 0,
+            "fold": null
+          },
+          "close": {
+            "time": "00:00",
+            "day_offset": 1,
+            "fold": null
+          }
+        }
+      ],
+      "exceptions": []
+    }
+  ],
+  "instruments": {
+    "A": "demo",
+    "COIN": "continuous"
+  }
+}
