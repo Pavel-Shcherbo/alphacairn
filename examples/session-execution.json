@@ -1,0 +1,424 @@
+{
+  "version": 2,
+  "account": {
+    "name": "execution",
+    "base_currency": "USD",
+    "currencies": {
+      "USD": 2
+    },
+    "instruments": [
+      {
+        "id": "A",
+        "symbol": "A",
+        "venue": "DEMO",
+        "kind": "equity",
+        "quote_currency": "USD",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      },
+      {
+        "id": "COIN",
+        "symbol": "COIN",
+        "venue": "DEMO",
+        "kind": "crypto_spot",
+        "quote_currency": "USD",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      }
+    ]
+  },
+  "starts_at": "2020-01-02T00:00:00Z",
+  "ends_at": "2020-01-05T00:00:00Z",
+  "initial_cash": {
+    "USD": "100"
+  },
+  "fees": {
+    "rate_bps": "0",
+    "minimum": {}
+  },
+  "slippage_bps": "0",
+  "max_mark_age_seconds": 432000,
+  "bars": [
+    {
+      "instrument": "A",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "8",
+      "close": "11",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "A",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "8",
+      "close": "11",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "COIN",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T00:00:00Z",
+      "closed_at": "2020-01-03T00:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "8",
+      "close": "11",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-02T00:00:00Z"
+    },
+    {
+      "instrument": "COIN",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T00:00:00Z",
+      "closed_at": "2020-01-04T00:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "8",
+      "close": "11",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-03T00:00:00Z"
+    },
+    {
+      "instrument": "COIN",
+      "session": "2020-01-04",
+      "opened_at": "2020-01-04T00:00:00Z",
+      "closed_at": "2020-01-05T00:00:00Z",
+      "open": "10",
+      "high": "12",
+      "low": "8",
+      "close": "11",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-04T00:00:00Z"
+    }
+  ],
+  "commands": [
+    {
+      "action": "submit",
+      "id": "buy",
+      "at": "2020-01-02T00:00:00Z",
+      "instrument": "A",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "5",
+      "limit": null,
+      "time_in_force": "GTC",
+      "expires_at": null
+    },
+    {
+      "action": "submit",
+      "id": "weekend-coin",
+      "at": "2020-01-03T18:00:00Z",
+      "instrument": "COIN",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "2",
+      "limit": null,
+      "time_in_force": "GTC",
+      "expires_at": null
+    }
+  ],
+  "fx": [],
+  "calendar": {
+    "format": "alphacairn.session-calendar.v1",
+    "definition": {
+      "version": 1,
+      "source": "Synthetic operator control; no exchange holiday claims",
+      "starts_on": "2019-12-30",
+      "ends_on": "2020-01-08",
+      "calendars": [
+        {
+          "id": "continuous",
+          "timezone": "UTC",
+          "weekdays": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "segments": [
+            {
+              "open": {
+                "time": "00:00:00.000000",
+                "day_offset": 0,
+                "fold": null
+              },
+              "close": {
+                "time": "00:00:00.000000",
+                "day_offset": 1,
+                "fold": null
+              }
+            }
+          ],
+          "exceptions": []
+        },
+        {
+          "id": "demo",
+          "timezone": "UTC",
+          "weekdays": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "segments": [
+            {
+              "open": {
+                "time": "09:00:00.000000",
+                "day_offset": 0,
+                "fold": null
+              },
+              "close": {
+                "time": "17:00:00.000000",
+                "day_offset": 0,
+                "fold": null
+              }
+            }
+          ],
+          "exceptions": [
+            {
+              "session": "2020-01-01",
+              "segments": [],
+              "reason": "control closure"
+            }
+          ]
+        }
+      ],
+      "instruments": {
+        "A": "demo",
+        "COIN": "continuous"
+      }
+    },
+    "zones": [
+      {
+        "key": "UTC",
+        "provider": "system",
+        "sha256": "8b85846791ab2c8a5463c83a5be3c043e2570d7448434d41398969ed47e3e6f2",
+        "tzif_base64": "VFppZjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAQAAAAAAABVVEMAVFppZjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAQAAAAAAABVVEMAClVUQzAK"
+      }
+    ],
+    "sessions": [
+      {
+        "calendar": "continuous",
+        "session": "2019-12-30",
+        "segments": [
+          {
+            "opens_at": "2019-12-30T00:00:00.000000Z",
+            "closes_at": "2019-12-31T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2019-12-31",
+        "segments": [
+          {
+            "opens_at": "2019-12-31T00:00:00.000000Z",
+            "closes_at": "2020-01-01T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-01",
+        "segments": [
+          {
+            "opens_at": "2020-01-01T00:00:00.000000Z",
+            "closes_at": "2020-01-02T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-02",
+        "segments": [
+          {
+            "opens_at": "2020-01-02T00:00:00.000000Z",
+            "closes_at": "2020-01-03T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-03",
+        "segments": [
+          {
+            "opens_at": "2020-01-03T00:00:00.000000Z",
+            "closes_at": "2020-01-04T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-04",
+        "segments": [
+          {
+            "opens_at": "2020-01-04T00:00:00.000000Z",
+            "closes_at": "2020-01-05T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-05",
+        "segments": [
+          {
+            "opens_at": "2020-01-05T00:00:00.000000Z",
+            "closes_at": "2020-01-06T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-06",
+        "segments": [
+          {
+            "opens_at": "2020-01-06T00:00:00.000000Z",
+            "closes_at": "2020-01-07T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-07",
+        "segments": [
+          {
+            "opens_at": "2020-01-07T00:00:00.000000Z",
+            "closes_at": "2020-01-08T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "continuous",
+        "session": "2020-01-08",
+        "segments": [
+          {
+            "opens_at": "2020-01-08T00:00:00.000000Z",
+            "closes_at": "2020-01-09T00:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2019-12-30",
+        "segments": [
+          {
+            "opens_at": "2019-12-30T09:00:00.000000Z",
+            "closes_at": "2019-12-30T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2019-12-31",
+        "segments": [
+          {
+            "opens_at": "2019-12-31T09:00:00.000000Z",
+            "closes_at": "2019-12-31T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-01",
+        "segments": [],
+        "reason": "control closure"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-02",
+        "segments": [
+          {
+            "opens_at": "2020-01-02T09:00:00.000000Z",
+            "closes_at": "2020-01-02T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-03",
+        "segments": [
+          {
+            "opens_at": "2020-01-03T09:00:00.000000Z",
+            "closes_at": "2020-01-03T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-04",
+        "segments": [],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-05",
+        "segments": [],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-06",
+        "segments": [
+          {
+            "opens_at": "2020-01-06T09:00:00.000000Z",
+            "closes_at": "2020-01-06T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-07",
+        "segments": [
+          {
+            "opens_at": "2020-01-07T09:00:00.000000Z",
+            "closes_at": "2020-01-07T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      },
+      {
+        "calendar": "demo",
+        "session": "2020-01-08",
+        "segments": [
+          {
+            "opens_at": "2020-01-08T09:00:00.000000Z",
+            "closes_at": "2020-01-08T17:00:00.000000Z"
+          }
+        ],
+        "reason": "weekly"
+      }
+    ],
+    "sha256": "d8bfe4bd0e0eb8bc070b6487ecff4098a01935fb6b9fd4d14b1055fd25adda16"
+  },
+  "calendar_policy": {
+    "require_all_sessions": true
+  }
+}
