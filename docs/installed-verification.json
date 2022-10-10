@@ -1,5 +1,5 @@
 {
-  "wheel_sha256": "f80f550e2de781de734b721a62d8fd1a1fe54cf8a3bd8323c74e9258ccf13457",
+  "wheel_sha256": "4c0a24589b6498536d7e23f077075175586dafd0cc7fa818c3a05547bb880870",
   "examples_exported": [
     "execution-scenario.json",
     "market-bars.json",
@@ -10,6 +10,8 @@
     "portfolio-events.json",
     "portfolio-quotes.json",
     "portfolio-statement.json",
+    "session-execution.json",
+    "session-schedule.json",
     "strategy-bars.json",
     "strategy-control.json",
     "strategy-universe.json",
@@ -24,5 +26,6 @@
   "portfolio_http_success_and_failures_passed": true,
   "market_revision_windows_and_snapshot_study_passed": true,
   "multi_asset_execution_replay_and_fraction_control_passed": true,
-  "catalog_strategy_execution_and_offline_replay_passed": true
+  "catalog_strategy_execution_and_offline_replay_passed": true,
+  "retained_session_calendars_and_execution_replay_passed": true
 }
