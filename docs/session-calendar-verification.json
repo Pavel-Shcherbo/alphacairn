@@ -1,0 +1,88 @@
+{
+  "passed": true,
+  "scope": "Installed synthetic operator schedules; not official exchange or settlement certification",
+  "calendar_sha256": "d8bfe4bd0e0eb8bc070b6487ecff4098a01935fb6b9fd4d14b1055fd25adda16",
+  "calendar_file_sha256": "c368fc29354723edb0cad690452a2cfcebfe8f207fdfb7ce0df8f365f3ccee51",
+  "create_only": true,
+  "closed_stock_weekend_and_open_crypto_weekend": true,
+  "friday_plus_one_session_is_monday": true,
+  "offline_replay_with_live_zone_lookup_forbidden": true,
+  "strict_missing_session_rejected": true,
+  "permissive_missing_session_report": {
+    "calendar_sha256": "d8bfe4bd0e0eb8bc070b6487ecff4098a01935fb6b9fd4d14b1055fd25adda16",
+    "expected_sessions": 5,
+    "provided_bars": 4,
+    "missing_sessions": 1,
+    "missing_sample": [
+      {
+        "instrument": "COIN",
+        "session": "2020-01-04"
+      }
+    ],
+    "sample_truncated": false,
+    "complete": false,
+    "source_authenticated": false,
+    "fill_phases": "existing full-session bar opens/closes only; no synthetic prices"
+  },
+  "independent_fraction_cash": "30",
+  "independent_fraction_equity": "107",
+  "independent_positions": {
+    "A": "5",
+    "COIN": "2"
+  },
+  "fills": [
+    {
+      "id": "simfill-000001",
+      "order_id": "buy",
+      "instrument": "A",
+      "side": "buy",
+      "at": "2020-01-02T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-02",
+      "quantity": "5",
+      "price": "10",
+      "notional": "50.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "50.00",
+      "position_after": "5"
+    },
+    {
+      "id": "simfill-000002",
+      "order_id": "weekend-coin",
+      "instrument": "COIN",
+      "side": "buy",
+      "at": "2020-01-04T00:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-04",
+      "quantity": "2",
+      "price": "10",
+      "notional": "20.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "30.00",
+      "position_after": "2"
+    }
+  ],
+  "calendar_validation": {
+    "calendar_sha256": "d8bfe4bd0e0eb8bc070b6487ecff4098a01935fb6b9fd4d14b1055fd25adda16",
+    "complete": true,
+    "expected_sessions": 5,
+    "fill_phases": "existing full-session bar opens/closes only; no synthetic prices",
+    "missing_sample": [],
+    "missing_sessions": 0,
+    "provided_bars": 5,
+    "sample_truncated": false,
+    "source_authenticated": false
+  },
+  "bundle_file_hashes": {
+    "equity.csv": "3674a5745536304d92433caa1e10e2b2fc44a725bd3c8fb0fc2b9acbf79ead22",
+    "fills.csv": "d9b39a1a301a4c240684a281fe22ce24d6239abdb161f458e754bbb7c3b7b13a",
+    "ledger-events.json": "d628e6ae7c77a98daa1ef451ead053e6ba21be5e57a37bee1f346ce45356ff33",
+    "manifest.json": "b3fb8891e9acc85fb71c4b907da518441fcc4fe6c27ebd5b4bb96d423ad94fb1",
+    "orders.csv": "4d5cc6a56cad5f369e8a233bcf0fde69f6b8441f967703e1d1f674573b19eca9",
+    "report.json": "2df928b9c08fe865e9a7b6ae753317deaf352293810c501f575597bfb850551d",
+    "scenario.json": "394a04632be578b6cea9ea25f915ffd6cf9aa96bb8e8082acef12e2de728c493"
+  },
+  "full_portfolio_acceptance": false
+}
