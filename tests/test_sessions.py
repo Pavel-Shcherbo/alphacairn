@@ -27,3 +27,7 @@ from alphacairn.strategy_bundle import write_strategy, verify_strategy_bundle
 from alphacairn.market_store import MarketCatalog
 
 
+def endpoint(time, offset=0, fold=None):
+    return {"time": time, "day_offset": offset, "fold": fold}
+
+
