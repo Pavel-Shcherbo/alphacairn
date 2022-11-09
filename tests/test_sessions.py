@@ -31,3 +31,7 @@ def endpoint(time, offset=0, fold=None):
     return {"time": time, "day_offset": offset, "fold": fold}
 
 
+def window(start="09:00", end="17:00", close_offset=0):
+    return {"open": endpoint(start), "close": endpoint(end, close_offset)}
+
+
