@@ -35,3 +35,28 @@ def window(start="09:00", end="17:00", close_offset=0):
     return {"open": endpoint(start), "close": endpoint(end, close_offset)}
 
 
+def schedule(zone="UTC", start="2019-12-30", end="2020-01-07"):
+    return {
+        "version": 1,
+        "source": "Synthetic operator control; no exchange holiday claims",
+        "starts_on": start,
+        "ends_on": end,
+        "calendars": [
+            {
+                "id": "demo",
+                "timezone": zone,
+                "weekdays": [0, 1, 2, 3, 4],
+                "segments": [window()],
+                "exceptions": [
+                    {
+                        "session": "2020-01-01",
+                        "segments": [],
+                        "reason": "control closure",
+                    }
+                ],
+            }
+        ],
+        "instruments": {"A": "demo"},
+    }
+
+
