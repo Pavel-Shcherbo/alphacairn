@@ -60,3 +60,10 @@ def schedule(zone="UTC", start="2019-12-30", end="2020-01-07"):
     }
 
 
+def dated(zone, start, end):
+    value = schedule(zone, start, end)
+    value["calendars"][0]["exceptions"] = []
+    value["calendars"][0]["weekdays"] = list(range(7))
+    return value
+
+
