@@ -67,3 +67,9 @@ def dated(zone, start, end):
     return value
 
 
+def rehash(value):
+    value["sha256"] = digest(
+        {key: item for key, item in value.items() if key != "sha256"}
+    )
+
+
