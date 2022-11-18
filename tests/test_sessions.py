@@ -73,3 +73,17 @@ def rehash(value):
     )
 
 
+def execution():
+    value = scenario()
+    value.update(
+        version=2,
+        calendar=build_calendar(schedule()),
+        calendar_policy={"require_all_sessions": True},
+    )
+    value["ends_at"] = "2020-01-04T00:00:00Z"
+    value["bars"] = [bar(2), bar(3)]
+    return value
+
+
+class SessionTests(unittest.TestCase):
+    pass
