@@ -103,3 +103,21 @@ class SessionTests(unittest.TestCase):
         )
         self.assertEqual(index.session("demo", "2020-01-05")["segments"], [])
 
+    def test_early_close_and_midday_break_boundaries(self):
+        value = schedule()
+        value["calendars"][0]["exceptions"].append(
+            {
+                "session": "2020-01-03",
+                "segments": [window("09:00", "12:00"), window("13:00", "15:00")],
+                "reason": "split short control",
+            }
+        )
+        index = SessionCalendar(build_calendar(value))
+        self.assertIsNone(index.locate("demo", "2020-01-03T12:00:00Z"))
+        self.assertEqual(
+            index.next_open("demo", "2020-01-03T12:30:00Z")["opens_at"],
+            "2020-01-03T13:00:00.000000Z",
+        )
+        self.assertIsNone(index.locate("demo", "2020-01-03T15:00:00Z"))
+        self.assertIsNotNone(index.locate("demo", "2020-01-03T13:00:00Z"))
+
