@@ -86,4 +86,20 @@ def execution():
 
 
 class SessionTests(unittest.TestCase):
-    pass
+    def test_closed_and_exception_open_weekend(self):
+        value = schedule()
+        value["calendars"][0]["exceptions"].append(
+            {
+                "session": "2020-01-04",
+                "segments": [window("10:00", "12:00")],
+                "reason": "special control opening",
+            }
+        )
+        index = SessionCalendar(build_calendar(value))
+        self.assertEqual(index.session("demo", "2020-01-01")["segments"], [])
+        self.assertEqual(
+            index.session("demo", "2020-01-04")["segments"][0]["closes_at"],
+            "2020-01-04T12:00:00.000000Z",
+        )
+        self.assertEqual(index.session("demo", "2020-01-05")["segments"], [])
+
