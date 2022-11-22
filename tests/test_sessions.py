@@ -121,3 +121,26 @@ class SessionTests(unittest.TestCase):
         self.assertIsNone(index.locate("demo", "2020-01-03T15:00:00Z"))
         self.assertIsNotNone(index.locate("demo", "2020-01-03T13:00:00Z"))
 
+    def test_next_open_exclusive_and_session_offsets(self):
+        index = SessionCalendar(build_calendar(schedule()))
+        self.assertEqual(
+            index.next_open("demo", "2020-01-03T09:00:00Z")["session"], "2020-01-03"
+        )
+        self.assertEqual(
+            index.next_open("demo", "2020-01-03T09:00:00Z", inclusive=False)["session"],
+            "2020-01-06",
+        )
+        self.assertEqual(
+            index.advance("demo", "2020-01-03", 1)["session"], "2020-01-06"
+        )
+        self.assertEqual(
+            index.advance("demo", "2020-01-04", 1, roll="preceding")["session"],
+            "2020-01-06",
+        )
+        self.assertEqual(
+            index.advance("demo", "2020-01-04", -1, roll="following")["session"],
+            "2020-01-03",
+        )
+        with self.assertRaisesRegex(ValueError, "closed"):
+            index.advance("demo", "2020-01-04", 0)
+
