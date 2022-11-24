@@ -144,3 +144,14 @@ class SessionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "closed"):
             index.advance("demo", "2020-01-04", 0)
 
+    def test_horizon_queries_do_not_extrapolate(self):
+        index = SessionCalendar(build_calendar(schedule()))
+        for call in (
+            lambda: index.next_open("demo", "2020-01-08T00:00:00Z"),
+            lambda: index.advance("demo", "2020-01-07", 1),
+            lambda: index.session("demo", "2019-12-29"),
+            lambda: index.locate("unknown", "2020-01-03T12:00:00Z"),
+        ):
+            with self.assertRaises(ValueError):
+                call()
+
