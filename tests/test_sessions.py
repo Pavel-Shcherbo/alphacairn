@@ -155,3 +155,15 @@ class SessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 call()
 
+    def test_dst_spring_shift_changes_utc_not_local_clock(self):
+        value = dated("America/New_York", "2020-03-06", "2020-03-10")
+        index = SessionCalendar(build_calendar(value))
+        self.assertEqual(
+            index.session("demo", "2020-03-07")["segments"][0]["opens_at"],
+            "2020-03-07T14:00:00.000000Z",
+        )
+        self.assertEqual(
+            index.session("demo", "2020-03-08")["segments"][0]["opens_at"],
+            "2020-03-08T13:00:00.000000Z",
+        )
+
