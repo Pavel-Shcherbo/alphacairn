@@ -167,3 +167,11 @@ class SessionTests(unittest.TestCase):
             "2020-03-08T13:00:00.000000Z",
         )
 
+    def test_nonexistent_local_clock_rejected_even_with_fold(self):
+        for fold in (None, 0, 1):
+            value = dated("America/New_York", "2020-03-08", "2020-03-08")
+            value["calendars"][0]["segments"] = [window("02:30", "04:00")]
+            value["calendars"][0]["segments"][0]["open"]["fold"] = fold
+            with self.assertRaisesRegex(ValueError, "nonexistent"):
+                build_calendar(value)
+
