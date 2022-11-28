@@ -175,3 +175,18 @@ class SessionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "nonexistent"):
                 build_calendar(value)
 
+    def test_ambiguous_fold_requires_choice_and_has_two_instants(self):
+        value = dated("America/New_York", "2020-11-01", "2020-11-01")
+        value["calendars"][0]["segments"] = [window("01:30", "03:00")]
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            build_calendar(value)
+        results = []
+        for fold in (0, 1):
+            value["calendars"][0]["segments"][0]["open"]["fold"] = fold
+            results.append(
+                build_calendar(value)["sessions"][0]["segments"][0]["opens_at"]
+            )
+        self.assertEqual(
+            results, ["2020-11-01T05:30:00.000000Z", "2020-11-01T06:30:00.000000Z"]
+        )
+
