@@ -190,3 +190,13 @@ class SessionTests(unittest.TestCase):
             results, ["2020-11-01T05:30:00.000000Z", "2020-11-01T06:30:00.000000Z"]
         )
 
+    def test_crypto_24_hours_across_dst_is_23_or_25_hours(self):
+        for label, hours in (("2020-03-08", 23), ("2020-11-01", 25)):
+            value = dated("America/New_York", label, label)
+            value["calendars"][0]["segments"] = [window("00:00", "00:00", 1)]
+            row = build_calendar(value)["sessions"][0]["segments"][0]
+            elapsed = dt.datetime.fromisoformat(
+                row["closes_at"].replace("Z", "+00:00")
+            ) - dt.datetime.fromisoformat(row["opens_at"].replace("Z", "+00:00"))
+            self.assertEqual(elapsed.total_seconds(), hours * 3600)
+
