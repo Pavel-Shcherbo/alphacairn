@@ -200,3 +200,13 @@ class SessionTests(unittest.TestCase):
             ) - dt.datetime.fromisoformat(row["opens_at"].replace("Z", "+00:00"))
             self.assertEqual(elapsed.total_seconds(), hours * 3600)
 
+    def test_overnight_label_and_neighboring_horizon(self):
+        value = dated("UTC", "2020-01-01", "2020-01-03")
+        value["calendars"][0]["segments"] = [window("22:00", "06:00", 1)]
+        index = SessionCalendar(build_calendar(value))
+        self.assertEqual(
+            index.locate("demo", "2020-01-02T05:00:00Z")["session"], "2020-01-01"
+        )
+        with self.assertRaisesRegex(ValueError, "neighboring"):
+            index.locate("demo", "2020-01-01T05:00:00Z")
+
