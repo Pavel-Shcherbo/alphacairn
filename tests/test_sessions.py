@@ -210,3 +210,14 @@ class SessionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "neighboring"):
             index.locate("demo", "2020-01-01T05:00:00Z")
 
+    def test_overlapping_and_reversed_windows_rejected(self):
+        for windows in (
+            [window("17:00", "09:00")],
+            [window("09:00", "15:00"), window("14:00", "17:00")],
+            [window("09:00", "10:00", 1)],
+        ):
+            value = schedule()
+            value["calendars"][0]["segments"] = windows
+            with self.assertRaisesRegex(ValueError, "overlap|reverse"):
+                build_calendar(value)
+
