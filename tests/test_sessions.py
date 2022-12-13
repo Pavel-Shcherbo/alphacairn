@@ -230,3 +230,12 @@ class SessionTests(unittest.TestCase):
             rebuilt, _ = verify_calendar(document)
         self.assertEqual(rebuilt, document)
 
+    def test_rehashed_forged_sessions_fail_regeneration(self):
+        document = build_calendar(schedule())
+        document["sessions"][0]["segments"][0][
+            "opens_at"
+        ] = "2019-12-30T10:00:00.000000Z"
+        rehash(document)
+        with self.assertRaisesRegex(ValueError, "regenerated"):
+            verify_calendar(document)
+
