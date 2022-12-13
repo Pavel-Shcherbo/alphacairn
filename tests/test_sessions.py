@@ -221,3 +221,12 @@ class SessionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "overlap|reverse"):
                 build_calendar(value)
 
+    def test_offline_replay_does_not_read_system_timezone(self):
+        document = build_calendar(schedule("America/New_York"))
+        with patch(
+            "alphacairn.session_model.load_zone",
+            side_effect=AssertionError("live timezone read"),
+        ):
+            rebuilt, _ = verify_calendar(document)
+        self.assertEqual(rebuilt, document)
+
