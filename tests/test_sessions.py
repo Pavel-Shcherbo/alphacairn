@@ -239,3 +239,22 @@ class SessionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "regenerated"):
             verify_calendar(document)
 
+    def test_timezone_hash_inventory_and_tzif_bounds(self):
+        original = build_calendar(schedule())
+        for mutate in (
+            lambda d: d["zones"][0].update(sha256="0" * 64),
+            lambda d: d["zones"].append(d["zones"][0]),
+            lambda d: d["zones"][0].update(tzif_base64="!!!!"),
+        ):
+            document = copy.deepcopy(original)
+            mutate(document)
+            rehash(document)
+            with self.assertRaises(ValueError):
+                verify_calendar(document)
+        raw = bytearray(base64.b64decode(original["zones"][0]["tzif_base64"]))
+        struct.pack_into(">I", raw, 32, 0x7FFFFFFF)
+        with self.assertRaisesRegex(ValueError, "counts"):
+            check_tzif(bytes(raw))
+        with self.assertRaises(ValueError):
+            check_tzif(b"TZif")
+
