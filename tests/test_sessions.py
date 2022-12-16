@@ -258,3 +258,24 @@ class SessionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_tzif(b"TZif")
 
+    def test_strict_schema_and_safe_zone_paths(self):
+        mutations = [
+            lambda d: d.update(version=True),
+            lambda d: d.update(ends_on="2040-01-01"),
+            lambda d: d["calendars"][0].update(weekdays=[True]),
+            lambda d: d["calendars"][0]["segments"][0]["open"].update(fold=True),
+            lambda d: d["calendars"][0]["segments"][0]["open"].update(time="24:00"),
+            lambda d: d["instruments"].update(A="absent"),
+            lambda d: d["calendars"][0]["exceptions"].append(
+                d["calendars"][0]["exceptions"][0]
+            ),
+        ]
+        for mutate in mutations:
+            value = schedule()
+            mutate(value)
+            with self.assertRaises(ValueError):
+                build_calendar(value)
+        for key in ("/etc/passwd", "../UTC", "US//Eastern", "UTC\n"):
+            with self.assertRaises(ValueError):
+                zone_key(key)
+
