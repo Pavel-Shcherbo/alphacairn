@@ -279,3 +279,24 @@ class SessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 zone_key(key)
 
+    def test_v2_complete_execution_and_legacy_results_match(self):
+        value = execution()
+        report = simulate_execution(value)
+        self.assertTrue(report["calendar_validation"]["complete"])
+        self.assertEqual(report["calendar_validation"]["expected_sessions"], 2)
+        self.assertEqual(report["cash"], {"USD": "50.00"})
+        legacy = copy.deepcopy(value)
+        legacy["version"] = 1
+        del legacy["calendar"], legacy["calendar_policy"]
+        old = simulate_execution(legacy)
+        for key in (
+            "cash",
+            "fills",
+            "positions",
+            "events",
+            "ledger_events",
+            "valuation",
+        ):
+            self.assertEqual(old[key], report[key])
+        self.assertNotIn("calendar_validation", old)
+
