@@ -300,3 +300,15 @@ class SessionTests(unittest.TestCase):
             self.assertEqual(old[key], report[key])
         self.assertNotIn("calendar_validation", old)
 
+    def test_missing_bars_strict_or_explicit_incomplete(self):
+        value = execution()
+        value["bars"].pop()
+        with self.assertRaisesRegex(ValueError, "missing bars"):
+            compile_execution(value)
+        value["calendar_policy"]["require_all_sessions"] = False
+        report = simulate_execution(value)["calendar_validation"]
+        self.assertEqual(
+            report["missing_sample"], [{"instrument": "A", "session": "2020-01-03"}]
+        )
+        self.assertFalse(report["complete"])
+
