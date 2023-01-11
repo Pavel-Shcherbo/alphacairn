@@ -312,3 +312,14 @@ class SessionTests(unittest.TestCase):
         )
         self.assertFalse(report["complete"])
 
+    def test_closed_session_or_misaligned_envelope_rejected(self):
+        for change in (
+            lambda d: d["bars"].append(bar(1)),
+            lambda d: d["bars"][0].update(closed_at="2020-01-02T16:00:00Z"),
+            lambda d: d["calendar"]["definition"]["instruments"].clear(),
+        ):
+            value = execution()
+            change(value)
+            with self.assertRaises(ValueError):
+                compile_execution(value)
+
