@@ -323,3 +323,20 @@ class SessionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 compile_execution(value)
 
+    def test_short_sessions_and_breaks_allow_only_full_bar_envelope(self):
+        value = execution()
+        source = schedule()
+        source["calendars"][0]["exceptions"].append(
+            {
+                "session": "2020-01-03",
+                "segments": [window("09:00", "12:00"), window("13:00", "15:00")],
+                "reason": "short split",
+            }
+        )
+        value["calendar"] = build_calendar(source)
+        value["bars"][1]["closed_at"] = "2020-01-03T15:00:00Z"
+        self.assertTrue(simulate_execution(value)["calendar_validation"]["complete"])
+        value["bars"][1]["opened_at"] = "2020-01-03T13:00:00Z"
+        with self.assertRaisesRegex(ValueError, "full declared"):
+            compile_execution(value)
+
