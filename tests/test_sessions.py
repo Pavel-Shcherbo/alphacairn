@@ -340,3 +340,20 @@ class SessionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "full declared"):
             compile_execution(value)
 
+    def test_execution_horizon_and_partial_active_sessions_fail(self):
+        value = execution()
+        value["ends_at"] = "2020-02-01T00:00:00Z"
+        with self.assertRaisesRegex(ValueError, "horizon"):
+            compile_execution(value)
+        value = execution()
+        value["bars"].pop()
+        value["ends_at"] = "2020-01-03T12:00:00Z"
+        with self.assertRaisesRegex(ValueError, "cuts"):
+            compile_execution(value)
+        value = execution()
+        value["bars"].pop(0)
+        value["account"]["instruments"][0]["active_from"] = "2020-01-02T12:00:00Z"
+        value["commands"] = []
+        with self.assertRaisesRegex(ValueError, "cuts"):
+            compile_execution(value)
+
