@@ -357,3 +357,22 @@ class SessionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cuts"):
             compile_execution(value)
 
+    def test_missing_samples_are_bounded_and_bindings_policy_exact(self):
+        value = execution()
+        for policy in (
+            {"require_all_sessions": 1},
+            {"require_all_sessions": True, "extra": 1},
+        ):
+            value["calendar_policy"] = policy
+            with self.assertRaisesRegex(ValueError, "policy"):
+                compile_execution(value)
+        value = execution()
+        source = schedule(end="2020-12-31")
+        value["calendar"] = build_calendar(source)
+        value["ends_at"] = "2020-12-31T23:00:00Z"
+        value["calendar_policy"]["require_all_sessions"] = False
+        check = simulate_execution(value)["calendar_validation"]
+        self.assertGreater(check["missing_sessions"], 100)
+        self.assertEqual(len(check["missing_sample"]), 100)
+        self.assertTrue(check["sample_truncated"])
+
