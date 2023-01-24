@@ -376,3 +376,14 @@ class SessionTests(unittest.TestCase):
         self.assertEqual(len(check["missing_sample"]), 100)
         self.assertTrue(check["sample_truncated"])
 
+    def test_execution_export_replays_embedded_calendar_offline(self):
+        value = execution()
+        with tempfile.TemporaryDirectory() as root:
+            bundle = Path(root) / "bundle"
+            write_execution(value, simulate_execution(value), bundle)
+            with patch(
+                "alphacairn.session_model.load_zone",
+                side_effect=AssertionError("live read"),
+            ):
+                self.assertTrue(verify_execution_bundle(bundle)["passed"])
+
