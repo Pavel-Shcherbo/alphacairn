@@ -419,3 +419,15 @@ class SessionTests(unittest.TestCase):
             ):
                 self.assertTrue(verify_strategy_bundle(Path(root) / "bundle")["passed"])
 
+    def test_stock_weekend_closed_crypto_fill_and_independent_equity(self):
+        value = load("session-execution.json")
+        report = simulate_execution(value)
+        self.assertEqual(report["calendar_validation"]["expected_sessions"], 5)
+        self.assertTrue(report["calendar_validation"]["complete"])
+        self.assertEqual(report["cash"], {"USD": "30.00"})
+        self.assertEqual(report["valuation"]["equity"], "107.00")
+        self.assertEqual(
+            [(row["instrument"], row["session"]) for row in report["fills"]],
+            [("A", "2020-01-02"), ("COIN", "2020-01-04")],
+        )
+
