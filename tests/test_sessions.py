@@ -387,3 +387,35 @@ class SessionTests(unittest.TestCase):
             ):
                 self.assertTrue(verify_execution_bundle(bundle)["passed"])
 
+    def test_strategy_v2_template_capture_and_portable_replay(self):
+        config = load("strategy-control.json")
+        template = config["execution"]
+        source = dated("UTC", "2019-12-29", "2020-01-09")
+        source["calendars"][0]["segments"] = [window("09:00", "16:00")]
+        source["instruments"] = {
+            item["id"]: "demo" for item in template["account"]["instruments"]
+        }
+        template.update(
+            version=2,
+            calendar=build_calendar(source),
+            calendar_policy={"require_all_sessions": False},
+        )
+        with tempfile.TemporaryDirectory() as root:
+            catalog = MarketCatalog(Path(root) / "market.sqlite", create=True)
+            for kind, name in (
+                ("bar", "strategy-bars.json"),
+                ("membership", "strategy-universe.json"),
+            ):
+                catalog.ingest(
+                    config["source"], kind, canonical(load(name)), request_key=kind
+                )
+            inputs = capture_strategy(catalog, config)
+            report = simulate_strategy(inputs)
+            self.assertEqual(len(report["execution"]["fills"]), 6)
+            write_strategy(inputs, report, Path(root) / "bundle")
+            with patch(
+                "alphacairn.session_model.load_zone",
+                side_effect=AssertionError("live read"),
+            ):
+                self.assertTrue(verify_strategy_bundle(Path(root) / "bundle")["passed"])
+
