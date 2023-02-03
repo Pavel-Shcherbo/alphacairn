@@ -431,3 +431,15 @@ class SessionTests(unittest.TestCase):
             [("A", "2020-01-02"), ("COIN", "2020-01-04")],
         )
 
+    def test_utc_canonical_boundary_time_contract(self):
+        for clock in ("24:00", "12:60", "12:00:60", "9:00", "09:00Z"):
+            value = schedule()
+            value["calendars"][0]["segments"][0]["open"]["time"] = clock
+            with self.assertRaises(ValueError):
+                build_calendar(value)
+        value = schedule()
+        value["calendars"][0]["segments"][0]["open"]["time"] = "09:00:00.123456"
+        index = SessionCalendar(build_calendar(value))
+        self.assertIsNone(index.locate("demo", "2020-01-03T09:00:00.123455Z"))
+        self.assertIsNotNone(index.locate("demo", "2020-01-03T09:00:00.123456Z"))
+
