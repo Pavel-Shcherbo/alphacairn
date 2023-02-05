@@ -443,3 +443,38 @@ class SessionTests(unittest.TestCase):
         self.assertIsNone(index.locate("demo", "2020-01-03T09:00:00.123455Z"))
         self.assertIsNotNone(index.locate("demo", "2020-01-03T09:00:00.123456Z"))
 
+    def test_cli_build_verify_queries_and_create_only_output(self):
+        with tempfile.TemporaryDirectory() as root:
+            source, target = Path(root) / "schedule.json", Path(root) / "calendar.json"
+            source.write_text(json.dumps(schedule()))
+
+            def cli(*args):
+                return subprocess.run(
+                    [sys.executable, "-m", "alphacairn.sessions", *map(str, args)],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                )
+
+            self.assertEqual(cli("build", source, "--output", target).returncode, 0)
+            original = target.read_bytes()
+            self.assertEqual(cli("build", source, "--output", target).returncode, 2)
+            self.assertEqual(target.read_bytes(), original)
+            self.assertTrue(json.loads(cli("verify", target).stdout)["passed"])
+            self.assertEqual(
+                json.loads(
+                    cli("next-open", target, "demo", "2020-01-04T12:00:00Z").stdout
+                )["session"],
+                "2020-01-06",
+            )
+            self.assertEqual(
+                json.loads(cli("advance", target, "demo", "2020-01-03", 1).stdout)[
+                    "session"
+                ],
+                "2020-01-06",
+            )
+            self.assertEqual(
+                cli("locate", target, "demo", "2020-01-03T18:00:00Z").stdout.strip(),
+                "null",
+            )
+            self.assertEqual(cli("session", target, "demo", "2030-01-01").returncode, 2)
