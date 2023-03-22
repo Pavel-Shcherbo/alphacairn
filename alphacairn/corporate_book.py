@@ -11,3 +11,12 @@ def event_id(action, kind):
     return "ca-" + kind + "-" + hashlib.sha256(action["id"].encode()).hexdigest()[:40]
 
 
+def scaled(value, n, d, step, label):
+    result = aligned(value * n / d, step, label) if value else ZERO
+    if result * d != value * n:
+        raise ValueError(label + " cannot be represented exactly")
+    return result
+
+
+class CorporateBook:
+    pass
