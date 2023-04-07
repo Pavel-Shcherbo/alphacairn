@@ -19,4 +19,8 @@ def scaled(value, n, d, step, label):
 
 
 class CorporateBook:
-    pass
+    def __init__(self, book):
+        self.book = book
+        self.entitlements = {}
+        self.reports = []
+
