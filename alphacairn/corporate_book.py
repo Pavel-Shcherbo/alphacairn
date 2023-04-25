@@ -112,3 +112,47 @@ class CorporateBook:
         book.emit("corporate_split", at, action_id=action["id"], instrument=name)
         return name
 
+    def ex(self, action, at):
+        book = self.book
+        instrument = book.account.instrument(action["instrument"])
+        quantity = book.positions.get(instrument.id, ZERO)
+        places = book.account.places(instrument.quote_currency)
+        gross = rounded(quantity * Decimal(action["amount_per_share"]), places)
+        withheld = rounded(gross * Decimal(action["withholding_bps"]) / 10000, places)
+        accrual = event_id(action, "accrual") if gross else None
+        report = {
+            "id": action["id"],
+            "kind": "cash_dividend",
+            "instrument": instrument.id,
+            "currency": instrument.quote_currency,
+            "ex_at": at,
+            "pay_at": action["pay_at"],
+            "eligible_quantity": text(quantity),
+            "gross": text(gross),
+            "withholding": text(withheld),
+            "net": text(gross - withheld),
+            "status": "receivable" if gross else "no_cash_entitlement",
+            "accrual_event_id": accrual,
+            "payment_event_id": None,
+        }
+        self.entitlements[action["id"]] = report
+        self.reports.append(report)
+        if gross:
+            book.ledger_events.append(
+                {
+                    "id": accrual,
+                    "timestamp": at,
+                    "kind": "dividend_accrual",
+                    "instrument": instrument.id,
+                    "gross": text(gross),
+                    "withholding": text(withheld),
+                }
+            )
+        book.emit(
+            "dividend_entitlement",
+            at,
+            action_id=action["id"],
+            quantity=text(quantity),
+            net=report["net"],
+        )
+
