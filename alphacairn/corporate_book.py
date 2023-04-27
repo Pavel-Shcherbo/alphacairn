@@ -156,3 +156,24 @@ class CorporateBook:
             net=report["net"],
         )
 
+    def pay(self, action, at):
+        report = self.entitlements[action["id"]]
+        if report["accrual_event_id"] is not None:
+            currency = report["currency"]
+            net = Decimal(report["net"])
+            book = self.book
+            book.cash[currency] = decimal_value(
+                book.cash[currency] + net, "cash after dividend", nonnegative=True
+            )
+            payment = event_id(action, "payment")
+            book.ledger_events.append(
+                {
+                    "id": payment,
+                    "timestamp": at,
+                    "kind": "dividend_payment",
+                    "accrual_id": report["accrual_event_id"],
+                }
+            )
+            report.update(status="paid", payment_event_id=payment)
+            book.emit("dividend_payment", at, action_id=action["id"], net=report["net"])
+
