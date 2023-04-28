@@ -177,3 +177,13 @@ class CorporateBook:
             report.update(status="paid", payment_event_id=payment)
             book.emit("dividend_payment", at, action_id=action["id"], net=report["net"])
 
+    def outstanding(self):
+        return {
+            item["accrual_event_id"]: {
+                "currency": item["currency"],
+                "amount": item["net"],
+            }
+            for item in self.entitlements.values()
+            if item["status"] == "receivable"
+        }
+
