@@ -187,3 +187,22 @@ class CorporateBook:
             if item["status"] == "receivable"
         }
 
+    def process(self, at, groups, marks=None):
+        definition = self.book.definition
+        with arithmetic():
+            for index in groups.get("split", []):
+                name = self.split(definition["corporate_actions"][index], at)
+                if marks is not None:
+                    marks.pop(name, None)
+            for index in groups.get("dividend_ex", []):
+                self.ex(definition["corporate_actions"][index], at)
+                if marks is not None:
+                    marks.pop(
+                        definition["corporate_actions"][index]["instrument"], None
+                    )
+            for index in groups.get("dividend_pay", []):
+                self.pay(definition["corporate_actions"][index], at)
+        if len(self.book.ledger_events) > 10000:
+            raise ValueError(
+                "corporate actions exceed the execution journal event budget"
+            )
