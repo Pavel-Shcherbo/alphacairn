@@ -110,3 +110,11 @@ def compile_actions(value, account, start, end, bars):
     )
 
 
+def action_instants(scenario):
+    start, end = scenario["starts_at"], scenario["ends_at"]
+    for index, action in enumerate(scenario.get("corporate_actions", [])):
+        at = action.get("at", action.get("ex_at"))
+        if start <= at <= end:
+            yield at, "split" if action["kind"] == "split" else "dividend_ex", index
+        if action["kind"] == "cash_dividend" and start <= action["pay_at"] <= end:
+            yield action["pay_at"], "dividend_pay", index
