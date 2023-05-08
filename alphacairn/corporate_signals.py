@@ -35,3 +35,6 @@ def signal_prices(actions, instrument, rows, decision):
     return prices, sorted(used)
 
 
+def fraction_text(value):
+    with arithmetic():
+        return text(Decimal(value.numerator) / Decimal(value.denominator))
