@@ -1,6 +1,7 @@
 """Deterministic long-only order book over explicit open and close phases."""
 
 from decimal import Decimal
+import copy
 
 from .execution_money import affordable_quantity, execution_price, fill_cost, lots
 from .money import ZERO, arithmetic, decimal_value, text
@@ -56,6 +57,8 @@ class ExecutionBook:
 
     def _register_submission(self, command, sequence):
         """Install a normalized submission before activation by a trusted planner."""
+        if self.definition["version"] == 3:
+            command = copy.deepcopy(command)
         if command["id"] in self.orders:
             raise ValueError("duplicate execution-book order ID")
         self.orders[command["id"]] = {
@@ -72,6 +75,10 @@ class ExecutionBook:
             "cancel_requested_at": None,
             "completed_at": None,
         }
+
+        if self.definition["version"] == 3:
+            self.orders[command["id"]]["original_definition"] = copy.deepcopy(command)
+            self.orders[command["id"]]["corporate_adjustments"] = []
 
     def emit(self, kind, at, **fields):
         if len(self.events) >= 20000:
@@ -344,6 +351,13 @@ class ExecutionBook:
                         "completed_at": order["completed_at"],
                     }
                 )
+                if self.definition["version"] == 3:
+                    result[-1]["original_definition"] = copy.deepcopy(
+                        order["original_definition"]
+                    )
+                    result[-1]["corporate_adjustments"] = copy.deepcopy(
+                        order["corporate_adjustments"]
+                    )
         return result
 
     def bar_reports(self):
