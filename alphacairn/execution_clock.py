@@ -4,7 +4,9 @@ import itertools
 
 
 def timeline_groups(scenario, extras=()):
-    timeline = list(extras)
+    from .corporate_model import action_instants
+
+    timeline = list(extras) + list(action_instants(scenario))
     for index, bar in enumerate(scenario["bars"]):
         timeline.extend(
             [(bar["opened_at"], "open", index), (bar["closed_at"], "close", index)]
