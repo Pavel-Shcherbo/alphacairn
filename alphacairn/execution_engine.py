@@ -4,6 +4,8 @@ import tempfile
 from decimal import Decimal
 from pathlib import Path
 
+from .corporate_book import CorporateBook
+from .corporate_accounts import dividend_assets
 from .execution_book import ExecutionBook, LIVE
 from .execution_clock import timeline_groups
 from .execution_model import ExecutionPlan, compile_execution
@@ -50,6 +52,7 @@ def simulate_execution(definition, *, should_cancel=None):
 
 def _simulate(plan, should_cancel):
     book = ExecutionBook(plan)
+    corporate = CorporateBook(book)
     scenario = plan.definition
     marks = {}
     fx = {}
@@ -66,6 +69,7 @@ def _simulate(plan, should_cancel):
             for index in closes:
                 bar = scenario["bars"][index]
                 marks[bar["instrument"]] = {"at": at, "price": bar["close"]}
+        corporate.process(at, groups, marks)
         for index in groups.get("fx", []):
             quote = scenario["fx"][index]
             fx[quote["currency"]] = {"at": at, "rate": quote["rate"]}
@@ -73,7 +77,13 @@ def _simulate(plan, should_cancel):
             book.command(scenario["commands"][index])
         if groups.get("open"):
             book.open_bars(at, groups["open"])
-        if closes or at in (scenario["starts_at"], scenario["ends_at"]):
+        if (
+            closes
+            or any(
+                groups.get(kind) for kind in ("split", "dividend_ex", "dividend_pay")
+            )
+            or at in (scenario["starts_at"], scenario["ends_at"])
+        ):
             point = marked_value(
                 plan.account,
                 book.cash,
@@ -82,6 +92,7 @@ def _simulate(plan, should_cancel):
                 fx,
                 at=at,
                 max_age=scenario["max_mark_age_seconds"],
+                receivables=corporate.outstanding(),
             )
             curve_bytes += len(canonical(point))
             if curve_bytes > 8 * 1024 * 1024:
@@ -94,7 +105,17 @@ def _simulate(plan, should_cancel):
     # Replay is a separate implementation of cash/position accounting and FIFO basis.
     with tempfile.TemporaryDirectory(prefix="alphacairn-execution-") as directory:
         ledger = Ledger(Path(directory) / "fills.sqlite", plan.account.definition())
-        if book.ledger_events:
+        corporate_checks = []
+        if scenario["version"] == 3:
+            from .corporate_replay import replay_actions
+
+            corporate_checks = replay_actions(
+                ledger,
+                book.ledger_events,
+                corporate.reports,
+                scenario["corporate_actions"],
+            )
+        elif book.ledger_events:
             ledger.apply_batch(book.ledger_events)
         journal = ledger.state()
         for currency, value in book.cash.items():
@@ -107,6 +128,13 @@ def _simulate(plan, should_cancel):
         }
         if own != actual:
             raise RuntimeError("execution positions differ from replayed journal")
+        outstanding = {
+            key: item
+            for key, item in corporate.outstanding().items()
+            if Decimal(item["amount"])
+        }
+        if outstanding != dividend_assets(journal, plan.account):
+            raise RuntimeError("execution receivables differ from replayed journal")
         replay = ledger.audit()
         if not replay["passed"]:
             raise RuntimeError("execution journal failed its independent replay audit")
@@ -171,11 +199,23 @@ def _simulate(plan, should_cancel):
         "ledger_audit": replay,
         "assumptions": list(ASSUMPTIONS),
     }
-    if scenario["version"] == 2:
+    if scenario["version"] in (2, 3) and scenario["calendar"] is not None:
         from .session_calendar import validate_execution_calendar
 
         result["calendar_validation"] = validate_execution_calendar(
             scenario, plan.account
+        )
+    if scenario["version"] == 3:
+        result["corporate_actions"] = corporate.reports
+        result["corporate_replay_checks"] = corporate_checks
+        result["dividend_receivables"] = corporate.outstanding()
+        result["assumptions"].extend(
+            [
+                "Raw unadjusted bar prices; declared actions occur after closes/expiry and before commands/opens at the same instant.",
+                "Splits and dividend ex events invalidate earlier marks; splits either cancel live orders or require exactly representable adjusted quantities/limits; raw historical fills retain original units.",
+                "Dividend entitlement uses holdings after close fills, after same-instant splits and before new commands/opens; net receivables enter equity but cannot fund orders until pay time.",
+                "Per-entitlement gross and withholding round half-even in quote currency. No inferred exchange entitlement, tax or broker rounding rules.",
+            ]
         )
     if len(canonical(result)) > 24 * 1024 * 1024:
         raise ValueError("execution report exceeds 24 MiB; partition the study")
