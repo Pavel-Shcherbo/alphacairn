@@ -39,16 +39,18 @@ def compile_execution(definition):
         "fx",
     }
     version = definition.get("version") if isinstance(definition, dict) else None
-    if type(version) is int and version == 2:
+    if type(version) is int and version in (2, 3):
         required |= {"calendar", "calendar_policy"}
+    if type(version) is int and version == 3:
+        required |= {"corporate_actions", "price_basis"}
     if (
         not isinstance(definition, dict)
         or set(definition) != required
         or type(definition["version"]) is not int
-        or definition["version"] not in (1, 2)
+        or definition["version"] not in (1, 2, 3)
     ):
         raise ValueError(
-            "execution requires version 1 or 2 and explicit account/time/cost/data/command fields"
+            "execution requires version 1, 2 or 3 and explicit account/time/cost/data/command fields"
         )
     account = AccountSpec.compile(definition["account"])
     currencies = dict(account.currencies)
@@ -319,10 +321,24 @@ def compile_execution(definition):
         "commands": normalized_commands,
         "fx": sorted(normalized_fx, key=lambda row: (row["at"], row["currency"])),
     }
-    if version == 2:
+    if version in (2, 3):
         from .session_calendar import validate_execution_calendar
 
         result["calendar"] = copy.deepcopy(definition["calendar"])
         result["calendar_policy"] = copy.deepcopy(definition["calendar_policy"])
-        validate_execution_calendar(result, account)
+        if version == 2 or result["calendar"] is not None:
+            validate_execution_calendar(result, account)
+        elif result["calendar_policy"] is not None:
+            raise ValueError("null calendar requires null calendar policy")
+    if version == 3:
+        from .corporate_model import compile_actions
+
+        if definition["price_basis"] != "unadjusted":
+            raise ValueError(
+                "corporate-action execution requires explicit unadjusted prices"
+            )
+        result["price_basis"] = "unadjusted"
+        result["corporate_actions"] = compile_actions(
+            definition["corporate_actions"], account, start, end, result["bars"]
+        )
     return ExecutionPlan(copy.deepcopy(result), account, digest(result))
