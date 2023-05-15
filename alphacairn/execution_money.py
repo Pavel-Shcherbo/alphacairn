@@ -59,7 +59,7 @@ def affordable_quantity(
         return quantity if notional > 0 else ZERO
 
 
-def marked_value(account, cash, positions, marks, fx, *, at, max_age):
+def marked_value(account, cash, positions, marks, fx, *, at, max_age, receivables=None):
     when = timestamp(at)
     base_places = account.places(account.base_currency)
     totals = {}
@@ -74,6 +74,17 @@ def marked_value(account, cash, positions, marks, fx, *, at, max_age):
         for code, value in cash.items():
             totals[code] = value
             components.append((code, value))
+        for receivable in (receivables or {}).values():
+            currency = receivable["currency"]
+            account.places(currency)
+            amount = decimal_value(
+                receivable["amount"], "dividend receivable", nonnegative=True
+            )
+            if amount:
+                totals[currency] = totals.get(currency, ZERO) + amount
+                components.append((currency, amount))
+                if currency != account.base_currency:
+                    required_fx.add(currency)
         for name, quantity in positions.items():
             if not quantity:
                 continue
