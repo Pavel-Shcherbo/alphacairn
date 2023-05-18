@@ -46,6 +46,8 @@ def normalize_event(event, spec):
         "trade": {"instrument", "side", "quantity", "price", "fee"},
         "split": {"instrument", "numerator", "denominator"},
         "dividend": {"instrument", "gross", "withholding"},
+        "dividend_accrual": {"instrument", "gross", "withholding"},
+        "dividend_payment": {"accrual_id"},
         "fx": {"from_currency", "to_currency", "amount", "rate", "fee"},
     }
     if (
@@ -63,11 +65,15 @@ def normalize_event(event, spec):
                 currency=currency,
                 amount=text(exact_amount(event.get("amount"), places, positive=True)),
             )
-        elif kind in ("trade", "split", "dividend"):
+        elif kind == "dividend_payment":
+            result["accrual_id"] = identity(
+                event.get("accrual_id"), "dividend accrual ID"
+            )
+        elif kind in ("trade", "split", "dividend", "dividend_accrual"):
             instrument = spec.instrument(event.get("instrument"))
             places = spec.places(instrument.quote_currency)
             result["instrument"] = instrument.id
-            if kind != "dividend":
+            if kind in ("trade", "split"):
                 instrument.require_active(when)
             if kind == "trade":
                 side = event.get("side")
@@ -178,6 +184,7 @@ class Ledger:
                 "CREATE TABLE IF NOT EXISTS postings (id INTEGER PRIMARY KEY AUTOINCREMENT,event_seq INTEGER NOT NULL REFERENCES events(seq),currency TEXT NOT NULL,account TEXT NOT NULL,amount TEXT NOT NULL)",
                 "CREATE INDEX IF NOT EXISTS lots_instrument ON lots(instrument,id)",
                 "CREATE INDEX IF NOT EXISTS postings_event ON postings(event_seq,id)",
+                "CREATE INDEX IF NOT EXISTS postings_account ON postings(account,currency)",
             ]
             for statement in statements:
                 db.execute(statement)
@@ -269,6 +276,26 @@ class Ledger:
             self._change_cash(db, currency, amount)
             post(currency, "cash", amount)
             post(currency, "external_capital", -amount)
+        elif kind == "dividend_payment":
+            parent = db.execute(
+                "SELECT payload FROM events WHERE event_id=? AND kind='dividend_accrual'",
+                (event["accrual_id"],),
+            ).fetchone()
+            if parent is None:
+                raise ValueError("dividend payment requires an earlier accrual")
+            accrual = json.loads(parent["payload"])
+            marker = "dividend_settled:" + event["accrual_id"]
+            if db.execute(
+                "SELECT 1 FROM postings WHERE account=? LIMIT 1", (marker,)
+            ).fetchone():
+                raise ValueError("dividend accrual has already been paid")
+            instrument = self.spec.instrument(accrual["instrument"])
+            currency = instrument.quote_currency
+            net = Decimal(accrual["gross"]) - Decimal(accrual["withholding"])
+            self._change_cash(db, currency, net)
+            post(currency, "cash", net)
+            post(currency, "dividend_receivable:" + event["accrual_id"], -net)
+            post(currency, marker, ZERO)
         elif kind == "fx":
             origin, target = event["from_currency"], event["to_currency"]
             amount, fee, rate = map(
@@ -287,12 +314,19 @@ class Ledger:
             currency, places = instrument.quote_currency, self.spec.places(
                 instrument.quote_currency
             )
-            if kind == "dividend":
+            if kind in ("dividend", "dividend_accrual"):
                 gross, withholding = Decimal(event["gross"]), Decimal(
                     event["withholding"]
                 )
-                self._change_cash(db, currency, gross - withholding)
-                post(currency, "cash", gross - withholding)
+                if kind == "dividend":
+                    self._change_cash(db, currency, gross - withholding)
+                    post(currency, "cash", gross - withholding)
+                else:
+                    post(
+                        currency,
+                        "dividend_receivable:" + event["id"],
+                        gross - withholding,
+                    )
                 post(currency, "dividend_income", -gross)
                 post(currency, "withholding", withholding)
             elif kind == "split":
