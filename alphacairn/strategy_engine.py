@@ -3,6 +3,7 @@
 import copy
 from decimal import Decimal
 
+from .corporate_book import CorporateBook
 from .execution_book import ExecutionBook, LIVE
 from .execution_clock import timeline_groups
 from .execution_engine import simulate_execution
@@ -42,6 +43,7 @@ def simulate_strategy(inputs, *, should_cancel=None):
 def _simulate(prepared, should_cancel):
     config, plan = prepared.configuration, prepared.execution
     book = ExecutionBook(plan)
+    corporate = CorporateBook(book)
     commands, decisions = [], []
     extras = [
         (window["decision"]["at"], "decision", index)
@@ -62,6 +64,7 @@ def _simulate(prepared, should_cancel):
                     book.expire(order["definition"]["id"], at)
         if groups.get("close"):
             book.close_bars(at, groups["close"])
+        corporate.process(at, groups)
         for index in groups.get("decision", []):
             window = prepared.windows[index]
             features = {item["instrument"]: item for item in window["features"]}
@@ -180,6 +183,13 @@ def _simulate(prepared, should_cancel):
         )
     ):
         raise RuntimeError("strategy planning differs from full execution replay")
+    if plan.definition["version"] == 3 and (
+        execution["corporate_actions"] != corporate.reports
+        or execution["dividend_receivables"] != corporate.outstanding()
+    ):
+        raise RuntimeError(
+            "strategy corporate actions differ from full execution replay"
+        )
     own_positions = {name: value for name, value in book.positions.items() if value}
     replay_positions = {
         name: Decimal(value["quantity"])
