@@ -84,6 +84,17 @@ def compile_strategy(definition):
         and execution["version"] == 2
     ):
         expected_execution = EXECUTION_FIELDS | {"calendar", "calendar_policy"}
+    if (
+        isinstance(execution, dict)
+        and type(execution.get("version")) is int
+        and execution["version"] == 3
+    ):
+        expected_execution = EXECUTION_FIELDS | {
+            "calendar",
+            "calendar_policy",
+            "corporate_actions",
+            "price_basis",
+        }
     if not isinstance(execution, dict) or set(execution) != expected_execution:
         raise ValueError("strategy execution template excludes bars and commands")
     account = AccountSpec.compile(execution["account"])
@@ -363,6 +374,7 @@ def prepare_strategy_inputs(document):
         raise ValueError("liquidity declaration has no matching execution-vintage bar")
     plan = compile_execution({**config["execution"], "bars": bars, "commands": []})
     windows = []
+    action_work = 0
     with arithmetic():
         for decision in config["decisions"]:
             member_snapshot = get(membership_query(config, decision))
@@ -404,20 +416,51 @@ def prepare_strategy_inputs(document):
                     "above_mean": None,
                     "age_seconds": None,
                 }
+                adjusted = None
+                if plan.definition["version"] == 3:
+                    from .corporate_signals import signal_prices, fraction_text
+
+                    actions = plan.definition["corporate_actions"]
+                    action_work += len(rows) * len(actions)
+                    if action_work > 2000000:
+                        raise ValueError(
+                            "split feature normalization exceeds two million action/observation checks"
+                        )
+                    adjusted, used_splits = signal_prices(actions, name, rows, decision)
+                    item["split_actions"] = used_splits
+                    item["signal_price_basis"] = (
+                        "known split-adjusted decision units; dividends not price-adjusted"
+                    )
                 if rows:
                     last = rows[-1]["observation"]
                     age = (
                         timestamp(decision["at"]) - timestamp(last["closed_at"])
                     ).total_seconds()
-                    item.update(last_close=last["close"], age_seconds=age)
+                    item.update(
+                        last_close=(
+                            fraction_text(adjusted[-1])
+                            if adjusted is not None
+                            else last["close"]
+                        ),
+                        age_seconds=age,
+                    )
                     if len(rows) == config["lookback"]:
                         prices = [Decimal(row["observation"]["close"]) for row in rows]
-                        total = sum(prices, Decimal(0))
+                        if adjusted is not None:
+                            prices = adjusted
+                        total = (
+                            sum(prices, Decimal(0)) if adjusted is None else sum(prices)
+                        )
+
                         ready = age <= config["max_feature_age_seconds"]
                         item.update(
                             ready=ready,
                             reason="ready" if ready else "stale_history",
-                            mean_close=text(total / Decimal(len(prices))),
+                            mean_close=(
+                                text(total / Decimal(len(prices)))
+                                if adjusted is None
+                                else fraction_text(total / len(prices))
+                            ),
                             above_mean=(
                                 prices[-1] * len(prices) > total if ready else None
                             ),
