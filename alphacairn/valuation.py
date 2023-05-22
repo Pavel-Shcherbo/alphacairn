@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from .corporate_accounts import dividend_assets
 from .instruments import AccountSpec, timestamp, timestamp_text
 from .money import arithmetic, ZERO, decimal_value, rounded, text
 
@@ -58,6 +59,8 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
         return quote[0]
 
     cash_rows, position_rows = [], []
+    receivables = dividend_assets(state, spec)
+    receivable_rows = []
     with arithmetic():
         known = ZERO
         for currency, amount in sorted(state["cash"].items()):
@@ -71,6 +74,23 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
                 {
                     "currency": currency,
                     "amount": text(value),
+                    "base_value": text(converted) if converted is not None else None,
+                }
+            )
+        for label, item in sorted(receivables.items()):
+            currency = item["currency"]
+            amount = Decimal(item["amount"])
+            rate = rate_for(currency)
+            converted = (
+                rounded(amount * rate, base_places) if rate is not None else None
+            )
+            if converted is not None:
+                known += converted
+            receivable_rows.append(
+                {
+                    "accrual_id": label,
+                    "currency": currency,
+                    "amount": item["amount"],
                     "base_value": text(converted) if converted is not None else None,
                 }
             )
@@ -142,7 +162,7 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
                 warnings.append(
                     {"code": "held_after_active_interval", "instrument": instrument.id}
                 )
-    return {
+    result = {
         "complete": complete,
         "sequence": state["last_sequence"],
         "as_of": timestamp_text(when),
@@ -158,3 +178,17 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
         "rounding_policy": "half-even at each cash/position conversion to base currency",
         "scope": "current long-only settled-cash journal valuation; no FX profit attribution or tax reporting",
     }
+
+    if any(
+        name.startswith("dividend_receivable:")
+        for accounts in state.get("accounts", {}).values()
+        for name in accounts
+    ):
+        result["dividend_receivables"] = receivable_rows
+        result["scope"] = (
+            "long-only journal valuation including accrued net dividend assets; no tax reporting"
+        )
+        result["rounding_policy"] = (
+            "half-even per cash, position and dividend-asset conversion to base currency"
+        )
+    return result
