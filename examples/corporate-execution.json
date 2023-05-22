@@ -1,0 +1,122 @@
+{
+  "version": 3,
+  "account": {
+    "name": "execution",
+    "base_currency": "USD",
+    "currencies": {
+      "USD": 2
+    },
+    "instruments": [
+      {
+        "id": "A",
+        "symbol": "A",
+        "venue": "DEMO",
+        "kind": "equity",
+        "quote_currency": "USD",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      }
+    ]
+  },
+  "starts_at": "2020-01-01T00:00:00Z",
+  "ends_at": "2020-01-04T17:00:00Z",
+  "initial_cash": {
+    "USD": "1000"
+  },
+  "fees": {
+    "rate_bps": "0",
+    "minimum": {}
+  },
+  "slippage_bps": "0",
+  "max_mark_age_seconds": 432000,
+  "bars": [
+    {
+      "instrument": "A",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "10",
+      "high": "10",
+      "low": "10",
+      "close": "10",
+      "liquidity": "4",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "A",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "5",
+      "high": "6",
+      "low": "5",
+      "close": "6",
+      "liquidity": "6",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    },
+    {
+      "instrument": "A",
+      "session": "2020-01-04",
+      "opened_at": "2020-01-04T09:00:00Z",
+      "closed_at": "2020-01-04T17:00:00Z",
+      "open": "6",
+      "high": "6",
+      "low": "6",
+      "close": "6",
+      "liquidity": "10",
+      "liquidity_known_at": "2020-01-04T08:00:00Z"
+    }
+  ],
+  "commands": [
+    {
+      "action": "submit",
+      "id": "buy",
+      "at": "2020-01-01T12:00:00Z",
+      "instrument": "A",
+      "side": "buy",
+      "kind": "market",
+      "quantity": "10",
+      "limit": null,
+      "time_in_force": "GTC",
+      "expires_at": null
+    },
+    {
+      "action": "submit",
+      "id": "sell",
+      "at": "2020-01-03T18:00:00Z",
+      "instrument": "A",
+      "side": "sell",
+      "kind": "market",
+      "quantity": "7",
+      "limit": null,
+      "time_in_force": "GTC",
+      "expires_at": null
+    }
+  ],
+  "fx": [],
+  "calendar": null,
+  "calendar_policy": null,
+  "price_basis": "unadjusted",
+  "corporate_actions": [
+    {
+      "kind": "split",
+      "id": "two-for-one",
+      "instrument": "A",
+      "known_at": "2020-01-01T00:00:00Z",
+      "at": "2020-01-03T08:00:00Z",
+      "numerator": 2,
+      "denominator": 1,
+      "order_policy": "adjust"
+    },
+    {
+      "kind": "cash_dividend",
+      "id": "quarterly",
+      "instrument": "A",
+      "known_at": "2020-01-01T00:00:00Z",
+      "ex_at": "2020-01-03T08:00:00Z",
+      "pay_at": "2020-01-05T08:00:00Z",
+      "amount_per_share": "0.5",
+      "withholding_bps": "2500"
+    }
+  ]
+}
