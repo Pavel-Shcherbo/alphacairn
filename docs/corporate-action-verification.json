@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "scope": "Clean installed synthetic corporate actions and portable studies; not provider/tax/settlement certification",
+  "create_only_existing_bundle_preserved": true,
+  "independent_fraction_cash": "918",
+  "independent_final_quantity": "16",
+  "independent_fifo_basis": "86",
+  "independent_receivable": "3",
+  "independent_equity": "1017",
+  "paid_cash": "921.00",
+  "paid_equity": "1017.00",
+  "journal_owned_entitlement_control": [
+    {
+      "accrual_event_id": "ca-accrual-52cb0c6abb02dced4eb97286d6f91d4c4d09dffc",
+      "action_id": "quarterly",
+      "gross_minor_units": 400,
+      "journal_quantity": "8",
+      "passed": true,
+      "withholding_minor_units": 100
+    }
+  ],
+  "ex_event_invalidates_old_cum_dividend_mark": true,
+  "ledger_replay_passed": true,
+  "portable_execution_verified": true,
+  "captured_strategy_replayed_without_source_database": true,
+  "fills": [
+    {
+      "id": "simfill-000001",
+      "order_id": "buy",
+      "instrument": "A",
+      "side": "buy",
+      "at": "2020-01-02T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-02",
+      "quantity": "4",
+      "price": "10",
+      "notional": "40.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "960.00",
+      "position_after": "4"
+    },
+    {
+      "id": "simfill-000002",
+      "order_id": "buy",
+      "instrument": "A",
+      "side": "buy",
+      "at": "2020-01-03T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-03",
+      "quantity": "6",
+      "price": "5",
+      "notional": "30.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "930.00",
+      "position_after": "14"
+    },
+    {
+      "id": "simfill-000003",
+      "order_id": "buy",
+      "instrument": "A",
+      "side": "buy",
+      "at": "2020-01-04T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-04",
+      "quantity": "6",
+      "price": "6",
+      "notional": "36.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "894.00",
+      "position_after": "20"
+    },
+    {
+      "id": "simfill-000004",
+      "order_id": "sell",
+      "instrument": "A",
+      "side": "sell",
+      "at": "2020-01-04T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-04",
+      "quantity": "4",
+      "price": "6",
+      "notional": "24.00",
+      "fee": "0.00",
+      "currency": "USD",
+      "cash_after": "918.00",
+      "position_after": "16"
+    }
+  ],
+  "bundle_hashes": {
+    "equity.csv": "54e067d9f18da645073f254b473c197b0c89b373396ce1286d42f6c807c2c13a",
+    "fills.csv": "5dee832dca92360d0f9dabb77ecd8b423fdf24be24b1410dd02541d0faa2e807",
+    "ledger-events.json": "0b6d54e2b7f37936a22494c510e08eebbc3f06364f0b0230ea5fe08fcd8d3740",
+    "manifest.json": "0997b7e4e2ae1e431e80f5af2263b0a492650aa20eec8267c50c8eb1be3ae9ac",
+    "orders.csv": "ab1bdc2c7ef3966fa5dda2276147f5a7b69b6011cfae94cb8598b030db2f6f46",
+    "report.json": "dabe58b4848769d318b5f349782e4746557dcb13028dab71031447f3954711ac",
+    "scenario.json": "73cea6993a7d9293e03c544648f9ea603134170acb75aa1b6698616b21342a71"
+  },
+  "full_portfolio_acceptance": false
+}
