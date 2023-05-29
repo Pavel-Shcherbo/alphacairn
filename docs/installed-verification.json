@@ -1,6 +1,7 @@
 {
-  "wheel_sha256": "4c0a24589b6498536d7e23f077075175586dafd0cc7fa818c3a05547bb880870",
+  "wheel_sha256": "8f9ff811cda7e5b833ed737cce4b865798d243f2c644950e24d697971c83bf5c",
   "examples_exported": [
+    "corporate-execution.json",
     "execution-scenario.json",
     "market-bars.json",
     "market-decisions.json",
@@ -27,5 +28,6 @@
   "market_revision_windows_and_snapshot_study_passed": true,
   "multi_asset_execution_replay_and_fraction_control_passed": true,
   "catalog_strategy_execution_and_offline_replay_passed": true,
-  "retained_session_calendars_and_execution_replay_passed": true
+  "retained_session_calendars_and_execution_replay_passed": true,
+  "corporate_action_receivables_split_signals_and_offline_replay_passed": true
 }
