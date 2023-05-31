@@ -27,3 +27,15 @@ def control():
     return load("corporate-execution.json")
 
 
+def simple(actions):
+    value = scenario()
+    value.update(
+        version=3,
+        calendar=None,
+        calendar_policy=None,
+        price_basis="unadjusted",
+        corporate_actions=copy.deepcopy(actions),
+    )
+    return value
+
+
