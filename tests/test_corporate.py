@@ -23,3 +23,7 @@ from test_execution import scenario, bar, order, instrument
 from test_strategy import load
 
 
+def control():
+    return load("corporate-execution.json")
+
+
