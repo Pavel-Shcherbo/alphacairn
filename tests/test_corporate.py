@@ -68,4 +68,27 @@ def dividend(
 
 
 class CorporateTests(unittest.TestCase):
-    pass
+    def test_partial_order_split_sale_and_unpaid_income_reconcile_by_fraction(self):
+        result = simulate_execution(control())
+        cash = Fraction(1000)
+        for fill in result["fills"]:
+            sign = 1 if fill["side"] == "sell" else -1
+            cash += sign * Fraction(fill["quantity"]) * Fraction(
+                fill["price"]
+            ) - Fraction(fill["fee"])
+        self.assertEqual(cash, 918)
+        self.assertEqual(result["cash"], {"USD": "918.00"})
+        self.assertEqual(result["positions"]["A"], {"quantity": "16", "basis": "86.00"})
+        self.assertEqual(Fraction(result["valuation"]["equity"]), cash + 16 * 6 + 3)
+        self.assertEqual(result["valuation"]["equity"], "1017.00")
+        self.assertEqual(result["orders"][0]["filled_quantity"], "20")
+        self.assertEqual(
+            sum(
+                Fraction(row["quantity"])
+                for row in result["fills"]
+                if row["order_id"] == "buy"
+            ),
+            16,
+        )
+        self.assertTrue(result["ledger_audit"]["passed"])
+
