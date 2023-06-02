@@ -52,3 +52,20 @@ def split(at="2020-01-03T08:00:00Z", n=2, d=1, policy="adjust"):
     }
 
 
+def dividend(
+    ex="2020-01-03T08:00:00Z", pay="2020-01-04T08:00:00Z", amount="1", bps="0"
+):
+    return {
+        "kind": "cash_dividend",
+        "id": "dividend",
+        "instrument": "A",
+        "known_at": "2020-01-01T00:00:00Z",
+        "ex_at": ex,
+        "pay_at": pay,
+        "amount_per_share": amount,
+        "withholding_bps": bps,
+    }
+
+
+class CorporateTests(unittest.TestCase):
+    pass
