@@ -39,3 +39,16 @@ def simple(actions):
     return value
 
 
+def split(at="2020-01-03T08:00:00Z", n=2, d=1, policy="adjust"):
+    return {
+        "kind": "split",
+        "id": "split",
+        "instrument": "A",
+        "known_at": "2020-01-01T00:00:00Z",
+        "at": at,
+        "numerator": n,
+        "denominator": d,
+        "order_policy": policy,
+    }
+
+
