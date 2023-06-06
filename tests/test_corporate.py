@@ -92,3 +92,13 @@ class CorporateTests(unittest.TestCase):
         )
         self.assertTrue(result["ledger_audit"]["passed"])
 
+    def test_delayed_payment_moves_receivable_to_cash_without_equity_change(self):
+        value = control()
+        value["ends_at"] = "2020-01-05T08:00:00Z"
+        result = simulate_execution(value)
+        self.assertEqual(result["cash"], {"USD": "921.00"})
+        self.assertEqual(result["valuation"]["equity"], "1017.00")
+        self.assertEqual(result["dividend_receivables"], {})
+        self.assertEqual(result["valuation"]["dividend_receivables"], [])
+        self.assertEqual(result["corporate_actions"][1]["status"], "paid")
+
