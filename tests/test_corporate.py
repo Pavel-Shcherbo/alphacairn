@@ -102,3 +102,15 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(result["valuation"]["dividend_receivables"], [])
         self.assertEqual(result["corporate_actions"][1]["status"], "paid")
 
+    def test_sale_after_ex_retains_income_until_payment(self):
+        value = simple([dividend(pay="2020-01-05T08:00:00Z")])
+        value["bars"] = [bar(2), bar(3), bar(4)]
+        value["commands"].append(
+            order("sell", side="sell", quantity="5", at="2020-01-03T08:00:00Z")
+        )
+        result = simulate_execution(value)
+        self.assertEqual(result["positions"], {})
+        self.assertEqual(result["cash"], {"USD": "100.00"})
+        self.assertEqual(result["valuation"]["equity"], "105.00")
+        self.assertEqual(result["corporate_actions"][0]["eligible_quantity"], "5")
+
