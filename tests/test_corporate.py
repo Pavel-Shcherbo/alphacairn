@@ -114,3 +114,12 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(result["valuation"]["equity"], "105.00")
         self.assertEqual(result["corporate_actions"][0]["eligible_quantity"], "5")
 
+    def test_ex_before_same_open_excludes_new_buyer(self):
+        value = simple([dividend(ex="2020-01-02T09:00:00Z")])
+        result = simulate_execution(value)
+        self.assertEqual(result["corporate_actions"][0]["eligible_quantity"], "0")
+        self.assertEqual(
+            result["corporate_actions"][0]["status"], "no_cash_entitlement"
+        )
+        self.assertEqual(result["cash"], {"USD": "50.00"})
+
