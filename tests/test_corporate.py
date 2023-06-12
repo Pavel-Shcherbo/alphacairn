@@ -123,3 +123,9 @@ class CorporateTests(unittest.TestCase):
         )
         self.assertEqual(result["cash"], {"USD": "50.00"})
 
+    def test_split_before_same_instant_dividend_uses_new_units(self):
+        result = simulate_execution(control())
+        self.assertEqual(result["corporate_actions"][1]["eligible_quantity"], "8")
+        self.assertEqual(result["corporate_actions"][1]["gross"], "4.00")
+        self.assertEqual(result["corporate_actions"][1]["withholding"], "1.00")
+
