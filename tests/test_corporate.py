@@ -129,3 +129,13 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(result["corporate_actions"][1]["gross"], "4.00")
         self.assertEqual(result["corporate_actions"][1]["withholding"], "1.00")
 
+    def test_split_cancels_live_order_under_explicit_policy(self):
+        value = control()
+        value["corporate_actions"][0]["order_policy"] = "cancel"
+        result = simulate_execution(value)
+        self.assertEqual(result["orders"][0]["status"], "cancelled")
+        self.assertEqual(result["orders"][0]["corporate_adjustments"], [])
+        self.assertEqual(
+            result["corporate_actions"][0]["order_adjustments"][0]["policy"], "cancel"
+        )
+
