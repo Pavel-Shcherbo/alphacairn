@@ -147,3 +147,15 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(result["positions"]["A"]["quantity"], "3")
         self.assertEqual(result["orders"][0]["corporate_adjustments"], [])
 
+    def test_limit_adjustment_is_exact_and_original_definition_preserved(self):
+        value = control()
+        value["commands"][0].update(kind="limit", limit="10")
+        original = copy.deepcopy(value)
+        result = simulate_execution(value)
+        self.assertEqual(value, original)
+        order = result["orders"][0]
+        self.assertEqual(order["limit"], "5")
+        self.assertEqual(order["original_definition"]["limit"], "10")
+        self.assertEqual(order["original_definition"]["quantity"], "10")
+        self.assertEqual(order["corporate_adjustments"][0]["remaining_after"], "12")
+
