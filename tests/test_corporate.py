@@ -159,3 +159,9 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(order["original_definition"]["quantity"], "10")
         self.assertEqual(order["corporate_adjustments"][0]["remaining_after"], "12")
 
+    def test_unrepresentable_order_limit_rejected_without_rounding(self):
+        value = control()
+        value["commands"][0].update(kind="limit", limit="10.01")
+        with self.assertRaisesRegex(ValueError, "increment"):
+            simulate_execution(value)
+
