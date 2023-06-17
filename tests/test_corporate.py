@@ -139,3 +139,11 @@ class CorporateTests(unittest.TestCase):
             result["corporate_actions"][0]["order_adjustments"][0]["policy"], "cancel"
         )
 
+    def test_future_submission_is_already_in_its_declared_units(self):
+        value = simple([split()])
+        value["bars"] = [bar(2), bar(3, opening="5", close="5", low="5")]
+        value["commands"] = [order(at="2020-01-03T08:00:00Z", quantity="3")]
+        result = simulate_execution(value)
+        self.assertEqual(result["positions"]["A"]["quantity"], "3")
+        self.assertEqual(result["orders"][0]["corporate_adjustments"], [])
+
