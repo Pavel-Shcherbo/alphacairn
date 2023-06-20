@@ -165,3 +165,9 @@ class CorporateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "increment"):
             simulate_execution(value)
 
+    def test_reverse_split_fractional_lot_rejected(self):
+        value = simple([split(n=1, d=2)])
+        value["commands"][0]["quantity"] = "5"
+        with self.assertRaisesRegex(ValueError, "increment"):
+            simulate_execution(value)
+
