@@ -171,3 +171,9 @@ class CorporateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "increment"):
             simulate_execution(value)
 
+    def test_each_fifo_lot_must_survive_reverse_split_not_only_total(self):
+        value = simple([split(n=1, d=2)])
+        value["commands"] = [order(quantity="1"), order("second", quantity="1")]
+        with self.assertRaisesRegex(ValueError, "post-split lot"):
+            simulate_execution(value)
+
