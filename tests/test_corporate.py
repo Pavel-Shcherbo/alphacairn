@@ -177,3 +177,12 @@ class CorporateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "post-split lot"):
             simulate_execution(value)
 
+    def test_split_invalidates_old_mark_instead_of_doubling_equity(self):
+        value = simple([split(at="2020-01-04T17:00:00Z")])
+        result = simulate_execution(value)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertIsNone(result["valuation"]["equity"])
+        self.assertEqual(
+            result["equity_curve"][-1]["missing_sample"][0]["kind"], "mark"
+        )
+
