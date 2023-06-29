@@ -186,3 +186,15 @@ class CorporateTests(unittest.TestCase):
             result["equity_curve"][-1]["missing_sample"][0]["kind"], "mark"
         )
 
+    def test_dividend_ex_invalidates_old_cum_dividend_mark(self):
+        value = simple(
+            [dividend(ex="2020-01-04T17:00:00Z", pay="2020-01-05T08:00:00Z")]
+        )
+        result = simulate_execution(value)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertIsNone(result["valuation"]["equity"])
+        self.assertEqual(result["valuation"]["known_base_value"], "55.00")
+        self.assertEqual(
+            result["valuation"]["dividend_receivables"][0]["amount"], "5.00"
+        )
+
