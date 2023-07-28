@@ -198,3 +198,12 @@ class CorporateTests(unittest.TestCase):
             result["valuation"]["dividend_receivables"][0]["amount"], "5.00"
         )
 
+    def test_action_inside_daily_bar_or_unknown_clock_rejected(self):
+        for action in (
+            split(at="2020-01-02T12:00:00Z"),
+            dividend(ex="2020-01-02T12:00:00Z"),
+            {**split(), "known_at": "2020-01-04T00:00:00Z"},
+        ):
+            with self.assertRaises(ValueError):
+                compile_execution(simple([action]))
+
