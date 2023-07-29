@@ -207,3 +207,26 @@ class CorporateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 compile_execution(simple([action]))
 
+    def test_strict_action_contract_and_adjusted_prices_rejected(self):
+        cases = [
+            {**split(), "numerator": True},
+            {**split(), "denominator": 0},
+            {**split(), "order_policy": "round"},
+            {**dividend(), "withholding_bps": "10001"},
+            {**dividend(), "pay_at": "2020-01-02T00:00:00Z"},
+        ]
+        for item in cases:
+            with self.assertRaises(ValueError):
+                compile_execution(simple([item]))
+        value = simple([split(), split()])
+        with self.assertRaises(ValueError):
+            compile_execution(value)
+        value = simple([])
+        value["price_basis"] = "split_adjusted"
+        with self.assertRaisesRegex(ValueError, "unadjusted"):
+            compile_execution(value)
+        value = simple([split()])
+        value["account"]["instruments"][0]["kind"] = "crypto_spot"
+        with self.assertRaisesRegex(ValueError, "equity"):
+            compile_execution(value)
+
