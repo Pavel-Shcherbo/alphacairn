@@ -230,3 +230,21 @@ class CorporateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "equity"):
             compile_execution(value)
 
+    def test_full_withholding_zero_net_and_duplicate_payment_protection(self):
+        value = simple([dividend(bps="10000")])
+        result = simulate_execution(value)
+        self.assertEqual(result["cash"], {"USD": "50.00"})
+        self.assertEqual(result["dividend_receivables"], {})
+        with tempfile.TemporaryDirectory() as root:
+            ledger = Ledger(Path(root) / "ledger.sqlite", value["account"])
+            ledger.apply_batch(result["ledger_events"])
+            paid = next(
+                event
+                for event in result["ledger_events"]
+                if event["kind"] == "dividend_payment"
+            )
+            self.assertTrue(ledger.apply(paid)["duplicate"])
+            with self.assertRaisesRegex(ValueError, "already been paid"):
+                ledger.apply({**paid, "id": "another-payment"})
+            self.assertTrue(ledger.audit()["passed"])
+
