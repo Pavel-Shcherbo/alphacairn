@@ -248,3 +248,15 @@ class CorporateTests(unittest.TestCase):
                 ledger.apply({**paid, "id": "another-payment"})
             self.assertTrue(ledger.audit()["passed"])
 
+    def test_receivable_cannot_fund_purchase_until_pay_time(self):
+        value = simple([dividend(amount="10", pay="2020-01-04T08:00:00Z")])
+        value["initial_cash"] = {"USD": "50"}
+        value["bars"] = [bar(2), bar(3), bar(4)]
+        value["commands"].append(
+            order("additional", quantity="5", at="2020-01-03T08:00:00Z")
+        )
+        result = simulate_execution(value)
+        added = [fill for fill in result["fills"] if fill["order_id"] == "additional"]
+        self.assertEqual(len(added), 1)
+        self.assertEqual(added[0]["session"], "2020-01-04")
+
