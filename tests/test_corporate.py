@@ -260,3 +260,21 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(len(added), 1)
         self.assertEqual(added[0]["session"], "2020-01-04")
 
+    def test_foreign_currency_receivable_requires_fx_after_position_sale(self):
+        value = simple([dividend(pay="2020-01-05T00:00:00Z")])
+        value["account"]["currencies"]["EUR"] = 2
+        value["account"]["instruments"][0]["quote_currency"] = "EUR"
+        value["initial_cash"] = {"USD": "0", "EUR": "100"}
+        value["bars"] = [bar(2), bar(3)]
+        value["commands"].append(
+            order("sell", side="sell", quantity="5", at="2020-01-03T08:00:00Z")
+        )
+        result = simulate_execution(value)
+        self.assertFalse(result["valuation"]["complete"])
+        self.assertTrue(
+            any(item["kind"] == "fx" for item in result["valuation"]["missing_inputs"])
+        )
+        value["fx"] = [{"currency": "EUR", "at": "2020-01-01T00:00:00Z", "rate": "1.2"}]
+        result = simulate_execution(value)
+        self.assertEqual(result["valuation"]["equity"], "126.00")
+
