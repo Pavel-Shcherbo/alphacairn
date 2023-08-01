@@ -278,3 +278,42 @@ class CorporateTests(unittest.TestCase):
         result = simulate_execution(value)
         self.assertEqual(result["valuation"]["equity"], "126.00")
 
+    def test_ledger_accrual_and_payment_balanced_replay_and_reopen(self):
+        value = simple([])
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "ledger.sqlite"
+            ledger = Ledger(path, value["account"])
+            accrual = {
+                "id": "claim",
+                "kind": "dividend_accrual",
+                "timestamp": "2020-01-01T00:00:00Z",
+                "instrument": "A",
+                "gross": "10",
+                "withholding": "2",
+            }
+            ledger.apply(accrual)
+            state = ledger.state()
+            valuation = value_portfolio(state, {}, {}, as_of="2020-01-01T00:00:00Z")
+            self.assertEqual(valuation["equity"], "8.00")
+            self.assertEqual(state["cash"], {})
+            reopened = Ledger(path)
+            reopened.apply(
+                {
+                    "id": "paid",
+                    "kind": "dividend_payment",
+                    "timestamp": "2020-01-02T00:00:00Z",
+                    "accrual_id": "claim",
+                }
+            )
+            self.assertEqual(reopened.state()["cash"], {"USD": "8.00"})
+            self.assertTrue(reopened.audit()["passed"])
+            with self.assertRaises(ValueError):
+                reopened.apply(
+                    {
+                        "id": "bad",
+                        "kind": "dividend_payment",
+                        "timestamp": "2020-01-03T00:00:00Z",
+                        "accrual_id": "missing",
+                    }
+                )
+
