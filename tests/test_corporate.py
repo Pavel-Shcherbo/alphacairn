@@ -317,3 +317,20 @@ class CorporateTests(unittest.TestCase):
                     }
                 )
 
+    def test_exact_split_signal_factors_have_no_future_action_leak(self):
+        rows = [
+            {"observation": {"close": "10", "closed_at": "2020-01-02T17:00:00Z"}},
+            {"observation": {"close": "6", "closed_at": "2020-01-03T17:00:00Z"}},
+        ]
+        action = split()
+        prices, used = signal_prices(
+            [action], "A", rows, {"at": "2020-01-03T18:00:00Z"}
+        )
+        self.assertEqual(prices, [Fraction(5), Fraction(6)])
+        self.assertEqual(used, ["split"])
+        prices, used = signal_prices(
+            [action], "A", rows[:1], {"at": "2020-01-02T18:00:00Z"}
+        )
+        self.assertEqual(prices, [Fraction(10)])
+        self.assertEqual(used, [])
+
