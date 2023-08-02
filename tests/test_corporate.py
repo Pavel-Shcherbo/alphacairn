@@ -334,3 +334,38 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(prices, [Fraction(10)])
         self.assertEqual(used, [])
 
+    def test_strategy_actions_use_same_book_and_portable_bundle_replay(self):
+        config = load("strategy-control.json")
+        bars = load("strategy-bars.json")
+        config["execution"].update(
+            version=3,
+            calendar=None,
+            calendar_policy=None,
+            price_basis="unadjusted",
+            corporate_actions=[
+                {**split(), "instrument": "STOCK-A", "order_policy": "cancel"},
+                {**dividend(amount="0.50"), "instrument": "STOCK-A"},
+            ],
+        )
+        with tempfile.TemporaryDirectory() as root:
+            catalog = MarketCatalog(Path(root) / "market.sqlite", create=True)
+            for kind, records in [
+                ("bar", bars),
+                ("membership", load("strategy-universe.json")),
+            ]:
+                catalog.ingest(
+                    config["source"], kind, canonical(records), request_key=kind
+                )
+            inputs = capture_strategy(catalog, config)
+            report = simulate_strategy(inputs)
+            self.assertTrue(report["planning_replayed"])
+            self.assertTrue(report["execution"]["ledger_audit"]["passed"])
+            feature = next(
+                item
+                for item in report["windows"][1]["features"]
+                if item["instrument"] == "STOCK-A"
+            )
+            self.assertIn("split", feature["split_actions"])
+            write_strategy(inputs, report, Path(root) / "bundle")
+            self.assertTrue(verify_strategy_bundle(Path(root) / "bundle")["passed"])
+
