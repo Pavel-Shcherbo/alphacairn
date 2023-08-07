@@ -369,3 +369,15 @@ class CorporateTests(unittest.TestCase):
             write_strategy(inputs, report, Path(root) / "bundle")
             self.assertTrue(verify_strategy_bundle(Path(root) / "bundle")["passed"])
 
+    def test_execution_export_replays_actions_and_detects_modified_report(self):
+        value = control()
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root) / "bundle"
+            write_execution(value, simulate_execution(value), path)
+            self.assertTrue(verify_execution_bundle(path)["passed"])
+            report = json.loads((path / "report.json").read_text())
+            report["corporate_actions"][1]["eligible_quantity"] = "999"
+            (path / "report.json").write_text(json.dumps(report))
+            with self.assertRaises(ValueError):
+                verify_execution_bundle(path)
+
