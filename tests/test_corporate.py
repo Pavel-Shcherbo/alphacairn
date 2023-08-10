@@ -381,3 +381,17 @@ class CorporateTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 verify_execution_bundle(path)
 
+    def test_dividend_replay_independently_checks_share_ownership(self):
+        from unittest.mock import patch
+        from alphacairn.corporate_book import CorporateBook
+
+        original = CorporateBook.ex
+
+        def wrong(self, action, at):
+            original(self, action, at)
+            self.entitlements[action["id"]]["eligible_quantity"] = "999"
+
+        with patch.object(CorporateBook, "ex", wrong):
+            with self.assertRaisesRegex(RuntimeError, "independent journal ownership"):
+                simulate_execution(control())
+
