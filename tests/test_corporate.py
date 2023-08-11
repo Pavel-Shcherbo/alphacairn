@@ -395,3 +395,16 @@ class CorporateTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "independent journal ownership"):
                 simulate_execution(control())
 
+    def test_v3_can_use_retained_calendar_and_accrued_dividend(self):
+        from alphacairn.session_model import build_calendar
+        from test_sessions import schedule
+
+        value = simple([dividend()])
+        value["bars"] = [bar(2), bar(3)]
+        value["ends_at"] = "2020-01-04T00:00:00Z"
+        value["calendar"] = build_calendar(schedule())
+        value["calendar_policy"] = {"require_all_sessions": True}
+        result = simulate_execution(value)
+        self.assertTrue(result["calendar_validation"]["complete"])
+        self.assertTrue(result["corporate_replay_checks"][0]["passed"])
+
