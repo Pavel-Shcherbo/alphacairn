@@ -408,3 +408,13 @@ class CorporateTests(unittest.TestCase):
         self.assertTrue(result["calendar_validation"]["complete"])
         self.assertTrue(result["corporate_replay_checks"][0]["passed"])
 
+    def test_decimal_context_and_caller_input_remain_unchanged(self):
+        value = control()
+        original = copy.deepcopy(value)
+        with localcontext() as context:
+            context.prec = 2
+            context.traps[Inexact] = True
+            result = simulate_execution(value)
+        self.assertEqual(value, original)
+        self.assertEqual(result["valuation"]["equity"], "1017.00")
+
