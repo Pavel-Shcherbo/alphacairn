@@ -15,3 +15,7 @@ include examples/strategy-control.json
 include examples/session-schedule.json
 include examples/session-execution.json
 include examples/corporate-execution.json
+
+include examples/risk-control.json
+include examples/risk-history.json
+include examples/risk-quotes.json
