@@ -418,3 +418,15 @@ class CorporateTests(unittest.TestCase):
         self.assertEqual(value, original)
         self.assertEqual(result["valuation"]["equity"], "1017.00")
 
+    def test_empty_action_v3_matches_legacy_economic_outputs(self):
+        old = simulate_execution(scenario())
+        new = simulate_execution(simple([]))
+        for key in (
+            "cash",
+            "positions",
+            "fills",
+            "equity_curve",
+            "ledger_events",
+            "valuation",
+        ):
+            self.assertEqual(old[key], new[key])
