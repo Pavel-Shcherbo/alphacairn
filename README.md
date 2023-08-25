@@ -85,3 +85,7 @@ The execution CLI models explicit market/limit orders across instruments and cur
 Retained operator calendars and version-2 session-checked execution: [session guide](docs/SESSIONS.md). Synthetic stock/crypto control: `examples/session-execution.json`.
 
 [Declared splits and cash dividends](docs/CORPORATE_ACTIONS.md): version-3 execution, split-aware working orders/signals, dividend receivables and independently reconciled payment events.
+
+## Multi-asset risk studies
+
+Capture a journal-backed portfolio with explicit quotes and history, inspect concentrations, revalue joint price/FX stresses and calculate descriptive covariance and historical tail diagnostics. Complete and incomplete results retain their inputs and replay offline. See the [risk guide](docs/RISK.md) and `python3 -m alphacairn.risk --help`.
