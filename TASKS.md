@@ -4,13 +4,13 @@ Updated: 2026-11-04. Actual status only; historical roadmap rows remain proposed
 
 | Task | Status | Evidence | Remaining work |
 |---|---|---|---|
-| Core domain path | Implemented; 189 current tests passed | `alphacairn/`, `tests/` | Expand adversarial coverage as the model grows |
+| Core domain path | Implemented; 223 current tests passed | `alphacairn/`, `tests/` | Expand adversarial coverage as the model grows |
 | Local CLI | Implemented; CLI end-to-end checks passed | `alphacairn/__main__.py`, `examples/` | Retained in the local verification evidence |
 | Local workbench | Implemented; local HTTP and reviewed browser flows passed | `alphacairn/web.py`, `alphacairn/static/` | Retain checks as new screens and flows are added |
 | Broad product scope | Planned | `docs/PRODUCT_SCOPE.md` | Most platform subsystems require implementation |
 | Weekly reconstruction plan | Written | `docs/proposed-weekly-roadmap.csv` | Proposed commit counts are not actual commits |
 | Publication | Waiting on Pavel | Current request: do not upload without Pavel | No push or hosted deployment |
-| Production implementation ≥20,000 useful SLOC | Not achieved | 7565 project-specific SLOC measured; not achieved | Implement and verify the broad subsystem scope without padding |
+| Production implementation ≥20,000 useful SLOC | Not achieved | 8851 project-specific SLOC measured; not achieved | Implement and verify the broad subsystem scope without padding |
 | Risk analytics | Implemented; control-case tests passed | `alphacairn/analytics.py`, `tests/test_analytics.py` | Assumptions and browser comparisons documented; expand risk estimation with multi-asset inputs |
 | Walk-forward studies | Implemented; timing and cash-reconciliation tests passed | `alphacairn/walkforward.py`, `tests/test_walkforward.py` | Browser workflow and installed CLI verified; untouched final holdout and expanded research registry remain open |
 | Installable local package | Verified from a clean environment outside the source tree | `docs/installed-verification.json`, `_build.py`, `MANIFEST.in` | Cross-version/platform qualification remains open |
@@ -26,11 +26,11 @@ Updated: 2026-11-04. Actual status only; historical roadmap rows remain proposed
 
 | Explicit corporate actions and dividend assets | Verified local increment; 26 new checks, 189 current tests | `docs/CORPORATE_ACTIONS.md`, installed rational controls and 100-instrument replay | Provider notices, initial holdings, broader actions/settlement, browser and full scope/size remain open |
 
-Next executable increment: expose saved market/strategy/execution controls in the workbench expand action-provider coverage, and add settlement calendars and additional strategy families.
+Next executable increment: expose saved market/strategy/execution/risk controls in the workbench, expand action-provider coverage, and add settlement calendars and additional strategy families.
 
 Local reconstruction: five initial substantive stage commits created, plus verification, sequential research, portfolio-accounting, market-catalog, execution-engine, catalog-backed strategy, retained-session and corporate-action increments. No remote is configured; no upload was performed. The full dated roadmap remains proposed.
 
-Current implementation verification: 189 tests passed, CLI checked, clean wheel installation and installed workbench HTTP checked. Broad scope and the 20,000-SLOC requirement remain open.
+Current implementation verification: 223 tests passed, CLI checked, clean wheel installation and installed workbench HTTP checked. Broad scope and the 20,000-SLOC requirement remain open.
 
 Verified increment: exact-decimal portfolio journal, FIFO lots, explicit split/dividend/FX events, reconciliation and as-of valuation. 63 Alphacairn tests passed, including independent integer-cent controls, concurrent writers, replay corruption detection and isolated Decimal contexts. Installed CLI/HTTP checks passed; browser success, missing mark, statement discrepancy, delayed response and reproduced export passed. Evidence: `docs/verification.json`, `docs/installed-verification.json`, `docs/portfolio-browser-verification.json`, `docs/portfolio-export-verification.json`. The 20,000-SLOC and full product requirements remain open.
 
@@ -43,3 +43,9 @@ Verified increment: catalog-backed target-inventory studies with frozen per-deci
 Verified session-calendar increment: 25 new checks, 163 Alphacairn tests and installed CLI/export/offline replay passed. Explicit operator schedules cover closures, short/split/overnight/continuous sessions, strict gap/fold clocks, retained timezone rules and version-2 bar coverage. Independent Fraction accounting over the stock/crypto weekend control reconciled USD 30 cash and USD 107 equity. Evidence: docs/SESSIONS.md, docs/session-calendar-verification.json. Settlement cash flows, official exchange adapters, browser controls, corporate-action execution and full product/size scope remain open.
 
 Verified corporate-action increment: 26 new checks, 189 Alphacairn tests and clean installed execution/strategy export replay passed. Explicit unadjusted-price splits, exact live-order adjustment/cancellation, FIFO-preserved basis, ex-date ownership, dividend accrual/payment and foreign-currency receivable valuation are implemented. Journal-owned quantities and rational rounding independently check entitlements; old split/cum-dividend marks are invalidated. Synthetic control reconciles USD 918 cash, 16 shares, USD 86 basis, USD 3 receivable and USD 1017 equity. A retained 100-instrument/200-action workload also replayed. Evidence: docs/CORPORATE_ACTIONS.md, docs/corporate-action-verification.json, docs/corporate-action-benchmark.json. Current project-specific source: 7565 useful SLOC. Action feeds, initial holdings, cash-in-lieu, broader actions/settlement, browser controls and full product/20,000 useful-SLOC scope remain open. No publication.
+
+Multi-asset risk increment implemented and verified below; full product/20,000 useful-SLOC acceptance remains open.
+
+Verified multi-asset risk increment: 34 new checks, 223 Alphacairn tests and 649 portfolio tests passed. Coherent read-only journal capture checks accepted events/receipts/postings and replays current state. Retained quotes/history produce reconciled concentration groups, joint price/FX stresses, complete-case static shocks, exact fixed-grid sample/shrunk covariance, rank/conditioning and signed nearest-rank VaR/fractional-tail ES. Missing, unavailable, stale and zero-mark inputs remain explicit. Clean installed CLI/CSV/integer-cent controls passed, including ledger-free bundle replay and incomplete-result exit behavior. A retained 24-factor/1,000-return workload matched an independent variance calculation and replayed fully. Evidence: docs/RISK.md, docs/risk-verification.json and docs/risk-benchmark.json. Current project-specific production source: 8851 SLOC. Browser risk/strategy/catalog controls, provider histories/actions, initial holdings, broader instruments/settlement and full product/20,000 useful-SLOC acceptance remain open. No publication.
+
+| Journal-backed multi-asset risk and stresses | Verified local increment; 34 new checks, 223 current tests | `docs/RISK.md`, installed independent monetary/CSV controls and 24-factor workload | Browser risk controls, provider histories, broader instruments and full scope/size remain open |
