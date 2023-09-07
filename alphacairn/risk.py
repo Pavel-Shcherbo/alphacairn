@@ -12,3 +12,8 @@ from .risk_inputs import capture_risk_inputs
 from .risk_model import MAX_INPUT, bounded_json
 
 
+def load(path):
+    with Path(path).open("rb") as stream:
+        return bounded_json(decode(stream.read(MAX_INPUT + 1)))
+
+
