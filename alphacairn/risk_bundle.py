@@ -17,3 +17,25 @@ FILES = frozenset(
 )
 
 
+def save_risk_inputs(document, destination):
+    prepare_risk_inputs(document)
+    raw = canonical(document) + b"\n"
+    if len(raw) > MAX_INPUT:
+        raise ValueError("serialized risk inputs exceed 16 MiB")
+    destination = Path(destination)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix=".risk-inputs-", dir=destination.parent, delete=False
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.link(temporary, destination)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return {"path": str(destination), "sha256": document["sha256"], "bytes": len(raw)}
+
+
