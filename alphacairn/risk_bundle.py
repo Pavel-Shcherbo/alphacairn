@@ -39,3 +39,28 @@ def save_risk_inputs(document, destination):
     return {"path": str(destination), "sha256": document["sha256"], "bytes": len(raw)}
 
 
+def report_files(inputs, report):
+    return {
+        "inputs.json": canonical(inputs) + b"\n",
+        "risk-report.json": canonical(report) + b"\n",
+        "exposures.csv": csv_data(
+            report["exposures"],
+            [
+                "id",
+                "kind",
+                "instrument",
+                "currency",
+                "venue",
+                "asset_kind",
+                "base_value",
+            ],
+        ),
+        "stresses.csv": csv_data(
+            report["stresses"], ["id", "complete", "equity", "pnl", "return"]
+        ),
+        "history.csv": csv_data(
+            report["history"].get("intervals", []), ["from", "to", "pnl"]
+        ),
+    }
+
+
