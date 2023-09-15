@@ -64,3 +64,45 @@ def report_files(inputs, report):
     }
 
 
+def write_risk(inputs, report, destination):
+    replay = analyze_risk(inputs)
+    if canonical(replay) != canonical(report):
+        raise ValueError("risk report differs from fresh input replay")
+    files = report_files(inputs, report)
+    if (
+        any(len(raw) > MAX_INPUT for raw in files.values())
+        or sum(map(len, files.values())) > 48 * 1024 * 1024
+    ):
+        raise ValueError("risk bundle exceeds per-file/48 MiB limits")
+    destination = Path(destination)
+    destination.mkdir(mode=0o700, parents=False, exist_ok=False)
+    try:
+        manifest = {
+            "format": "alphacairn.risk-bundle.v1",
+            "inputs_sha256": inputs["sha256"],
+            "report_sha256": report["sha256"],
+            "files": {
+                name: {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+                for name, raw in sorted(files.items())
+            },
+        }
+        manifest["sha256"] = digest(manifest)
+        manifest_bytes = canonical(manifest) + b"\n"
+        if sum(map(len, files.values())) + len(manifest_bytes) > 48 * 1024 * 1024:
+            raise ValueError("risk bundle including manifest exceeds 48 MiB")
+        for name, raw in files.items():
+            with (destination / name).open("xb") as stream:
+                stream.write(raw)
+            (destination / name).chmod(0o600)
+        (destination / "manifest.json").write_bytes(manifest_bytes)
+    except BaseException:
+        shutil.rmtree(destination)
+        raise
+    return {
+        "path": str(destination),
+        "complete": report["complete"],
+        "report_sha256": report["sha256"],
+        "files": sorted(files),
+    }
+
+
