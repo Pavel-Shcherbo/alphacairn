@@ -106,3 +106,62 @@ def write_risk(inputs, report, destination):
     }
 
 
+def verify_risk_bundle(root):
+    root = Path(root)
+    if (
+        root.is_symlink()
+        or not root.is_dir()
+        or {path.name for path in root.iterdir()} != FILES | {"manifest.json"}
+    ):
+        raise ValueError("risk bundle requires an exact ordinary file inventory")
+    raw = {}
+    for name in FILES | {"manifest.json"}:
+        path = root / name
+        if (
+            path.is_symlink()
+            or not path.is_file()
+            or path.stat().st_size > (65536 if name == "manifest.json" else MAX_INPUT)
+        ):
+            raise ValueError("risk bundle contains an unsafe/oversized file")
+        raw[name] = path.read_bytes()
+    if sum(map(len, raw.values())) > 48 * 1024 * 1024:
+        raise ValueError("risk bundle exceeds 48 MiB")
+    manifest = decode(raw["manifest.json"])
+    if (
+        not isinstance(manifest, dict)
+        or set(manifest)
+        != {"format", "inputs_sha256", "report_sha256", "files", "sha256"}
+        or manifest["format"] != "alphacairn.risk-bundle.v1"
+        or manifest["sha256"]
+        != digest({k: v for k, v in manifest.items() if k != "sha256"})
+        or set(manifest["files"]) != FILES
+    ):
+        raise ValueError("risk manifest identity/fields mismatch")
+    for name in FILES:
+        if manifest["files"][name] != {
+            "bytes": len(raw[name]),
+            "sha256": hashlib.sha256(raw[name]).hexdigest(),
+        }:
+            raise ValueError("risk bundle file hash mismatch")
+    inputs = bounded_json(decode(raw["inputs.json"]))
+    report = bounded_json(decode(raw["risk-report.json"]))
+    replay = analyze_risk(inputs)
+    if (
+        canonical(replay) != canonical(report)
+        or report["sha256"] != manifest["report_sha256"]
+        or inputs["sha256"] != manifest["inputs_sha256"]
+    ):
+        raise ValueError("risk numerical/journal replay differs from retained report")
+    expected = report_files(inputs, report)
+    if any(raw[name] != expected[name] for name in FILES):
+        raise ValueError("risk bundle CSV/JSON bytes differ from replay")
+    return {
+        "passed": True,
+        "complete": report["complete"],
+        "journal_replayed": True,
+        "numerical_replay_passed": True,
+        "inputs_sha256": inputs["sha256"],
+        "report_sha256": report["sha256"],
+        "source_authenticated": False,
+        "scope": "Fresh journal, valuation, stress and descriptive risk reconstruction; no authenticated external prices or forecast validation",
+    }
