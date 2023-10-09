@@ -40,3 +40,67 @@ def factor_exposures(rows, spec):
     return [factors[key] for key in sorted(factors)]
 
 
+def observation_returns(history, factors, configuration, spec):
+    observations = []
+    excluded = []
+    points = history["observations"]
+    start = configuration["history_start"]
+    end = configuration["history_end"]
+    asof = configuration["as_of"]
+    for left, right in zip(points, points[1:]):
+        reasons = []
+        if left["at"] < start or right["at"] > end:
+            reasons.append({"code": "outside_window"})
+        if left["available_at"] > asof or right["available_at"] > asof:
+            reasons.append({"code": "not_available_as_of"})
+        if timestamp(right["at"]) - timestamp(left["at"]) > timedelta(
+            days=configuration["max_gap_days"]
+        ):
+            reasons.append({"code": "observation_gap"})
+        levels = []
+        for factor in factors:
+            pair = []
+            for point in (left, right):
+                price = (
+                    point["prices"].get(factor["instrument"])
+                    if factor["instrument"] is not None
+                    else "1"
+                )
+                rate = (
+                    point["fx"].get(factor["currency"])
+                    if factor["currency"] != spec.base_currency
+                    else "1"
+                )
+                if price is None or rate is None:
+                    reasons.append(
+                        {
+                            "code": "missing_history_value",
+                            "at": point["at"],
+                            "factor": factor["id"],
+                        }
+                    )
+                    pair.append(None)
+                else:
+                    pair.append(Fraction(price) * Fraction(rate))
+            levels.append(pair)
+        if reasons:
+            excluded.append({"from": left["at"], "to": right["at"], "reasons": reasons})
+            continue
+        changes = [quantized_return(pair[1] / pair[0] - 1) for pair in levels]
+        observations.append(
+            {
+                "from": left["at"],
+                "to": right["at"],
+                "returns": changes,
+                "pnl": sum(
+                    (
+                        factor["base_value"] * change
+                        for factor, change in zip(factors, changes)
+                    ),
+                    Fraction(),
+                ),
+            }
+        )
+    return observations, excluded
+
+
