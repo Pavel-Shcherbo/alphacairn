@@ -104,3 +104,38 @@ def observation_returns(history, factors, configuration, spec):
     return observations, excluded
 
 
+def history_report(observations, excluded, factors, configuration):
+    return {
+        "source_observation_count": (
+            len(observations) + len(excluded) + 1 if observations or excluded else 0
+        ),
+        "used_return_count": len(observations),
+        "window_start": configuration["history_start"],
+        "window_end": configuration["history_end"],
+        "effective_start": observations[0]["from"] if observations else None,
+        "effective_end": observations[-1]["to"] if observations else None,
+        "minimum_required": configuration["min_observations"],
+        "excluded_intervals": excluded,
+        "factors": [
+            {
+                "id": f["id"],
+                "instrument": f["instrument"],
+                "currency": f["currency"],
+                "base_value": fixed(f["base_value"]),
+            }
+            for f in factors
+        ],
+        "intervals": [
+            {
+                "from": row["from"],
+                "to": row["to"],
+                "returns": {
+                    factor["id"]: fixed(change, 12)
+                    for factor, change in zip(factors, row["returns"])
+                },
+                "pnl": fixed(row["pnl"]),
+            }
+            for row in observations
+        ],
+        "policy": "Adjacent complete observations only; no forward filling, no joining over gaps; split-adjusted price-only levels and base-per-quote FX; returns rounded half-even to 12 decimal places",
+    }
