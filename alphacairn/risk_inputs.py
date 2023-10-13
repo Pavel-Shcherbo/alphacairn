@@ -22,3 +22,29 @@ class RiskInputs:
     sha256: str
 
 
+def prepare_risk_inputs(value):
+    bounded_json(value)
+    if (
+        not isinstance(value, dict)
+        or set(value)
+        != {"format", "journal", "quotes", "history", "configuration", "sha256"}
+        or value["format"] != FORMAT
+        or value["sha256"]
+        != digest({key: item for key, item in value.items() if key != "sha256"})
+    ):
+        raise ValueError("risk inputs format or content identity mismatch")
+    spec, state = replay_journal(value["journal"])
+    configuration = compile_risk(value["configuration"], spec)
+    history = compile_history(value["history"], spec)
+    quotes = validate_quotes(value["quotes"], configuration)
+    return RiskInputs(
+        copy.deepcopy(value),
+        spec,
+        state,
+        configuration,
+        history,
+        quotes,
+        value["sha256"],
+    )
+
+
