@@ -48,3 +48,17 @@ def prepare_risk_inputs(value):
     )
 
 
+def capture_risk_inputs(database, configuration, history, quotes):
+    journal = capture_journal(database)
+    spec, _ = replay_journal(journal)
+    configuration = compile_risk(configuration, spec)
+    document = {
+        "format": FORMAT,
+        "journal": journal,
+        "quotes": validate_quotes(quotes, configuration),
+        "history": compile_history(history, spec),
+        "configuration": configuration,
+    }
+    document["sha256"] = digest(document)
+    prepare_risk_inputs(document)
+    return document
