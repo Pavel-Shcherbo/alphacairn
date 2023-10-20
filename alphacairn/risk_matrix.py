@@ -33,3 +33,9 @@ def shrink_covariance(matrix, coefficient):
     ]
 
 
+def checked(value):
+    if value.numerator.bit_length() > 16384 or value.denominator.bit_length() > 16384:
+        raise ValueError("matrix arithmetic exceeds 16,384-bit rational budget")
+    return value
+
+
