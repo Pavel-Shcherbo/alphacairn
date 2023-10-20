@@ -26,3 +26,10 @@ def sample_covariance(observations, size):
     return means, covariance
 
 
+def shrink_covariance(matrix, coefficient):
+    return [
+        [value if i == j else value * (1 - coefficient) for j, value in enumerate(row)]
+        for i, row in enumerate(matrix)
+    ]
+
+
