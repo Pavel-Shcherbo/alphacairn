@@ -39,3 +39,30 @@ def checked(value):
     return value
 
 
+def inverse_rank(matrix):
+    size = len(matrix)
+    work = [
+        [fraction for fraction in row] + [Fraction(int(i == j)) for j in range(size)]
+        for i, row in enumerate(matrix)
+    ]
+    pivot_row = 0
+    for column in range(size):
+        selected = next((i for i in range(pivot_row, size) if work[i][column]), None)
+        if selected is None:
+            continue
+        work[pivot_row], work[selected] = work[selected], work[pivot_row]
+        pivot = work[pivot_row][column]
+        work[pivot_row] = [checked(value / pivot) for value in work[pivot_row]]
+        for i in range(size):
+            if i == pivot_row:
+                continue
+            multiplier = work[i][column]
+            if multiplier:
+                work[i] = [
+                    checked(left - multiplier * right)
+                    for left, right in zip(work[i], work[pivot_row])
+                ]
+        pivot_row += 1
+    return pivot_row, [row[size:] for row in work] if pivot_row == size else None
+
+
