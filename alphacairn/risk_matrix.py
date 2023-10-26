@@ -66,3 +66,23 @@ def inverse_rank(matrix):
     return pivot_row, [row[size:] for row in work] if pivot_row == size else None
 
 
+def matrix_diagnostics(matrix):
+    size = len(matrix)
+    rank, inverse = inverse_rank(matrix)
+    norm = lambda value: max(
+        (sum((abs(row[j]) for row in value), Fraction()) for j in range(len(value))),
+        default=Fraction(),
+    )
+    condition = norm(matrix) * norm(inverse) if inverse is not None and size else None
+    return {
+        "factors": size,
+        "rank": rank,
+        "singular": rank < size,
+        "condition_number_one": fixed(condition) if condition is not None else None,
+        "ill_conditioned": condition >= 100000000 if condition is not None else None,
+        "zero_variance_factors": [i for i in range(size) if matrix[i][i] == 0],
+        "condition_threshold": "100000000",
+        "inverse_used_for_portfolio_risk": False,
+    }
+
+
