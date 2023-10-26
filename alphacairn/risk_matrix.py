@@ -86,3 +86,67 @@ def matrix_diagnostics(matrix):
     }
 
 
+def covariance_report(observations, factors, configuration, equity):
+    size = len(factors)
+    means, sample = sample_covariance(observations, size)
+    coefficient = Fraction(configuration["shrinkage"])
+    matrix = shrink_covariance(sample, coefficient)
+    values = [factor["base_value"] for factor in factors]
+    product = [
+        sum((matrix[i][j] * values[j] for j in range(size)), Fraction())
+        for i in range(size)
+    ]
+    contributions = [values[i] * product[i] for i in range(size)]
+    variance = sum(contributions, Fraction())
+    if variance < 0:
+        raise ValueError("negative portfolio variance violates the covariance contract")
+    sigma = root(variance)
+    rows = []
+    for i, factor in enumerate(factors):
+        rows.append(
+            {
+                "id": factor["id"],
+                "base_value": fixed(values[i]),
+                "mean_return": fixed(means[i]),
+                "period_volatility": sqrt_text(matrix[i][i]),
+                "variance_contribution": fixed(contributions[i]),
+                "variance_contribution_exact": exact(contributions[i]),
+                "variance_share": (
+                    fixed(contributions[i] / variance) if variance else None
+                ),
+                "component_volatility_base": (
+                    fixed(contributions[i] / Fraction(sigma)) if variance else None
+                ),
+            }
+        )
+    correlation = []
+    for i in range(size):
+        row = []
+        for j in range(size):
+            denominator = root(matrix[i][i] * matrix[j][j])
+            row.append(
+                fixed(matrix[i][j] / Fraction(denominator)) if denominator else None
+            )
+        correlation.append(row)
+    frequency = configuration["periods_per_year"]
+    return {
+        "method": "sample covariance (n-1), then off-diagonal multiplied by (1-shrinkage); unchanged diagonal",
+        "shrinkage": configuration["shrinkage"],
+        "factor_order": [factor["id"] for factor in factors],
+        "sample_covariance": [[fixed(value) for value in row] for row in sample],
+        "covariance": [[fixed(value) for value in row] for row in matrix],
+        "covariance_exact": [[exact(value) for value in row] for row in matrix],
+        "correlation": correlation,
+        "sample_diagnostics": matrix_diagnostics(sample),
+        "regularized_diagnostics": matrix_diagnostics(matrix),
+        "variance_base": fixed(variance),
+        "variance_base_exact": exact(variance),
+        "period_volatility_base": fixed(Fraction(sigma)),
+        "period_volatility_fraction": fixed(Fraction(sigma) / equity),
+        "annualized_volatility_fraction": sqrt_text(
+            variance * frequency / (equity * equity)
+        ),
+        "periods_per_year": frequency,
+        "components": rows,
+        "annualization_assumption": "Square-root-of-time scaling under the declared equal-period/no-serial-correlation approximation; not a forecast",
+    }
