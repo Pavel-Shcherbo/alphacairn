@@ -12,3 +12,26 @@ MAX_FACTORS = 24
 MAX_POINTS = 1001
 
 
+def bounded_json(value, maximum=MAX_INPUT):
+    try:
+        raw = canonical(value)
+    except (TypeError, RecursionError) as error:
+        raise ValueError(
+            "risk JSON cannot be serialized within its structure budget"
+        ) from error
+    if len(raw) > maximum:
+        raise ValueError("risk JSON exceeds byte budget")
+    pending = [(value, 0)]
+    nodes = 0
+    while pending:
+        item, depth = pending.pop()
+        nodes += 1
+        if depth > 35 or nodes > 500000:
+            raise ValueError("risk JSON exceeds structure budget")
+        if isinstance(item, dict):
+            pending.extend((v, depth + 1) for v in item.values())
+        elif isinstance(item, list):
+            pending.extend((v, depth + 1) for v in item)
+    return value
+
+
