@@ -35,3 +35,7 @@ def bounded_json(value, maximum=MAX_INPUT):
     return value
 
 
+def number(value, label, *, positive=False, nonnegative=False):
+    return text(decimal_value(value, label, positive=positive, nonnegative=nonnegative))
+
+
