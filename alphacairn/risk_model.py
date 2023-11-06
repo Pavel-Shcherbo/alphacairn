@@ -39,3 +39,10 @@ def number(value, label, *, positive=False, nonnegative=False):
     return text(decimal_value(value, label, positive=positive, nonnegative=nonnegative))
 
 
+def ratio(value, label):
+    result = decimal_value(value, label, nonnegative=True)
+    if result > 1:
+        raise ValueError(label + " must lie between zero and one")
+    return text(result)
+
+
