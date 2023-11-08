@@ -140,3 +140,66 @@ def compile_risk(value, spec):
     return result
 
 
+def compile_history(value, spec):
+    bounded_json(value)
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"version", "source", "price_basis", "observations"}
+        or type(value["version"]) is not int
+        or value["version"] != 1
+        or value["price_basis"] != "split_adjusted_price_only"
+    ):
+        raise ValueError(
+            "history requires version 1, source, split_adjusted_price_only basis and observations"
+        )
+    source = identity(value["source"], "risk history source")
+    points = value["observations"]
+    if not isinstance(points, list) or len(points) > MAX_POINTS:
+        raise ValueError("risk history supports at most 1,001 observations")
+    result = []
+    previous = None
+    for item in points:
+        if not isinstance(item, dict) or set(item) != {
+            "at",
+            "available_at",
+            "prices",
+            "fx",
+        }:
+            raise ValueError("history point requires at, available_at, prices and fx")
+        at = timestamp_text(timestamp(item["at"]))
+        available = timestamp_text(timestamp(item["available_at"]))
+        if available < at or previous is not None and at <= previous:
+            raise ValueError(
+                "history requires increasing observation times and availability at/after observation"
+            )
+        previous = at
+        row = {"at": at, "available_at": available}
+        for key in ("prices", "fx"):
+            if not isinstance(item[key], dict) or len(item[key]) > 1000:
+                raise ValueError("history values must be bounded objects")
+            row[key] = {}
+            for name, value in sorted(item[key].items()):
+                if key == "prices":
+                    spec.instrument(name)
+                else:
+                    spec.places(name)
+                parsed = (
+                    None
+                    if value is None
+                    else number(value, "history " + key, positive=True)
+                )
+                if (
+                    key == "fx"
+                    and name == spec.base_currency
+                    and parsed is not None
+                    and Fraction(parsed) != 1
+                ):
+                    raise ValueError("base FX history must equal one")
+                row[key][name] = parsed
+        result.append(row)
+    return {
+        "version": 1,
+        "source": source,
+        "price_basis": "split_adjusted_price_only",
+        "observations": result,
+    }
