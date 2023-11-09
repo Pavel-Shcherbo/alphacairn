@@ -7,3 +7,7 @@ RETURN_PLACES = 12
 OUTPUT_PLACES = 18
 
 
+def fraction(value):
+    return value if isinstance(value, Fraction) else Fraction(value)
+
+
