@@ -36,3 +36,8 @@ def fixed(value, places=OUTPUT_PLACES):
     return sign + str(integer // scale) + "." + str(integer % scale).zfill(places)
 
 
+def exact(value):
+    value = fraction(value)
+    return {"numerator": str(value.numerator), "denominator": str(value.denominator)}
+
+
