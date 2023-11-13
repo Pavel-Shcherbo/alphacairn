@@ -25,3 +25,14 @@ def rounded_fraction(value, places):
     return Fraction(sign * quotient, scale)
 
 
+def fixed(value, places=OUTPUT_PLACES):
+    value = rounded_fraction(value, places)
+    scale = 10**places
+    integer = value.numerator * scale // value.denominator
+    sign = "-" if integer < 0 else ""
+    integer = abs(integer)
+    if not places:
+        return sign + str(integer)
+    return sign + str(integer // scale) + "." + str(integer % scale).zfill(places)
+
+
