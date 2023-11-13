@@ -41,3 +41,9 @@ def exact(value):
     return {"numerator": str(value.numerator), "denominator": str(value.denominator)}
 
 
+def decimal(value):
+    value = fraction(value)
+    with localcontext(Context(prec=80, rounding=ROUND_HALF_EVEN)):
+        return Decimal(value.numerator) / Decimal(value.denominator)
+
+
