@@ -54,3 +54,7 @@ def root(value):
         return decimal(value).sqrt()
 
 
+def sqrt_text(value):
+    return fixed(Fraction(root(value)))
+
+
