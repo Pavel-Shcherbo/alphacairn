@@ -47,3 +47,10 @@ def decimal(value):
         return Decimal(value.numerator) / Decimal(value.denominator)
 
 
+def root(value):
+    if value < 0:
+        raise ValueError("cannot take square root of negative risk variance")
+    with localcontext(Context(prec=80, rounding=ROUND_HALF_EVEN)):
+        return decimal(value).sqrt()
+
+
