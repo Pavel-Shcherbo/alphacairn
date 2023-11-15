@@ -58,3 +58,5 @@ def sqrt_text(value):
     return fixed(Fraction(root(value)))
 
 
+def quantized_return(value):
+    return rounded_fraction(value, RETURN_PLACES)
