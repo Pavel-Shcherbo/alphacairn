@@ -30,3 +30,51 @@ def validate_quotes(value, configuration):
     return result
 
 
+def exposures(state, valuation, spec):
+    if not valuation["complete"]:
+        return []
+    result = []
+    for row in valuation["positions"]:
+        instrument = spec.instrument(row["instrument"])
+        result.append(
+            {
+                "id": "asset:" + instrument.id,
+                "kind": "position",
+                "instrument": instrument.id,
+                "currency": instrument.quote_currency,
+                "venue": instrument.venue,
+                "asset_kind": instrument.kind,
+                "base_value": row["base_value"],
+            }
+        )
+    for row in valuation["cash"]:
+        result.append(
+            {
+                "id": "cash:" + row["currency"],
+                "kind": "cash",
+                "instrument": None,
+                "currency": row["currency"],
+                "venue": None,
+                "asset_kind": "cash",
+                "base_value": row["base_value"],
+            }
+        )
+    for row in valuation.get("dividend_receivables", []):
+        result.append(
+            {
+                "id": "dividend:" + row["accrual_id"],
+                "kind": "dividend_receivable",
+                "instrument": None,
+                "currency": row["currency"],
+                "venue": None,
+                "asset_kind": "dividend_receivable",
+                "base_value": row["base_value"],
+            }
+        )
+    if sum((Fraction(row["base_value"]) for row in result), Fraction()) != Fraction(
+        valuation["equity"]
+    ):
+        raise ValueError("risk exposures do not reconcile to journal valuation")
+    return sorted(result, key=lambda row: row["id"])
+
+
