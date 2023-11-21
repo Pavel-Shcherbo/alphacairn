@@ -78,3 +78,43 @@ def exposures(state, valuation, spec):
     return sorted(result, key=lambda row: row["id"])
 
 
+def concentrations(rows, equity, limits):
+    if equity is None or Fraction(equity) <= 0:
+        return {"complete": False, "groups": {}, "breaches": []}
+    groups = {"instrument": {}, "currency": {}, "venue": {}, "kind": {}}
+    for row in rows:
+        for group, key in [
+            ("instrument", "instrument"),
+            ("currency", "currency"),
+            ("venue", "venue"),
+            ("kind", "asset_kind"),
+        ]:
+            label = row[key]
+            if label is not None:
+                groups[group][label] = groups[group].get(label, Fraction()) + Fraction(
+                    row["base_value"]
+                )
+    result = {}
+    breaches = []
+    for group, values in groups.items():
+        result[group] = []
+        for label, value in sorted(values.items()):
+            share = value / Fraction(equity)
+            row = {
+                "name": label,
+                "base_value": fixed(value),
+                "weight": fixed(share),
+                "limit": limits[group],
+                "breached": share > Fraction(limits[group]),
+            }
+            result[group].append(row)
+            if row["breached"]:
+                breaches.append({"group": group, **row})
+    return {
+        "complete": True,
+        "groups": result,
+        "breaches": breaches,
+        "denominator": "total marked equity including cash and dividend assets",
+    }
+
+
