@@ -118,3 +118,93 @@ def concentrations(rows, equity, limits):
     }
 
 
+def stress_portfolio(state, quotes, configuration, baseline, spec):
+    results = []
+    for scenario in configuration["scenarios"]:
+        if not baseline["complete"]:
+            results.append(
+                {
+                    "id": scenario["id"],
+                    "complete": False,
+                    "equity": None,
+                    "pnl": None,
+                    "missing_inputs": baseline["missing_inputs"],
+                }
+            )
+            continue
+        marks = copy.deepcopy(quotes["marks"])
+        fx = copy.deepcopy(quotes["fx"])
+        with arithmetic():
+            for name, shock in scenario["price_shocks"].items():
+                if name in marks:
+                    value = Decimal(marks[name]["price"]) * (1 + Decimal(shock))
+                    marks[name]["price"] = text(
+                        decimal_value(
+                            rounded(value, 18).normalize(),
+                            "stressed mark",
+                            nonnegative=True,
+                        )
+                    )
+            for currency, shock in scenario["fx_shocks"].items():
+                if currency in fx:
+                    value = Decimal(fx[currency]["rate"]) * (1 + Decimal(shock))
+                    fx[currency]["rate"] = text(
+                        decimal_value(
+                            rounded(value, 18).normalize(), "stressed FX", positive=True
+                        )
+                    )
+            valued = value_portfolio(
+                state,
+                marks,
+                fx,
+                as_of=configuration["as_of"],
+                max_age_seconds=configuration["max_age_seconds"],
+            )
+        changes = []
+        for section, key in [
+            ("positions", "instrument"),
+            ("cash", "currency"),
+            ("dividend_receivables", "accrual_id"),
+        ]:
+            before = {row[key]: row for row in baseline.get(section, [])}
+            for row in valued.get(section, []):
+                origin = before[row[key]]
+                changes.append(
+                    {
+                        "kind": section,
+                        "id": row[key],
+                        "before": origin["base_value"],
+                        "after": row["base_value"],
+                        "pnl": fixed(
+                            Fraction(row["base_value"]) - Fraction(origin["base_value"])
+                        ),
+                    }
+                )
+        pnl = Fraction(valued["equity"]) - Fraction(baseline["equity"])
+        if sum((Fraction(row["pnl"]) for row in changes), Fraction()) != pnl:
+            raise ValueError("stress components do not reconcile")
+        held = set(state["positions"])
+        currencies = {
+            row["currency"] for row in baseline["cash"] if Fraction(row["amount"])
+        }
+        currencies.update(spec.instrument(name).quote_currency for name in held)
+        currencies.update(
+            row["currency"] for row in baseline.get("dividend_receivables", [])
+        )
+        results.append(
+            {
+                "id": scenario["id"],
+                "complete": True,
+                "equity": valued["equity"],
+                "pnl": fixed(pnl),
+                "return": (
+                    fixed(pnl / Fraction(baseline["equity"]))
+                    if Fraction(baseline["equity"])
+                    else None
+                ),
+                "components": changes,
+                "unused_price_shocks": sorted(set(scenario["price_shocks"]) - held),
+                "unused_fx_shocks": sorted(set(scenario["fx_shocks"]) - currencies),
+            }
+        )
+    return results
