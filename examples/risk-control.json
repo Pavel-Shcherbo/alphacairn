@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "name": "synthetic-multiasset-risk",
+  "as_of": "2026-01-02T16:00:00Z",
+  "max_age_seconds": 86400,
+  "history_start": "2025-12-26T21:00:00Z",
+  "history_end": "2026-01-01T21:00:00Z",
+  "periods_per_year": 252,
+  "confidence": "0.95",
+  "shrinkage": "0.1",
+  "min_observations": 4,
+  "max_gap_days": 4,
+  "concentration_limits": {
+    "instrument": "0.2",
+    "currency": "0.8",
+    "venue": "0.2",
+    "kind": "0.7"
+  },
+  "scenarios": [
+    {
+      "id": "unchanged",
+      "price_shocks": {},
+      "fx_shocks": {}
+    },
+    {
+      "id": "equity-and-crypto-drop",
+      "price_shocks": {
+        "equity:demo-us": "-0.2",
+        "equity:demo-eu": "-0.1",
+        "crypto:demo": "-0.5"
+      },
+      "fx_shocks": {
+        "EUR": "-0.1"
+      }
+    },
+    {
+      "id": "eur-weakness",
+      "price_shocks": {},
+      "fx_shocks": {
+        "EUR": "-0.1"
+      }
+    }
+  ]
+}
