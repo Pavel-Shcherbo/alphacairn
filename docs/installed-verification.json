@@ -1,5 +1,5 @@
 {
-  "wheel_sha256": "8f9ff811cda7e5b833ed737cce4b865798d243f2c644950e24d697971c83bf5c",
+  "wheel_sha256": "bf649228db24a29a94e159d5671977c2f87979ec84b7262b83d2c34e8a9e89b6",
   "examples_exported": [
     "corporate-execution.json",
     "execution-scenario.json",
@@ -11,6 +11,9 @@
     "portfolio-events.json",
     "portfolio-quotes.json",
     "portfolio-statement.json",
+    "risk-control.json",
+    "risk-history.json",
+    "risk-quotes.json",
     "session-execution.json",
     "session-schedule.json",
     "strategy-bars.json",
@@ -25,6 +28,7 @@
   "state_outside_package": true,
   "portfolio_cli_lifecycle_passed": true,
   "portfolio_http_success_and_failures_passed": true,
+  "multiasset_risk_stress_and_offline_replay_passed": true,
   "market_revision_windows_and_snapshot_study_passed": true,
   "multi_asset_execution_replay_and_fraction_control_passed": true,
   "catalog_strategy_execution_and_offline_replay_passed": true,
