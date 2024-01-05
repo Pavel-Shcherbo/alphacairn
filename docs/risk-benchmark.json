@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "scope": "One local 24-factor/1,000-return synthetic risk workload, not a production SLA or forecast",
+  "factors": 24,
+  "return_observations": 1000,
+  "factor_pair_observations": 576000,
+  "analysis_seconds": 1.3695306670269929,
+  "offline_replay_seconds": 1.420749542012345,
+  "variance_base": "9.251696681487658703",
+  "independent_float_variance": 9.251696681487658,
+  "independent_shrinkage_variance_control_passed": true,
+  "shock_equity": "999760.00",
+  "retained_bundle": "/var/folders/8_/kbqb5qpx3lbbg3zxc48xbhcr0000gn/T/risk-workload-ow_u34lg/bundle",
+  "bundle_bytes": 1702631,
+  "verification": {
+    "passed": true,
+    "complete": true,
+    "journal_replayed": true,
+    "numerical_replay_passed": true,
+    "inputs_sha256": "21a40e4f83313ef9c69d603e941fe09d738db2ba7ac01b9689922793790ef8c2",
+    "report_sha256": "7639f6f27710408fe38301fbddd6bef184e054e4f70f34cf083365f5fc832bdd",
+    "source_authenticated": false,
+    "scope": "Fresh journal, valuation, stress and descriptive risk reconstruction; no authenticated external prices or forecast validation"
+  }
+}
