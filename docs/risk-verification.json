@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "scope": "Clean installed synthetic multi-asset risk; no market forecast or regulatory qualification",
+  "inputs_sha256": "ae8fdb8e392d650437edbe6bdba10ff471c4dd3003bb79b529c5154b5726a733",
+  "report_sha256": "240dec605bebcd03a3e46e82a878156613343032529bc81c815e9e14b5951cf0",
+  "zero_marked_holding_not_cash_only": true,
+  "source_bytes_unchanged": true,
+  "baseline_equity": "10948.90",
+  "independent_crash_equity_cents": 958961,
+  "independent_crash_loss_cents": 135929,
+  "independent_fx_loss_cents": 10989,
+  "independent_static_historical_pnls": [
+    "749/100",
+    "571/100",
+    "749/100",
+    "571/100",
+    "749/100"
+  ],
+  "signed_var_es": "-5.710000000000000000",
+  "variance_components_reconciled_exactly": true,
+  "sample_rank": 1,
+  "shrunk_rank": 4,
+  "create_only_outputs_preserved": true,
+  "offline_verification_after_ledger_removal": {
+    "passed": true,
+    "complete": true,
+    "journal_replayed": true,
+    "numerical_replay_passed": true,
+    "inputs_sha256": "ae8fdb8e392d650437edbe6bdba10ff471c4dd3003bb79b529c5154b5726a733",
+    "report_sha256": "240dec605bebcd03a3e46e82a878156613343032529bc81c815e9e14b5951cf0",
+    "source_authenticated": false,
+    "scope": "Fresh journal, valuation, stress and descriptive risk reconstruction; no authenticated external prices or forecast validation"
+  },
+  "incomplete_history_verification": {
+    "passed": true,
+    "complete": false,
+    "journal_replayed": true,
+    "numerical_replay_passed": true,
+    "inputs_sha256": "c561861012b90e04ec79d7afe10a1f346c3edf093221754069d37f1fb8f753c0",
+    "report_sha256": "d58e4b0f787b8f5744d4e16d2354710253400d22b9e68b7597291858bb481e68",
+    "source_authenticated": false,
+    "scope": "Fresh journal, valuation, stress and descriptive risk reconstruction; no authenticated external prices or forecast validation"
+  }
+}
