@@ -44,4 +44,16 @@ def resign(value):
 
 
 class RiskTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.path = self.root / "journal.sqlite"
+        self.account = load("portfolio-account.json")
+        self.events = load("portfolio-events.json")
+        self.ledger = Ledger(self.path, self.account)
+        self.ledger.apply_batch(self.events)
+        self.config = load("risk-control.json")
+        self.history = load("risk-history.json")
+        self.quotes = load("risk-quotes.json")
+
