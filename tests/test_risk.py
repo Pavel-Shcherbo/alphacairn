@@ -57,3 +57,6 @@ class RiskTests(unittest.TestCase):
         self.history = load("risk-history.json")
         self.quotes = load("risk-quotes.json")
 
+    def inputs(self):
+        return capture_risk_inputs(self.path, self.config, self.history, self.quotes)
+
