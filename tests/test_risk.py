@@ -60,3 +60,19 @@ class RiskTests(unittest.TestCase):
     def inputs(self):
         return capture_risk_inputs(self.path, self.config, self.history, self.quotes)
 
+    def test_current_values_and_independent_stress_integer_cents(self):
+        report = analyze_risk(self.inputs())
+        self.assertTrue(report["complete"])
+        self.assertEqual(report["valuation"]["equity"], "10948.90")
+        self.assertEqual(
+            sum(Fraction(row["base_value"]) for row in report["exposures"]),
+            Fraction(109489, 10),
+        )
+        scenario = report["stresses"][1]
+        # USD cash 720000c + US 36000c + EU 53460c + crypto 110000c + EUR cash 39501c.
+        independently_valued_cents = 720000 + 36000 + 53460 + 110000 + 39501
+        self.assertEqual(Fraction(scenario["equity"]) * 100, independently_valued_cents)
+        self.assertEqual(Fraction(scenario["pnl"]) * 100, -135929)
+        self.assertEqual(Fraction(report["stresses"][0]["pnl"]), 0)
+        self.assertEqual(Fraction(report["stresses"][2]["pnl"]), Fraction(-10989, 100))
+
