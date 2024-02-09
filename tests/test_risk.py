@@ -88,3 +88,21 @@ class RiskTests(unittest.TestCase):
         )
         self.assertIn({"code": "sample_covariance_singular"}, report["warnings"])
 
+    def test_static_historical_shocks_have_independent_signed_pnl(self):
+        report = analyze_risk(self.inputs())
+        pnls = [Fraction(row["pnl"]) for row in report["history"]["intervals"]]
+        self.assertEqual(
+            pnls,
+            [
+                Fraction(749, 100),
+                Fraction(571, 100),
+                Fraction(749, 100),
+                Fraction(571, 100),
+                Fraction(749, 100),
+            ],
+        )
+        tail = report["statistics"]["historical_tail"]
+        self.assertEqual(Fraction(tail["value_at_risk_base"]), Fraction(-571, 100))
+        self.assertEqual(Fraction(tail["expected_shortfall_base"]), Fraction(-571, 100))
+        self.assertEqual(Fraction(tail["tail_observation_mass"]), Fraction(1, 4))
+
