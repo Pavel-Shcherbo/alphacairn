@@ -76,3 +76,15 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(Fraction(report["stresses"][0]["pnl"]), 0)
         self.assertEqual(Fraction(report["stresses"][2]["pnl"]), Fraction(-10989, 100))
 
+    def test_complete_history_and_rank_shrinkage_are_explicit(self):
+        report = analyze_risk(self.inputs())
+        cov = report["statistics"]["covariance"]
+        self.assertEqual(report["history"]["used_return_count"], 5)
+        self.assertEqual(cov["sample_diagnostics"]["rank"], 1)
+        self.assertTrue(cov["sample_diagnostics"]["singular"])
+        self.assertEqual(cov["regularized_diagnostics"]["rank"], 4)
+        self.assertFalse(
+            cov["regularized_diagnostics"]["inverse_used_for_portfolio_risk"]
+        )
+        self.assertIn({"code": "sample_covariance_singular"}, report["warnings"])
+
