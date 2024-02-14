@@ -106,3 +106,16 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(Fraction(tail["expected_shortfall_base"]), Fraction(-571, 100))
         self.assertEqual(Fraction(tail["tail_observation_mass"]), Fraction(1, 4))
 
+    def test_covariance_matches_hand_centered_sample(self):
+        obs = [
+            {"returns": [Fraction(1), Fraction(2)]},
+            {"returns": [Fraction(2), Fraction(1)]},
+            {"returns": [Fraction(3), Fraction(0)]},
+        ]
+        means, matrix = sample_covariance(obs, 2)
+        self.assertEqual(means, [2, 1])
+        self.assertEqual(matrix, [[1, -1], [-1, 1]])
+        diagnostics = matrix_diagnostics(matrix)
+        self.assertEqual(diagnostics["rank"], 1)
+        self.assertIsNone(diagnostics["condition_number_one"])
+
