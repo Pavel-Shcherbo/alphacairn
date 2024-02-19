@@ -119,3 +119,24 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(diagnostics["rank"], 1)
         self.assertIsNone(diagnostics["condition_number_one"])
 
+    def test_negative_component_contribution_is_not_clamped(self):
+        obs = [
+            {"returns": [Fraction(1), Fraction(-1)]},
+            {"returns": [Fraction(-1), Fraction(1)]},
+        ]
+        factors = [
+            {"id": "one", "base_value": Fraction(1)},
+            {"id": "two", "base_value": Fraction(2)},
+        ]
+        report = covariance_report(
+            obs, factors, {"shrinkage": "0", "periods_per_year": 252}, Fraction(3)
+        )
+        self.assertEqual(
+            [Fraction(r["variance_contribution"]) for r in report["components"]],
+            [-2, 4],
+        )
+        self.assertEqual(Fraction(report["variance_base"]), 2)
+        self.assertLess(
+            Fraction(report["components"][0]["component_volatility_base"]), 0
+        )
+
