@@ -156,3 +156,9 @@ class RiskTests(unittest.TestCase):
             [1, Fraction(1, 2)],
         )
 
+    def test_rounding_grid_uses_half_even_for_both_signs(self):
+        self.assertEqual(rounded_fraction(Fraction(5, 2), 0), 2)
+        self.assertEqual(rounded_fraction(Fraction(7, 2), 0), 4)
+        self.assertEqual(rounded_fraction(Fraction(-5, 2), 0), -2)
+        self.assertEqual(fixed(Fraction(-7, 2), 0), "-4")
+
