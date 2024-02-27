@@ -140,3 +140,19 @@ class RiskTests(unittest.TestCase):
             Fraction(report["components"][0]["component_volatility_base"]), 0
         )
 
+    def test_fractional_expected_shortfall_and_nearest_rank(self):
+        rows = [
+            {"pnl": Fraction(-i), "from": str(i), "to": str(i + 1)}
+            for i in (1, 2, 3, 4)
+        ]
+        result = historical_tail(rows, "0.625", Fraction(100))
+        self.assertEqual(Fraction(result["value_at_risk_base"]), 3)
+        self.assertEqual(
+            result["expected_shortfall_base_exact"],
+            {"numerator": "11", "denominator": "3"},
+        )
+        self.assertEqual(
+            [Fraction(row["observation_weight"]) for row in result["tail"]],
+            [1, Fraction(1, 2)],
+        )
+
