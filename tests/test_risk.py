@@ -162,3 +162,14 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(rounded_fraction(Fraction(-5, 2), 0), -2)
         self.assertEqual(fixed(Fraction(-7, 2), 0), "-4")
 
+    def test_missing_history_does_not_bridge_over_the_gap(self):
+        self.history["observations"][2]["prices"]["equity:demo-us"] = None
+        report = analyze_risk(self.inputs())
+        self.assertFalse(report["complete"])
+        self.assertEqual(report["history"]["used_return_count"], 3)
+        self.assertEqual(len(report["history"]["excluded_intervals"]), 2)
+        self.assertEqual(
+            report["statistics"]["reason"], "insufficient_complete_observations"
+        )
+        self.assertTrue(all(row["complete"] for row in report["stresses"]))
+
