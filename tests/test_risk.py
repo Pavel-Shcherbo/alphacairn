@@ -173,3 +173,16 @@ class RiskTests(unittest.TestCase):
         )
         self.assertTrue(all(row["complete"] for row in report["stresses"]))
 
+    def test_unavailable_revision_is_excluded_as_of(self):
+        self.history["observations"][2]["available_at"] = "2026-01-03T00:00:00Z"
+        report = analyze_risk(self.inputs())
+        self.assertFalse(report["complete"])
+        self.assertEqual(report["history"]["used_return_count"], 3)
+        self.assertTrue(
+            any(
+                r["code"] == "not_available_as_of"
+                for item in report["history"]["excluded_intervals"]
+                for r in item["reasons"]
+            )
+        )
+
