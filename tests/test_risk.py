@@ -186,3 +186,26 @@ class RiskTests(unittest.TestCase):
             )
         )
 
+    def test_window_and_gap_exclusions_are_visible(self):
+        self.config["history_start"] = "2025-12-28T00:00:00Z"
+        report = analyze_risk(self.inputs())
+        self.assertEqual(report["history"]["used_return_count"], 3)
+        self.assertTrue(
+            any(
+                r["code"] == "outside_window"
+                for item in report["history"]["excluded_intervals"]
+                for r in item["reasons"]
+            )
+        )
+        self.history["observations"] = self.history["observations"][::2]
+        self.config["max_gap_days"] = 1
+        report = analyze_risk(self.inputs())
+        self.assertEqual(report["history"]["used_return_count"], 0)
+        self.assertTrue(
+            any(
+                r["code"] == "observation_gap"
+                for item in report["history"]["excluded_intervals"]
+                for r in item["reasons"]
+            )
+        )
+
