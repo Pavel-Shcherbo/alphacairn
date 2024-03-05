@@ -222,3 +222,12 @@ class RiskTests(unittest.TestCase):
             )
         )
 
+    def test_missing_fx_is_not_replaced_with_one(self):
+        self.quotes["fx"] = {}
+        report = analyze_risk(self.inputs())
+        self.assertFalse(report["complete"])
+        self.assertIn(
+            {"kind": "fx", "currency": "EUR", "reason": "missing"},
+            report["valuation"]["missing_inputs"],
+        )
+
