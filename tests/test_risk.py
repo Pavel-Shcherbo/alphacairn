@@ -209,3 +209,16 @@ class RiskTests(unittest.TestCase):
             )
         )
 
+    def test_stale_baseline_blocks_estimation_and_stresses(self):
+        self.quotes["marks"]["equity:demo-us"]["timestamp"] = "2025-12-01T00:00:00Z"
+        report = analyze_risk(self.inputs())
+        self.assertFalse(report["complete"])
+        self.assertIsNone(report["valuation"]["equity"])
+        self.assertFalse(report["history"]["evaluated"])
+        self.assertTrue(
+            all(
+                not row["complete"] and row["equity"] is None
+                for row in report["stresses"]
+            )
+        )
+
