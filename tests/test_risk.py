@@ -231,3 +231,22 @@ class RiskTests(unittest.TestCase):
             report["valuation"]["missing_inputs"],
         )
 
+    def test_future_marks_and_journal_events_rejected(self):
+        self.quotes["marks"]["equity:demo-us"]["timestamp"] = "2026-01-03T00:00:00Z"
+        with self.assertRaises(ValueError):
+            analyze_risk(self.inputs())
+        self.quotes = load("risk-quotes.json")
+        self.ledger.apply_batch(
+            [
+                {
+                    "id": "later",
+                    "kind": "deposit",
+                    "currency": "USD",
+                    "amount": "1",
+                    "timestamp": "2026-01-03T00:00:00Z",
+                }
+            ]
+        )
+        with self.assertRaisesRegex(ValueError, "after the valuation"):
+            analyze_risk(self.inputs())
+
