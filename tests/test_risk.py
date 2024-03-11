@@ -250,3 +250,15 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "after the valuation"):
             analyze_risk(self.inputs())
 
+    def test_cash_only_has_explicit_deterministic_method(self):
+        cash_path = self.root / "cash.sqlite"
+        ledger = Ledger(cash_path, self.account)
+        ledger.apply_batch([self.events[0]])
+        self.history["observations"] = []
+        document = capture_risk_inputs(
+            cash_path, self.config, self.history, self.quotes
+        )
+        report = analyze_risk(document)
+        self.assertTrue(report["complete"])
+        self.assertEqual(report["statistics"]["method"], "deterministic_base_cash_only")
+
