@@ -262,3 +262,13 @@ class RiskTests(unittest.TestCase):
         self.assertTrue(report["complete"])
         self.assertEqual(report["statistics"]["method"], "deterministic_base_cash_only")
 
+    def test_zero_equity_does_not_invent_weights(self):
+        path = self.root / "empty.sqlite"
+        Ledger(path, self.account)
+        report = analyze_risk(
+            capture_risk_inputs(path, self.config, self.history, self.quotes)
+        )
+        self.assertFalse(report["complete"])
+        self.assertEqual(report["statistics"]["reason"], "nonpositive_equity")
+        self.assertFalse(report["concentration"]["complete"])
+
