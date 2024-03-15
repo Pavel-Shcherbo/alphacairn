@@ -272,3 +272,17 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(report["statistics"]["reason"], "nonpositive_equity")
         self.assertFalse(report["concentration"]["complete"])
 
+    def test_concentration_denominator_includes_cash(self):
+        report = analyze_risk(self.inputs())
+        currencies = report["concentration"]["groups"]["currency"]
+        self.assertEqual(
+            sum(Fraction(row["base_value"]) for row in currencies), Fraction("10948.9")
+        )
+        instrument = next(
+            r
+            for r in report["concentration"]["groups"]["instrument"]
+            if r["name"] == "crypto:demo"
+        )
+        self.assertTrue(instrument["breached"])
+        self.assertAlmostEqual(float(instrument["weight"]), 2200 / 10948.9)
+
