@@ -286,3 +286,16 @@ class RiskTests(unittest.TestCase):
         self.assertTrue(instrument["breached"])
         self.assertAlmostEqual(float(instrument["weight"]), 2200 / 10948.9)
 
+    def test_corrupted_materialized_cash_and_postings_refused(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("UPDATE cash SET balance='99999' WHERE currency='USD'")
+            db.commit()
+        with self.assertRaisesRegex(ValueError, "state"):
+            capture_journal(self.path)
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("UPDATE cash SET balance='7200.00' WHERE currency='USD'")
+            db.execute("UPDATE postings SET event_seq=2 WHERE id=1")
+            db.commit()
+        with self.assertRaisesRegex(ValueError, "postings"):
+            capture_journal(self.path)
+
