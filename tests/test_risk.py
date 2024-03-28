@@ -325,3 +325,21 @@ class RiskTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             capture_journal(link)
 
+    def test_wal_capture_sees_uncheckpointed_accepted_events(self):
+        with closing(sqlite3.connect(self.path, isolation_level=None)) as db:
+            db.execute("PRAGMA journal_mode=WAL")
+            self.ledger.apply_batch(
+                [
+                    {
+                        "id": "wal",
+                        "kind": "deposit",
+                        "currency": "USD",
+                        "amount": "1",
+                        "timestamp": "2026-01-02T13:00:00Z",
+                    }
+                ]
+            )
+            document = self.inputs()
+            self.assertEqual(document["journal"]["state"]["last_sequence"], 10)
+            self.assertEqual(analyze_risk(document)["valuation"]["equity"], "10949.90")
+
