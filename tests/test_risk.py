@@ -343,3 +343,11 @@ class RiskTests(unittest.TestCase):
             self.assertEqual(document["journal"]["state"]["last_sequence"], 10)
             self.assertEqual(analyze_risk(document)["valuation"]["equity"], "10949.90")
 
+    def test_reports_are_independent_of_callers_decimal_context(self):
+        inputs = self.inputs()
+        expected = analyze_risk(inputs)
+        with localcontext() as context:
+            context.prec = 6
+            context.rounding = ROUND_DOWN
+            self.assertEqual(analyze_risk(inputs), expected)
+
