@@ -299,3 +299,20 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "postings"):
             capture_journal(self.path)
 
+    def test_retained_event_duplicate_or_changed_state_cannot_be_rehashed_into_validity(
+        self,
+    ):
+        document = self.inputs()
+        document["journal"]["state"]["positions"]["equity:demo-us"]["quantity"] = "8"
+        with self.assertRaisesRegex(ValueError, "replay"):
+            prepare_risk_inputs(resign(document))
+        document = self.inputs()
+        document["journal"]["events"].append(
+            copy.deepcopy(document["journal"]["events"][0])
+        )
+        document["journal"]["receipts"].append(
+            copy.deepcopy(document["journal"]["receipts"][0])
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            prepare_risk_inputs(resign(document))
+
