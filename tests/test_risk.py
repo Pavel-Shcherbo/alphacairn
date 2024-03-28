@@ -316,3 +316,12 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             prepare_risk_inputs(resign(document))
 
+    def test_source_bytes_unchanged_and_symlink_refused(self):
+        before = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        self.inputs()
+        self.assertEqual(before, hashlib.sha256(self.path.read_bytes()).hexdigest())
+        link = self.root / "link.sqlite"
+        link.symlink_to(self.path)
+        with self.assertRaises(ValueError):
+            capture_journal(link)
+
