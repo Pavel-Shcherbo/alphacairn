@@ -365,3 +365,27 @@ class RiskTests(unittest.TestCase):
         )
         self.assertTrue(cov["regularized_diagnostics"]["singular"])
 
+    def test_bad_contracts_fail_instead_of_silent_defaults(self):
+        spec = AccountSpec.compile(self.account)
+        for field, value in [
+            ("version", True),
+            ("confidence", "1"),
+            ("shrinkage", "1.1"),
+            ("min_observations", True),
+            ("max_gap_days", 0),
+            ("history_end", "2026-01-03T00:00:00Z"),
+        ]:
+            config = copy.deepcopy(self.config)
+            config[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                compile_risk(config, spec)
+        for item in [
+            {"id": "bad", "price_shocks": {"equity:demo-us": "-1.1"}, "fx_shocks": {}},
+            {"id": "bad", "price_shocks": {}, "fx_shocks": {"USD": "0.1"}},
+            {"id": "bad", "price_shocks": {}, "fx_shocks": {"EUR": "-1"}},
+        ]:
+            config = copy.deepcopy(self.config)
+            config["scenarios"] = [item]
+            with self.assertRaises(ValueError):
+                compile_risk(config, spec)
+
