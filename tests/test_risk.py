@@ -351,3 +351,17 @@ class RiskTests(unittest.TestCase):
             context.rounding = ROUND_DOWN
             self.assertEqual(analyze_risk(inputs), expected)
 
+    def test_unchanging_factors_report_null_correlations(self):
+        self.config["shrinkage"] = "0"
+        for point in self.history["observations"]:
+            point["prices"] = copy.deepcopy(self.history["observations"][0]["prices"])
+            point["fx"] = {"EUR": "1"}
+        report = analyze_risk(self.inputs())
+        cov = report["statistics"]["covariance"]
+        self.assertTrue(report["complete"])
+        self.assertEqual(Fraction(cov["variance_base"]), 0)
+        self.assertTrue(
+            all(value is None for row in cov["correlation"] for value in row)
+        )
+        self.assertTrue(cov["regularized_diagnostics"]["singular"])
+
