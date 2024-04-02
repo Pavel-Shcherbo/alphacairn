@@ -402,3 +402,19 @@ class RiskTests(unittest.TestCase):
                 self.inputs()
             self.history = original
 
+    def test_portable_bundle_and_create_only_outputs(self):
+        inputs = self.inputs()
+        report = analyze_risk(inputs)
+        out = self.root / "bundle"
+        write_risk(inputs, report, out)
+        self.path.unlink()
+        self.assertTrue(verify_risk_bundle(out)["complete"])
+        with self.assertRaises(FileExistsError):
+            write_risk(inputs, report, out)
+        file = self.root / "inputs.json"
+        save_risk_inputs(inputs, file)
+        raw = file.read_bytes()
+        with self.assertRaises(FileExistsError):
+            save_risk_inputs(inputs, file)
+        self.assertEqual(raw, file.read_bytes())
+
