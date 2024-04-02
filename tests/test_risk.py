@@ -389,3 +389,16 @@ class RiskTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 compile_risk(config, spec)
 
+    def test_invalid_history_order_basis_and_typed_values(self):
+        for mutate in [
+            lambda h: h["observations"].reverse(),
+            lambda h: h.update(price_basis="unadjusted"),
+            lambda h: h["observations"][0]["prices"].update({"crypto:demo": 0}),
+            lambda h: h["observations"][0]["fx"].update(EUR=1.1),
+        ]:
+            original = copy.deepcopy(self.history)
+            mutate(self.history)
+            with self.assertRaises(ValueError):
+                self.inputs()
+            self.history = original
+
