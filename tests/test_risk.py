@@ -418,3 +418,13 @@ class RiskTests(unittest.TestCase):
             save_risk_inputs(inputs, file)
         self.assertEqual(raw, file.read_bytes())
 
+    def test_partial_bundle_replays_but_remains_incomplete(self):
+        self.history["observations"] = self.history["observations"][:2]
+        inputs = self.inputs()
+        report = analyze_risk(inputs)
+        out = self.root / "partial"
+        write_risk(inputs, report, out)
+        verified = verify_risk_bundle(out)
+        self.assertTrue(verified["passed"])
+        self.assertFalse(verified["complete"])
+
