@@ -450,3 +450,11 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "replay"):
             verify_risk_bundle(out)
 
+    def test_unknown_bundle_files_are_not_ignored(self):
+        inputs = self.inputs()
+        out = self.root / "bundle"
+        write_risk(inputs, analyze_risk(inputs), out)
+        (out / "unexpected").write_text("extra")
+        with self.assertRaisesRegex(ValueError, "inventory"):
+            verify_risk_bundle(out)
+
