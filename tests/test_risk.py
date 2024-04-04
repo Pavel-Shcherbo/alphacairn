@@ -466,3 +466,13 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(Fraction(diagnostics["condition_number_one"]), 10**10)
         self.assertFalse(diagnostics["singular"])
 
+    def test_shrinkage_one_removes_off_diagonal_without_changing_variances(self):
+        self.config["shrinkage"] = "1"
+        cov = analyze_risk(self.inputs())["statistics"]["covariance"]
+        for i, row in enumerate(cov["covariance"]):
+            for j, value in enumerate(row):
+                self.assertEqual(
+                    Fraction(value),
+                    Fraction(cov["sample_covariance"][i][i]) if i == j else 0,
+                )
+
