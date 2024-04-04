@@ -458,3 +458,11 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inventory"):
             verify_risk_bundle(out)
 
+    def test_ill_conditioned_matrix_has_explicit_diagnostic(self):
+        diagnostics = matrix_diagnostics(
+            [[Fraction(1), Fraction(0)], [Fraction(0), Fraction(1, 10**10)]]
+        )
+        self.assertTrue(diagnostics["ill_conditioned"])
+        self.assertEqual(Fraction(diagnostics["condition_number_one"]), 10**10)
+        self.assertFalse(diagnostics["singular"])
+
