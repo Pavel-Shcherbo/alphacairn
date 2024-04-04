@@ -428,3 +428,25 @@ class RiskTests(unittest.TestCase):
         self.assertTrue(verified["passed"])
         self.assertFalse(verified["complete"])
 
+    def test_rehashed_wrong_calculation_and_csv_tamper_refused(self):
+        inputs = self.inputs()
+        report = analyze_risk(inputs)
+        out = self.root / "bundle"
+        write_risk(inputs, report, out)
+        path = out / "risk-report.json"
+        forged = json.loads(path.read_bytes())
+        forged["stresses"][1]["equity"] = "99999.00"
+        resign(forged)
+        path.write_bytes(canonical(forged) + b"\n")
+        manifest = json.loads((out / "manifest.json").read_bytes())
+        raw = path.read_bytes()
+        manifest["files"][path.name] = {
+            "bytes": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest(),
+        }
+        manifest["report_sha256"] = forged["sha256"]
+        resign(manifest)
+        (out / "manifest.json").write_bytes(canonical(manifest))
+        with self.assertRaisesRegex(ValueError, "replay"):
+            verify_risk_bundle(out)
+
