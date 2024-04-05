@@ -476,3 +476,19 @@ class RiskTests(unittest.TestCase):
                     Fraction(cov["sample_covariance"][i][i]) if i == j else 0,
                 )
 
+    def test_csv_rehashed_tampering_still_fails_replay(self):
+        inputs = self.inputs()
+        out = self.root / "bundle"
+        write_risk(inputs, analyze_risk(inputs), out)
+        path = out / "exposures.csv"
+        path.write_bytes(path.read_bytes().replace(b"2200.00", b"9900.00"))
+        manifest = json.loads((out / "manifest.json").read_bytes())
+        raw = path.read_bytes()
+        manifest["files"][path.name] = {
+            "bytes": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest(),
+        }
+        (out / "manifest.json").write_bytes(canonical(resign(manifest)))
+        with self.assertRaisesRegex(ValueError, "CSV/JSON bytes"):
+            verify_risk_bundle(out)
+
