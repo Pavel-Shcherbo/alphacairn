@@ -492,3 +492,31 @@ class RiskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "CSV/JSON bytes"):
             verify_risk_bundle(out)
 
+    def test_dividend_receivable_is_exposure_not_spendable_cash(self):
+        self.ledger.apply_batch(
+            [
+                {
+                    "id": "unpaid",
+                    "kind": "dividend_accrual",
+                    "timestamp": "2026-01-02T14:00:00Z",
+                    "instrument": "equity:demo-eu",
+                    "gross": "10",
+                    "withholding": "2",
+                }
+            ]
+        )
+        report = analyze_risk(self.inputs())
+        asset = next(
+            row for row in report["exposures"] if row["kind"] == "dividend_receivable"
+        )
+        self.assertEqual(Fraction(asset["base_value"]), Fraction(44, 5))
+        self.assertEqual(report["valuation"]["equity"], "10957.70")
+        self.assertEqual(
+            next(
+                row for row in report["valuation"]["cash"] if row["currency"] == "EUR"
+            )["amount"],
+            "399.00",
+        )
+        fx = next(row for row in report["history"]["factors"] if row["id"] == "fx:EUR")
+        self.assertEqual(Fraction(fx["base_value"]), Fraction("447.7"))
+
