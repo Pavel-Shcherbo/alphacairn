@@ -520,3 +520,12 @@ class RiskTests(unittest.TestCase):
         fx = next(row for row in report["history"]["factors"] if row["id"] == "fx:EUR")
         self.assertEqual(Fraction(fx["base_value"]), Fraction("447.7"))
 
+    def test_zero_marked_holding_cannot_be_reported_as_cash_only(self):
+        self.quotes["marks"]["crypto:demo"]["price"] = "0"
+        report = analyze_risk(self.inputs())
+        self.assertFalse(report["complete"])
+        self.assertTrue(report["valuation"]["complete"])
+        self.assertEqual(report["statistics"]["reason"], "zero_marked_positions")
+        self.assertEqual(report["statistics"]["instruments"], ["crypto:demo"])
+        self.assertTrue(all(row["complete"] for row in report["stresses"]))
+
