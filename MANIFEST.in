@@ -19,3 +19,5 @@ include examples/corporate-execution.json
 include examples/risk-control.json
 include examples/risk-history.json
 include examples/risk-quotes.json
+
+include examples/study-risk-plan.json
