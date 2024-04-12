@@ -529,3 +529,40 @@ class RiskTests(unittest.TestCase):
         self.assertEqual(report["statistics"]["instruments"], ["crypto:demo"])
         self.assertTrue(all(row["complete"] for row in report["stresses"]))
 
+    def test_cli_capture_run_inspect_verify_and_partial_exit(self):
+        args = [sys.executable, "-m", "alphacairn.risk"]
+
+        def cli(*tail, expected=0):
+            process = subprocess.run(
+                args + list(map(str, tail)), capture_output=True, text=True
+            )
+            self.assertEqual(process.returncode, expected, process.stderr)
+            return json.loads(process.stdout) if process.stdout else None
+
+        file = self.root / "inputs.json"
+        out = self.root / "bundle"
+        cli(
+            "capture",
+            EXAMPLES / "risk-control.json",
+            "--database",
+            self.path,
+            "--history",
+            EXAMPLES / "risk-history.json",
+            "--quotes",
+            EXAMPLES / "risk-quotes.json",
+            "--output",
+            file,
+        )
+        cli("run", file, "--output", out)
+        self.assertTrue(cli("inspect", file)["complete"])
+        self.assertTrue(cli("verify", out)["passed"])
+        cli("run", file, "--output", out, expected=2)
+        document = json.loads(file.read_bytes())
+        document["history"]["observations"] = document["history"]["observations"][:2]
+        file.write_bytes(canonical(resign(document)))
+        cli("run", file, "--output", self.root / "partial", expected=1)
+        self.assertFalse(cli("verify", self.root / "partial", expected=1)["complete"])
+
+
+if __name__ == "__main__":
+    unittest.main()
