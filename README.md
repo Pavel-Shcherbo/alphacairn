@@ -89,3 +89,7 @@ Retained operator calendars and version-2 session-checked execution: [session gu
 ## Multi-asset risk studies
 
 Capture a journal-backed portfolio with explicit quotes and history, inspect concentrations, revalue joint price/FX stresses and calculate descriptive covariance and historical tail diagnostics. Complete and incomplete results retain their inputs and replay offline. See the [risk guide](docs/RISK.md) and `python3 -m alphacairn.risk --help`.
+
+## Frozen research registry
+
+Retain every registered risk or strategy attempt, compare successful and failed results, lock a development selection and track explicit access to a declared holdout. Frozen inputs and one trial’s complete study context export for independent replay. See the [research registry guide](docs/RESEARCH_REGISTRY.md) and `python3 -m alphacairn.studies --help`.
