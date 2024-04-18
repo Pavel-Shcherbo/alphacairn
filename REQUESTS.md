@@ -1,5 +1,7 @@
 # Request register
 
+Current checkpoint: 243 tests passed; 9960 project-specific production SLOC. Full scope and ≥20,000 useful-SLOC acceptance remain open.
+
 Source: Pavel, current project-planning chat, 2026-11-04.
 
 | Request | Acceptance | Status |
@@ -37,3 +39,7 @@ Verified corporate-action increment: 26 new checks, 189 Alphacairn tests and cle
 Multi-asset risk increment implemented and verified below; full product/20,000 useful-SLOC acceptance remains open.
 
 Verified multi-asset risk increment: 34 new checks, 223 Alphacairn tests and 649 portfolio tests passed. Coherent read-only journal capture checks accepted events/receipts/postings and replays current state. Retained quotes/history produce reconciled concentration groups, joint price/FX stresses, complete-case static shocks, exact fixed-grid sample/shrunk covariance, rank/conditioning and signed nearest-rank VaR/fractional-tail ES. Missing, unavailable, stale and zero-mark inputs remain explicit. Clean installed CLI/CSV/integer-cent controls passed, including ledger-free bundle replay and incomplete-result exit behavior. A retained 24-factor/1,000-return workload matched an independent variance calculation and replayed fully. Evidence: docs/RISK.md, docs/risk-verification.json and docs/risk-benchmark.json. Current project-specific production source: 8851 SLOC. Browser risk/strategy/catalog controls, provider histories/actions, initial holdings, broader instruments/settlement and full product/20,000 useful-SLOC acceptance remain open. No publication.
+
+Research registry implemented and verified below; full scope/20,000 useful-SLOC acceptance remains open.
+
+Verified research-registry increment: 20 new checks, 243 Alphacairn tests and 686 portfolio tests passed. Immutable study declarations and disjoint development/holdout windows retain every registered risk/strategy attempt, including failed/incomplete/interrupted outcomes. Locked successful selection closes development registration; holdout method signatures and explicit access attempts are audited. Default comparisons include all attempt metadata while withholding holdout numbers. Lease-fenced execution, cached-result integrity, interruption reconciliation and portable per-trial computation/context replay passed. Clean installed CLI and independent SQLite status/access counts passed, including four retained trials and three holdout access events; exports replay after removing the registry. A retained 50-attempt workload kept 17 successful, 17 incomplete and 16 failed attempts in comparison/audit. Evidence: docs/RESEARCH_REGISTRY.md, docs/research-registry-verification.json and docs/research-registry-benchmark.json. Current project-specific production source: 9960 SLOC. Browser study review, global/external data-blindness controls, remote identities, provider histories, broader instruments and full product/20,000 useful-SLOC acceptance remain open. No publication.
