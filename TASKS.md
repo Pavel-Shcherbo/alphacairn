@@ -4,14 +4,14 @@ Updated: 2026-11-04. Actual status only; historical roadmap rows remain proposed
 
 | Task | Status | Evidence | Remaining work |
 |---|---|---|---|
-| Core domain path | Implemented; 223 current tests passed | `alphacairn/`, `tests/` | Expand adversarial coverage as the model grows |
+| Core domain path | Implemented; 243 current tests passed | `alphacairn/`, `tests/` | Expand adversarial coverage as the model grows |
 | Local CLI | Implemented; CLI end-to-end checks passed | `alphacairn/__main__.py`, `examples/` | Retained in the local verification evidence |
 | Local workbench | Implemented; local HTTP and reviewed browser flows passed | `alphacairn/web.py`, `alphacairn/static/` | Retain checks as new screens and flows are added |
 | Broad product scope | Planned | `docs/PRODUCT_SCOPE.md` | Most platform subsystems require implementation |
 | Weekly reconstruction plan | Written | `docs/proposed-weekly-roadmap.csv` | Proposed commit counts are not actual commits |
 | Publication | Waiting on Pavel | Current request: do not upload without Pavel | No push or hosted deployment |
-| Production implementation ≥20,000 useful SLOC | Not achieved | 8851 project-specific SLOC measured; not achieved | Implement and verify the broad subsystem scope without padding |
-| Risk analytics | Implemented; control-case tests passed | `alphacairn/analytics.py`, `tests/test_analytics.py` | Assumptions and browser comparisons documented; expand risk estimation with multi-asset inputs |
+| Production implementation ≥20,000 useful SLOC | Not achieved | 9960 project-specific SLOC measured; not achieved | Implement and verify the broad subsystem scope without padding |
+| Risk analytics | Implemented; control-case tests passed | `alphacairn/analytics.py`, `tests/test_analytics.py` | Multi-asset risk verified; extend provider histories and browser risk controls |
 | Walk-forward studies | Implemented; timing and cash-reconciliation tests passed | `alphacairn/walkforward.py`, `tests/test_walkforward.py` | Browser workflow and installed CLI verified; untouched final holdout and expanded research registry remain open |
 | Installable local package | Verified from a clean environment outside the source tree | `docs/installed-verification.json`, `_build.py`, `MANIFEST.in` | Cross-version/platform qualification remains open |
 | Exact-decimal portfolio journal | Verified local increment; 63 total tests passed | `docs/PORTFOLIO.md`, journal/valuation/CLI/workbench tests and retained evidence | Historical valuation, corporate-action ingestion, settlement calendars, broker adapters and broader scope remain open |
@@ -30,7 +30,7 @@ Next executable increment: expose saved market/strategy/execution/risk controls 
 
 Local reconstruction: five initial substantive stage commits created, plus verification, sequential research, portfolio-accounting, market-catalog, execution-engine, catalog-backed strategy, retained-session and corporate-action increments. No remote is configured; no upload was performed. The full dated roadmap remains proposed.
 
-Current implementation verification: 223 tests passed, CLI checked, clean wheel installation and installed workbench HTTP checked. Broad scope and the 20,000-SLOC requirement remain open.
+Current implementation verification: 243 tests passed, CLI checked, clean wheel installation and installed workbench HTTP checked. Broad scope and the 20,000-SLOC requirement remain open.
 
 Verified increment: exact-decimal portfolio journal, FIFO lots, explicit split/dividend/FX events, reconciliation and as-of valuation. 63 Alphacairn tests passed, including independent integer-cent controls, concurrent writers, replay corruption detection and isolated Decimal contexts. Installed CLI/HTTP checks passed; browser success, missing mark, statement discrepancy, delayed response and reproduced export passed. Evidence: `docs/verification.json`, `docs/installed-verification.json`, `docs/portfolio-browser-verification.json`, `docs/portfolio-export-verification.json`. The 20,000-SLOC and full product requirements remain open.
 
@@ -49,3 +49,9 @@ Multi-asset risk increment implemented and verified below; full product/20,000 u
 Verified multi-asset risk increment: 34 new checks, 223 Alphacairn tests and 649 portfolio tests passed. Coherent read-only journal capture checks accepted events/receipts/postings and replays current state. Retained quotes/history produce reconciled concentration groups, joint price/FX stresses, complete-case static shocks, exact fixed-grid sample/shrunk covariance, rank/conditioning and signed nearest-rank VaR/fractional-tail ES. Missing, unavailable, stale and zero-mark inputs remain explicit. Clean installed CLI/CSV/integer-cent controls passed, including ledger-free bundle replay and incomplete-result exit behavior. A retained 24-factor/1,000-return workload matched an independent variance calculation and replayed fully. Evidence: docs/RISK.md, docs/risk-verification.json and docs/risk-benchmark.json. Current project-specific production source: 8851 SLOC. Browser risk/strategy/catalog controls, provider histories/actions, initial holdings, broader instruments/settlement and full product/20,000 useful-SLOC acceptance remain open. No publication.
 
 | Journal-backed multi-asset risk and stresses | Verified local increment; 34 new checks, 223 current tests | `docs/RISK.md`, installed independent monetary/CSV controls and 24-factor workload | Browser risk controls, provider histories, broader instruments and full scope/size remain open |
+
+Research registry implemented and verified below; full scope/20,000 useful-SLOC acceptance remains open.
+
+Verified research-registry increment: 20 new checks, 243 Alphacairn tests and 686 portfolio tests passed. Immutable study declarations and disjoint development/holdout windows retain every registered risk/strategy attempt, including failed/incomplete/interrupted outcomes. Locked successful selection closes development registration; holdout method signatures and explicit access attempts are audited. Default comparisons include all attempt metadata while withholding holdout numbers. Lease-fenced execution, cached-result integrity, interruption reconciliation and portable per-trial computation/context replay passed. Clean installed CLI and independent SQLite status/access counts passed, including four retained trials and three holdout access events; exports replay after removing the registry. A retained 50-attempt workload kept 17 successful, 17 incomplete and 16 failed attempts in comparison/audit. Evidence: docs/RESEARCH_REGISTRY.md, docs/research-registry-verification.json and docs/research-registry-benchmark.json. Current project-specific production source: 9960 SLOC. Browser study review, global/external data-blindness controls, remote identities, provider histories, broader instruments and full product/20,000 useful-SLOC acceptance remain open. No publication.
+
+| Frozen research registry and study-local holdout access | Verified local increment; 20 new checks, 243 current tests | `docs/RESEARCH_REGISTRY.md`, installed CLI/independent SQLite counts and 50-attempt workload | Browser, global dataset-access tracking, remote identities and full size/scope remain open |
