@@ -20,3 +20,8 @@ from .study_evidence import (
 )
 
 
+def load(path, limit=16 * 1024 * 1024):
+    with Path(path).open("rb") as stream:
+        return parse_data(stream.read(limit + 1), limit)
+
+
