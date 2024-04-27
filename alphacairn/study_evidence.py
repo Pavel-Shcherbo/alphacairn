@@ -23,3 +23,27 @@ def events(registry, project, study):
     return [{**dict(row), "payload": decode(row["payload"])} for row in rows]
 
 
+def check_chain(study, items):
+    previous = digest([])
+    sequence = 0
+    for event in items:
+        if (
+            event["study_id"] != study
+            or event["sequence"] <= sequence
+            or event["previous_sha256"] != previous
+        ):
+            raise ValueError("study event order or chain parent changed")
+        content = {
+            "study": study,
+            "kind": event["kind"],
+            "payload": event["payload"],
+            "previous_sha256": previous,
+            "created": event["created"],
+        }
+        if digest(content) != event["sha256"]:
+            raise ValueError("study event identity changed")
+        sequence = event["sequence"]
+        previous = event["sha256"]
+    return previous
+
+
