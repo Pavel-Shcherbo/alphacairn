@@ -173,3 +173,38 @@ def validate_context(context, items):
     }
 
 
+def audit_study(registry, project, study):
+    # Read metadata and chain from one SQLite snapshot; never compute a trial here.
+    with registry.transaction(False) as db:
+        row = registry.study(db, project, study)
+        trial_rows = db.execute(
+            "SELECT * FROM trials WHERE study_id=? ORDER BY sequence", (study,)
+        ).fetchall()
+        for trial in trial_rows:
+            registry.verify_trial(db, trial)
+        trials = [trial_meta(t) for t in trial_rows]
+        rows = db.execute(
+            "SELECT * FROM study_events WHERE study_id=? ORDER BY sequence LIMIT 20001",
+            (study,),
+        ).fetchall()
+        if len(rows) > 20000:
+            raise ValueError("complete study audit exceeds 20,000 events")
+        items = [{**dict(item), "payload": decode(item["payload"])} for item in rows]
+        accesses = sum(e["kind"] == "holdout_access" for e in items)
+        context = {
+            "id": study,
+            "definition": decode(row["definition"]),
+            "selection": decode(row["selection"]) if row["selection"] else None,
+            "trials": trials,
+            "registered_trial_count": len(trials),
+            "failed_trial_count": sum(
+                t["status"] in ("failed", "incomplete", "interrupted") for t in trials
+            ),
+            "holdout_access_attempts": accesses,
+            "holdout_registry_unopened": accesses == 0,
+            "scope": "Registry-local access accounting only",
+        }
+    proof = validate_context(context, items)
+    return context, items, proof
+
+
