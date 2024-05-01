@@ -208,3 +208,45 @@ def audit_study(registry, project, study):
     return context, items, proof
 
 
+def compare_trials(registry, project, study, *, actor, reason, include_holdout=False):
+    from .study_model import prose
+
+    prose(actor, "comparison actor", 100)
+    prose(reason, "comparison reason")
+    if type(include_holdout) is not bool:
+        raise ValueError("include_holdout must be boolean")
+    with registry.transaction() as db:
+        plan = decode(registry.study(db, project, study)["definition"])
+        rows = db.execute(
+            "SELECT * FROM trials WHERE study_id=? ORDER BY sequence", (study,)
+        ).fetchall()
+        comparisons = []
+        for row in rows:
+            withheld = row["partition"] == "holdout" and not include_holdout
+            report = None
+            error = None
+            if not withheld:
+                registry.verify_trial(db, row)
+                registry.access(db, row, "compare", actor, reason)
+                report = decode(row["result"]) if row["result"] else None
+                error = decode(row["error"]) if row["error"] else None
+            comparisons.append(
+                {
+                    "record": trial_meta(row),
+                    "withheld": withheld,
+                    "summary": summary(plan["family"], report),
+                    "error": error,
+                }
+            )
+        return {
+            "study": study,
+            "registered_trial_count": len(rows),
+            "failed_trial_count": sum(
+                r["status"] in ("failed", "incomplete", "interrupted") for r in rows
+            ),
+            "include_holdout": include_holdout,
+            "comparisons": comparisons,
+            "scope": "Registration-order comparison includes every attempt; no automatic winner or predictive-validity claim",
+        }
+
+
