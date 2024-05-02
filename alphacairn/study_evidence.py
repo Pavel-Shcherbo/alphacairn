@@ -250,3 +250,26 @@ def compare_trials(registry, project, study, *, actor, reason, include_holdout=F
         }
 
 
+def export_trial(registry, project, trial, *, actor, reason):
+    value = registry.read(project, trial, actor=actor, reason=reason, purpose="export")
+    if value["record"]["status"] not in (
+        "succeeded",
+        "incomplete",
+        "failed",
+        "interrupted",
+    ):
+        raise ValueError("trial must be terminal before export")
+    context, items, proof = audit_study(registry, project, value["record"]["study_id"])
+    document = {
+        "format": "alphacairn.study-evidence.v1",
+        "context": context,
+        "events": items,
+        "trial": value,
+    }
+    document["sha256"] = digest(document)
+    if len(canonical(document)) > MAX_EXPORT:
+        raise ValueError("study export exceeds 72 MiB")
+    verify_study_export(document)
+    return document
+
+
