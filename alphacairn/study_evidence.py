@@ -273,3 +273,68 @@ def export_trial(registry, project, trial, *, actor, reason):
     return document
 
 
+def verify_study_export(document):
+    if (
+        not isinstance(document, dict)
+        or set(document) != {"format", "context", "events", "trial", "sha256"}
+        or document["format"] != "alphacairn.study-evidence.v1"
+        or len(canonical(document)) > MAX_EXPORT
+        or document["sha256"]
+        != digest({k: v for k, v in document.items() if k != "sha256"})
+    ):
+        raise ValueError("study evidence format/identity mismatch")
+    context = document["context"]
+    proof = validate_context(context, document["events"])
+    trial = document["trial"]
+    record = trial["record"]
+    family = context["definition"]["family"]
+    metadata = next((r for r in context["trials"] if r["id"] == record["id"]), None)
+    if metadata != record:
+        raise ValueError(
+            "exported trial metadata differs from complete attempt listing"
+        )
+    contract = trial_contract(family, trial["inputs"])
+    if (
+        contract != trial["contract"]
+        or contract != proof["contracts"][record["id"]]
+        or trial["inputs"]["sha256"] != record["input_sha256"]
+    ):
+        raise ValueError("trial inputs differ from registered method/data identities")
+    if record["status"] == "interrupted":
+        if trial["result"] is not None or trial["error"] is not None:
+            raise ValueError("interrupted trial contains an uncommitted result")
+        return {
+            "passed": True,
+            "complete": False,
+            "execution_replayed": False,
+            "trial": record["id"],
+            "reason": "Interrupted attempt retained; no completed result claimed",
+            "source_authenticated": False,
+        }
+    status, report, error = compute(family, trial["inputs"])
+    if (
+        status != record["status"]
+        or canonical(report) != canonical(trial["result"])
+        or error != trial["error"]
+    ):
+        raise ValueError("fresh trial computation differs from retained result")
+    finished = proof["finished"].get(record["id"])
+    if (
+        finished is None
+        or finished["result_sha256"] != (digest(report) if report else None)
+        or finished["error"] != error
+    ):
+        raise ValueError("trial result differs from committed completion history")
+    return {
+        "passed": True,
+        "complete": status == "succeeded",
+        "execution_replayed": True,
+        "trial": record["id"],
+        "status": status,
+        "registered_trial_count": len(context["trials"]),
+        "holdout_access_attempts": context["holdout_access_attempts"],
+        "holdout_registry_unopened": context["holdout_registry_unopened"],
+        "summary": summary(family, report),
+        "source_authenticated": False,
+        "scope": "Frozen local research replay and complete registry attempt/access history; no proof of data blindness outside the registry or predictive validity",
+    }
