@@ -39,3 +39,14 @@ def declaration(value):
     return result
 
 
+def prose(value, label, maximum=500):
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or len(value) > maximum
+        or any(ord(c) < 32 and c != "\n" for c in value)
+    ):
+        raise ValueError(label + " requires bounded nonempty text")
+    return value
+
+
