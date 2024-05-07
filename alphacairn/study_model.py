@@ -50,3 +50,7 @@ def prose(value, label, maximum=500):
     return value
 
 
+def key(value):
+    return identity(value, "request key")
+
+
