@@ -54,3 +54,43 @@ def key(value):
     return identity(value, "request key")
 
 
+def trial_contract(family, inputs):
+    if len(canonical(inputs)) > MAX_INPUT:
+        raise ValueError("trial inputs exceed 16 MiB")
+    if family == "risk":
+        prepared = prepare_risk_inputs(inputs)
+        config = copy.deepcopy(prepared.configuration)
+        start, end = config["history_start"], config["as_of"]
+        for field in ("name", "as_of", "history_start", "history_end"):
+            config.pop(field)
+        recipe = {
+            "family": family,
+            "account": prepared.spec.definition(),
+            "configuration": config,
+        }
+    elif family == "strategy":
+        prepared = prepare_strategy_inputs(inputs)
+        config = copy.deepcopy(prepared.configuration)
+        start, end = config["execution"]["starts_at"], config["execution"]["ends_at"]
+        for field in (
+            "history_start",
+            "decisions",
+            "market_cutoff",
+            "execution_sessions",
+            "liquidity",
+        ):
+            config.pop(field)
+        for field in ("starts_at", "ends_at", "fx", "corporate_actions"):
+            config["execution"].pop(field, None)
+        recipe = {"family": family, "configuration": config}
+    else:
+        raise ValueError("unknown study family")
+    return {
+        "inputs_sha256": inputs["sha256"],
+        "recipe_sha256": digest(recipe),
+        "recipe": recipe,
+        "start": start,
+        "end": end,
+    }
+
+
