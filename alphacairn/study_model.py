@@ -94,3 +94,11 @@ def trial_contract(family, inputs):
     }
 
 
+def require_window(plan, partition, contract):
+    if partition not in ("development", "holdout"):
+        raise ValueError("trial partition must be development or holdout")
+    window = plan[partition]
+    if not window["start"] <= contract["start"] <= contract["end"] <= window["end"]:
+        raise ValueError(
+            "trial observation/exposure window lies outside its declared partition"
+        )
