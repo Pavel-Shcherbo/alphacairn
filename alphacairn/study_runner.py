@@ -13,3 +13,20 @@ from .study_model import trial_contract
 from .study_store import TERMINAL, decode, trial_meta
 
 
+def compute(family, inputs):
+    try:
+        report = analyze_risk(inputs) if family == "risk" else simulate_strategy(inputs)
+        complete = (
+            report["complete"]
+            if family == "risk"
+            else report["execution"]["valuation"]["complete"]
+        )
+        return ("succeeded" if complete else "incomplete"), report, None
+    except (ValueError, ArithmeticError, RuntimeError, sqlite3.Error) as error:
+        return (
+            "failed",
+            None,
+            {"type": type(error).__name__, "message": str(error)[:2048]},
+        )
+
+
