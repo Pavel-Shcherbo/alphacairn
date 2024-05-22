@@ -43,3 +43,7 @@ CREATE INDEX IF NOT EXISTS study_event_order ON study_events(study_id,sequence);
 """
 
 
+def decode(raw):
+    return json.loads(raw)
+
+
