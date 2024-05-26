@@ -47,3 +47,24 @@ def decode(raw):
     return json.loads(raw)
 
 
+def trial_meta(row):
+    return {
+        field: row[field]
+        for field in (
+            "id",
+            "sequence",
+            "study_id",
+            "partition",
+            "label",
+            "input_sha256",
+            "status",
+            "generation",
+            "created",
+            "finished",
+            "lease_until",
+        )
+    }
+
+
+class StudyRegistry:
+    pass
