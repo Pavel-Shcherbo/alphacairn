@@ -67,4 +67,15 @@ def trial_meta(row):
 
 
 class StudyRegistry:
-    pass
+    def __init__(self, path, *, clock=None):
+        self.path = Path(path)
+        self.clock = clock or time.time
+        if self.path.is_symlink():
+            raise ValueError("study database cannot be a symlink")
+        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with self.transaction() as db:
+            for sql in SCHEMA.split(";"):
+                if sql.strip():
+                    db.execute(sql)
+        self.path.chmod(0o600)
+
