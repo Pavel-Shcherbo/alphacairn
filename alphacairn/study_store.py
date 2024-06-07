@@ -79,3 +79,9 @@ class StudyRegistry:
                     db.execute(sql)
         self.path.chmod(0o600)
 
+    def now(self):
+        value = self.clock()
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError("invalid registry clock")
+        return value
+
