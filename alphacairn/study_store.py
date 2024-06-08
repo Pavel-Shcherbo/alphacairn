@@ -85,3 +85,20 @@ class StudyRegistry:
             raise ValueError("invalid registry clock")
         return value
 
+    @contextmanager
+    def transaction(self, write=True):
+        db = sqlite3.connect(self.path, timeout=10, isolation_level=None)
+        db.row_factory = sqlite3.Row
+        db.execute("PRAGMA foreign_keys=ON")
+        page_size = db.execute("PRAGMA page_size").fetchone()[0]
+        db.execute("PRAGMA max_page_count=" + str(256 * 1024 * 1024 // page_size))
+        try:
+            db.execute("BEGIN IMMEDIATE" if write else "BEGIN")
+            yield db
+            db.commit()
+        except BaseException:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
