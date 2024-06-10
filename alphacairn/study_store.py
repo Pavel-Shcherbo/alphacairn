@@ -102,3 +102,15 @@ class StudyRegistry:
         finally:
             db.close()
 
+    def study(self, db, project, study):
+        identity(project, "project")
+        identity(study, "study ID")
+        row = db.execute(
+            "SELECT * FROM studies WHERE project=? AND id=?", (project, study)
+        ).fetchone()
+        if row is None:
+            raise ValueError("study not found in this project")
+        if digest(decode(row["definition"])) != row["definition_sha256"]:
+            raise ValueError("study declaration identity changed")
+        return row
+
