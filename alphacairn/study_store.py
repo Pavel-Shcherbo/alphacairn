@@ -114,3 +114,13 @@ class StudyRegistry:
             raise ValueError("study declaration identity changed")
         return row
 
+    def trial(self, db, project, trial):
+        identity(trial, "trial ID")
+        row = db.execute(
+            "SELECT t.* FROM trials t JOIN studies s ON s.id=t.study_id WHERE s.project=? AND t.id=?",
+            (project, trial),
+        ).fetchone()
+        if row is None:
+            raise ValueError("trial not found in this project")
+        return row
+
