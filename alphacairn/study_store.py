@@ -124,3 +124,23 @@ class StudyRegistry:
             raise ValueError("trial not found in this project")
         return row
 
+    def event(self, db, study, kind, payload):
+        prior = db.execute(
+            "SELECT sha256 FROM study_events WHERE study_id=? ORDER BY sequence DESC LIMIT 1",
+            (study,),
+        ).fetchone()
+        parent = prior[0] if prior else digest([])
+        now = self.now()
+        content = {
+            "study": study,
+            "kind": kind,
+            "payload": payload,
+            "previous_sha256": parent,
+            "created": now,
+        }
+        sha = digest(content)
+        db.execute(
+            "INSERT INTO study_events(study_id,kind,payload,previous_sha256,sha256,created) VALUES(?,?,?,?,?,?)",
+            (study, kind, canonical(payload), parent, sha, now),
+        )
+
