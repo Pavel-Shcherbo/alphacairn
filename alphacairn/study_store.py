@@ -144,3 +144,32 @@ class StudyRegistry:
             (study, kind, canonical(payload), parent, sha, now),
         )
 
+    def create(self, project, definition):
+        identity(project, "project")
+        plan = declaration(definition)
+        with self.transaction() as db:
+            prior = db.execute(
+                "SELECT * FROM studies WHERE project=? AND name=?",
+                (project, plan["name"]),
+            ).fetchone()
+            if prior is not None:
+                if prior["definition_sha256"] != digest(plan):
+                    raise ValueError(
+                        "study name already identifies another immutable declaration"
+                    )
+                return {
+                    "id": prior["id"],
+                    "definition": plan,
+                    "created": prior["created"],
+                }
+            if db.execute("SELECT count(*) FROM studies").fetchone()[0] >= 200:
+                raise ValueError("local registry reached 200 studies")
+            study = uuid.uuid4().hex
+            now = self.now()
+            db.execute(
+                "INSERT INTO studies VALUES(?,?,?,?,?,?,NULL)",
+                (study, project, plan["name"], canonical(plan), digest(plan), now),
+            )
+            self.event(db, study, "study_created", {"definition_sha256": digest(plan)})
+            return {"id": study, "definition": plan, "created": now}
+
