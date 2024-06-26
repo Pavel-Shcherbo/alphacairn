@@ -173,3 +173,81 @@ class StudyRegistry:
             self.event(db, study, "study_created", {"definition_sha256": digest(plan)})
             return {"id": study, "definition": plan, "created": now}
 
+    def register(self, project, study, inputs, partition, request_key, label):
+        key(request_key)
+        prose(label, "trial label", 200)
+        with self.transaction(False) as db:
+            plan = decode(self.study(db, project, study)["definition"])
+        contract = trial_contract(plan["family"], inputs)
+        require_window(plan, partition, contract)
+        fingerprint = digest(
+            {"inputs": inputs["sha256"], "partition": partition, "label": label}
+        )
+        with self.transaction() as db:
+            row = self.study(db, project, study)
+            prior = db.execute(
+                "SELECT * FROM trials WHERE study_id=? AND request_key=?",
+                (study, request_key),
+            ).fetchone()
+            if prior is not None:
+                if (
+                    digest(
+                        {
+                            "inputs": prior["input_sha256"],
+                            "partition": prior["partition"],
+                            "label": prior["label"],
+                        }
+                    )
+                    != fingerprint
+                ):
+                    raise ValueError("trial request key identifies different inputs")
+                return trial_meta(prior)
+            if (
+                db.execute(
+                    "SELECT count(*) FROM trials WHERE study_id=?", (study,)
+                ).fetchone()[0]
+                >= 100
+            ):
+                raise ValueError("study reached 100 registered trials")
+            selection = decode(row["selection"]) if row["selection"] else None
+            if partition == "development" and selection is not None:
+                raise ValueError("development registration is closed after selection")
+            if partition == "holdout":
+                if selection is None:
+                    raise ValueError(
+                        "lock a completed development selection before registering holdout inputs"
+                    )
+                if contract["recipe_sha256"] != selection["recipe_sha256"]:
+                    raise ValueError(
+                        "holdout recipe differs from the locked development selection"
+                    )
+            trial = uuid.uuid4().hex
+            now = self.now()
+            db.execute(
+                "INSERT INTO trials(id,study_id,request_key,input_sha256,inputs,contract,partition,label,status,generation,created) VALUES(?,?,?,?,?,?,?,?,'registered',1,?)",
+                (
+                    trial,
+                    study,
+                    request_key,
+                    inputs["sha256"],
+                    canonical(inputs),
+                    canonical(contract),
+                    partition,
+                    label,
+                    now,
+                ),
+            )
+            self.event(
+                db,
+                study,
+                "trial_registered",
+                {
+                    "trial": trial,
+                    "input_sha256": inputs["sha256"],
+                    "request_sha256": fingerprint,
+                    "partition": partition,
+                    "contract": contract,
+                },
+            )
+            return trial_meta(self.trial(db, project, trial))
+
