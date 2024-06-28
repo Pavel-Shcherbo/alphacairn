@@ -251,3 +251,19 @@ class StudyRegistry:
             )
             return trial_meta(self.trial(db, project, trial))
 
+    def access(self, db, row, purpose, actor, reason):
+        prose(actor, "actor", 100)
+        prose(reason, "access reason")
+        if row["partition"] == "holdout":
+            self.event(
+                db,
+                row["study_id"],
+                "holdout_access",
+                {
+                    "trial": row["id"],
+                    "purpose": purpose,
+                    "actor": actor,
+                    "reason": reason,
+                },
+            )
+
