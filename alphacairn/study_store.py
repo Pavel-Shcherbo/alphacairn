@@ -267,3 +267,54 @@ class StudyRegistry:
                 },
             )
 
+    def verify_trial(self, db, row):
+        inputs = decode(row["inputs"])
+        if (
+            inputs.get("sha256") != row["input_sha256"]
+            or digest({k: v for k, v in inputs.items() if k != "sha256"})
+            != row["input_sha256"]
+        ):
+            raise ValueError("retained trial input identity changed")
+        history = db.execute(
+            "SELECT * FROM study_events WHERE study_id=? ORDER BY sequence LIMIT 20001",
+            (row["study_id"],),
+        ).fetchall()
+        if len(history) > 20000:
+            raise ValueError("complete trial audit exceeds 20,000 study events")
+        items = [{**dict(item), "payload": decode(item["payload"])} for item in history]
+        from .study_evidence import check_chain
+
+        check_chain(row["study_id"], items)
+        state = None
+        finish = None
+        for item in items:
+            value = item["payload"]
+            if value.get("trial") != row["id"]:
+                continue
+            if item["kind"] == "trial_registered":
+                if value["input_sha256"] != row["input_sha256"] or value[
+                    "contract"
+                ] != decode(row["contract"]):
+                    raise ValueError("trial data differs from registration history")
+                state = "registered"
+            elif item["kind"] == "trial_started":
+                state = "running"
+            elif item["kind"] == "trial_finished":
+                state = value["status"]
+                finish = value
+            elif item["kind"] == "trial_interrupted":
+                state = "interrupted"
+        if state != row["status"]:
+            raise ValueError("trial state differs from its history")
+        report = decode(row["result"]) if row["result"] else None
+        error = decode(row["error"]) if row["error"] else None
+        if state in ("registered", "running", "interrupted") and (
+            report is not None or error is not None
+        ):
+            raise ValueError("unfinished trial contains an uncommitted result")
+        if finish is not None and (
+            finish["result_sha256"] != (digest(report) if report else None)
+            or finish["error"] != error
+        ):
+            raise ValueError("trial result differs from completion history")
+
