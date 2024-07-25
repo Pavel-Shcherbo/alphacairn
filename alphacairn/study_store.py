@@ -318,3 +318,18 @@ class StudyRegistry:
         ):
             raise ValueError("trial result differs from completion history")
 
+    def read(self, project, trial, *, actor, reason, purpose="inspect"):
+        if purpose not in ("inspect", "export"):
+            raise ValueError("unknown trial read purpose")
+        with self.transaction() as db:
+            row = self.trial(db, project, trial)
+            self.verify_trial(db, row)
+            self.access(db, row, purpose, actor, reason)
+            return {
+                "record": trial_meta(row),
+                "inputs": decode(row["inputs"]),
+                "contract": decode(row["contract"]),
+                "result": decode(row["result"]) if row["result"] else None,
+                "error": decode(row["error"]) if row["error"] else None,
+            }
+
