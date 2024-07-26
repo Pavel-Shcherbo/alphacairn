@@ -333,3 +333,31 @@ class StudyRegistry:
                 "error": decode(row["error"]) if row["error"] else None,
             }
 
+    def overview(self, project, study):
+        with self.transaction(False) as db:
+            row = self.study(db, project, study)
+            trials = [
+                trial_meta(t)
+                for t in db.execute(
+                    "SELECT * FROM trials WHERE study_id=? ORDER BY sequence", (study,)
+                )
+            ]
+            accesses = db.execute(
+                "SELECT count(*) FROM study_events WHERE study_id=? AND kind='holdout_access'",
+                (study,),
+            ).fetchone()[0]
+            return {
+                "id": study,
+                "definition": decode(row["definition"]),
+                "selection": decode(row["selection"]) if row["selection"] else None,
+                "trials": trials,
+                "registered_trial_count": len(trials),
+                "failed_trial_count": sum(
+                    t["status"] in ("failed", "incomplete", "interrupted")
+                    for t in trials
+                ),
+                "holdout_access_attempts": accesses,
+                "holdout_registry_unopened": accesses == 0,
+                "scope": "Registry-local access accounting; original data may have been accessed elsewhere",
+            }
+
