@@ -361,3 +361,42 @@ class StudyRegistry:
                 "scope": "Registry-local access accounting; original data may have been accessed elsewhere",
             }
 
+    def select(self, project, study, trial, *, actor, reason):
+        prose(actor, "selection actor", 100)
+        prose(reason, "selection reason")
+        with self.transaction() as db:
+            row = self.study(db, project, study)
+            if row["selection"] is not None:
+                raise ValueError("study selection is already locked")
+            chosen = self.trial(db, project, trial)
+            self.verify_trial(db, chosen)
+            if (
+                chosen["study_id"] != study
+                or chosen["partition"] != "development"
+                or chosen["status"] != "succeeded"
+            ):
+                raise ValueError(
+                    "selection requires a successful development trial in this study"
+                )
+            pending = db.execute(
+                "SELECT 1 FROM trials WHERE study_id=? AND partition='development' AND status IN ('registered','running') LIMIT 1",
+                (study,),
+            ).fetchone()
+            if pending:
+                raise ValueError(
+                    "resolve every registered development trial before selection"
+                )
+            selection = {
+                "trial": trial,
+                "recipe_sha256": decode(chosen["contract"])["recipe_sha256"],
+                "actor": actor,
+                "reason": reason,
+                "created": self.now(),
+            }
+            db.execute(
+                "UPDATE studies SET selection=? WHERE id=?",
+                (canonical(selection), study),
+            )
+            self.event(db, study, "selection_locked", selection)
+            return selection
+
