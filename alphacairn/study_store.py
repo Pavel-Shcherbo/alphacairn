@@ -400,3 +400,27 @@ class StudyRegistry:
             self.event(db, study, "selection_locked", selection)
             return selection
 
+    def recover(self, project, trial, generation, *, actor, reason):
+        prose(actor, "recovery actor", 100)
+        prose(reason, "recovery reason")
+        if type(generation) is not int or generation < 1:
+            raise ValueError("recovery requires a positive generation")
+        with self.transaction() as db:
+            row = self.trial(db, project, trial)
+            if (
+                row["generation"] != generation
+                or row["status"] != "running"
+                or row["lease_until"] > self.now()
+            ):
+                raise ValueError("trial is not an expired owned run at this generation")
+            db.execute(
+                "UPDATE trials SET status='interrupted',generation=generation+1,token=NULL,lease_until=NULL,finished=? WHERE id=?",
+                (self.now(), trial),
+            )
+            self.event(
+                db,
+                row["study_id"],
+                "trial_interrupted",
+                {"trial": trial, "actor": actor, "reason": reason},
+            )
+            return trial_meta(self.trial(db, project, trial))
