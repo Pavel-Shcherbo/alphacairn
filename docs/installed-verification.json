@@ -1,5 +1,5 @@
 {
-  "wheel_sha256": "bf649228db24a29a94e159d5671977c2f87979ec84b7262b83d2c34e8a9e89b6",
+  "wheel_sha256": "f37c127a92009b8fe0101021707917f977746bdcea0e710a6f15bfc78e41ad86",
   "examples_exported": [
     "corporate-execution.json",
     "execution-scenario.json",
@@ -19,6 +19,7 @@
     "strategy-bars.json",
     "strategy-control.json",
     "strategy-universe.json",
+    "study-risk-plan.json",
     "synthetic.csv"
   ],
   "existing_destination_preserved": true,
@@ -28,6 +29,7 @@
   "state_outside_package": true,
   "portfolio_cli_lifecycle_passed": true,
   "portfolio_http_success_and_failures_passed": true,
+  "research_registry_and_holdout_access_passed": true,
   "multiasset_risk_stress_and_offline_replay_passed": true,
   "market_revision_windows_and_snapshot_study_passed": true,
   "multi_asset_execution_replay_and_fraction_control_passed": true,
