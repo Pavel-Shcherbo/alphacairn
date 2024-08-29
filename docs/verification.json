@@ -1,5 +1,5 @@
 {
-  "unit_tests": 223,
+  "unit_tests": 243,
   "unit_passed": true,
   "cli_passed": true,
   "source_hashes": {
@@ -53,6 +53,11 @@
     "alphacairn/strategy_bundle.py": "ff11f27765d7454153a8991a203d4fb5569076b91cbfd22c93911e4a7ca5bffc",
     "alphacairn/strategy_engine.py": "6c821df41c80bc3551b647ba22d66638607074c55982d0b6443df5685e6adb8d",
     "alphacairn/strategy_inputs.py": "2b116ddb8072e64d186fd2c66c978c8d71ef00cefcbdd36c3fdf540c7dc23a6b",
+    "alphacairn/studies.py": "bcc6c7526493f877171cd29874c7e24c4c3aec2b7baf359aa7994af79d1f42cb",
+    "alphacairn/study_evidence.py": "fd80229897afdf49cc5480d4d4b168e79dd391c7c25d7ef4e0bbd8990533a603",
+    "alphacairn/study_model.py": "96df654bb66cb21a39acaab3dd5a251efe731bf55682359847d168471fa7695a",
+    "alphacairn/study_runner.py": "00343c07f587247aa7ec8ac17960115a8a0f90248770982f6c73508ea39176cf",
+    "alphacairn/study_store.py": "5dd8e66e453922b91282862c58524a0817bd2afa6c28d69855afece623689ca1",
     "alphacairn/valuation.py": "4d1ea7a17ddf776c4fa843a5fcd8dac41db89203ec1a8aabd47e04e74e4395f9",
     "alphacairn/walkforward.py": "0f32dab776be93df5c6ce31fabf2b9a0122df505fcc19a21c7b059a9eacbb098",
     "alphacairn/web.py": "f2a3caf17ed32fd4d10a32b17fe6e92c7d8bf8f140f698fa3b64e4c839fdddcd"
