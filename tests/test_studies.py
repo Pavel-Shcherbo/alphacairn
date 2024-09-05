@@ -34,3 +34,8 @@ def load(name):
     return json.loads((EXAMPLES / name).read_text())
 
 
+def resign(value):
+    value["sha256"] = digest({k: v for k, v in value.items() if k != "sha256"})
+    return value
+
+
