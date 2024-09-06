@@ -39,3 +39,21 @@ def resign(value):
     return value
 
 
+def holdout(inputs):
+    result = copy.deepcopy(inputs)
+    shift = lambda value: timestamp_text(timestamp(value) + timedelta(days=31))
+    for key in ("as_of", "history_start", "history_end"):
+        result["configuration"][key] = shift(result["configuration"][key])
+    result["quotes"]["as_of"] = shift(result["quotes"]["as_of"])
+    for quote in list(result["quotes"]["marks"].values()) + list(
+        result["quotes"]["fx"].values()
+    ):
+        quote["timestamp"] = shift(quote["timestamp"])
+    for point in result["history"]["observations"]:
+        point["at"] = shift(point["at"])
+        point["available_at"] = shift(point["available_at"])
+    return resign(result)
+
+
+class StudyTests(unittest.TestCase):
+    pass
