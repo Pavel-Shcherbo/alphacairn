@@ -56,4 +56,29 @@ def holdout(inputs):
 
 
 class StudyTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        ledger = Ledger(self.root / "ledger.sqlite", load("portfolio-account.json"))
+        ledger.apply_batch(load("portfolio-events.json"))
+        self.inputs = capture_risk_inputs(
+            ledger.path,
+            load("risk-control.json"),
+            load("risk-history.json"),
+            load("risk-quotes.json"),
+        )
+        self.registry = StudyRegistry(self.root / "studies.sqlite")
+        self.plan = {
+            "version": 1,
+            "name": "synthetic-risk-review",
+            "family": "risk",
+            "hypothesis": "Review a fixed covariance estimator without omitting failed inputs.",
+            "development": {
+                "start": "2025-12-01T00:00:00Z",
+                "end": "2026-01-03T00:00:00Z",
+            },
+            "holdout": {"start": "2026-01-25T00:00:00Z", "end": "2026-02-03T00:00:00Z"},
+        }
+        self.study = self.registry.create("project", self.plan)["id"]
+
