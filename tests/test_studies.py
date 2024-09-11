@@ -101,3 +101,12 @@ class StudyTests(unittest.TestCase):
             reason="Execute declared frozen control",
         )
 
+    def select(self, trial):
+        return self.registry.select(
+            "project",
+            self.study,
+            trial["id"],
+            actor="reviewer",
+            reason="Select complete frozen baseline",
+        )
+
