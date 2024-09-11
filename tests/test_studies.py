@@ -82,3 +82,13 @@ class StudyTests(unittest.TestCase):
         }
         self.study = self.registry.create("project", self.plan)["id"]
 
+    def register(self, inputs=None, key="one", partition="development"):
+        return self.registry.register(
+            "project",
+            self.study,
+            inputs or self.inputs,
+            partition,
+            key,
+            "Synthetic " + key,
+        )
+
