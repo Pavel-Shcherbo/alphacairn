@@ -92,3 +92,12 @@ class StudyTests(unittest.TestCase):
             "Synthetic " + key,
         )
 
+    def execute(self, trial):
+        return run_trial(
+            self.registry,
+            "project",
+            trial["id"],
+            actor="reviewer",
+            reason="Execute declared frozen control",
+        )
+
