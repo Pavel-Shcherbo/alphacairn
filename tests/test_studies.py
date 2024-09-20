@@ -122,3 +122,16 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.registry.read("other", trial["id"], actor="a", reason="b")
 
+    def test_register_retry_and_input_binding(self):
+        first = self.register()
+        self.assertEqual(first, self.register())
+        self.assertEqual(first["input_sha256"], self.inputs["sha256"])
+        changed = copy.deepcopy(self.inputs)
+        changed["configuration"]["shrinkage"] = "0.2"
+        resign(changed)
+        with self.assertRaises(ValueError):
+            self.register(changed)
+        self.assertEqual(
+            self.registry.overview("project", self.study)["registered_trial_count"], 1
+        )
+
