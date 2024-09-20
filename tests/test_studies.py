@@ -110,3 +110,15 @@ class StudyTests(unittest.TestCase):
             reason="Select complete frozen baseline",
         )
 
+    def test_declaration_idempotence_and_scope(self):
+        self.assertEqual(self.registry.create("project", self.plan)["id"], self.study)
+        changed = copy.deepcopy(self.plan)
+        changed["hypothesis"] = "Another hypothesis"
+        with self.assertRaises(ValueError):
+            self.registry.create("project", changed)
+        with self.assertRaises(ValueError):
+            self.registry.overview("other", self.study)
+        trial = self.register()
+        with self.assertRaises(ValueError):
+            self.registry.read("other", trial["id"], actor="a", reason="b")
+
