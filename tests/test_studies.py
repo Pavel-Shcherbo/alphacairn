@@ -135,3 +135,37 @@ class StudyTests(unittest.TestCase):
             self.registry.overview("project", self.study)["registered_trial_count"], 1
         )
 
+    def test_success_incomplete_and_failed_attempts_are_all_retained(self):
+        good = self.register(key="good")
+        incomplete = copy.deepcopy(self.inputs)
+        incomplete["history"]["observations"] = incomplete["history"]["observations"][
+            :2
+        ]
+        resign(incomplete)
+        partial = self.register(incomplete, "incomplete")
+        failed = copy.deepcopy(self.inputs)
+        failed["quotes"]["marks"]["crypto:demo"]["timestamp"] = "2026-01-03T00:00:00Z"
+        resign(failed)
+        broken = self.register(failed, "failed")
+        self.assertEqual(
+            [self.execute(t)["record"]["status"] for t in (good, partial, broken)],
+            ["succeeded", "incomplete", "failed"],
+        )
+        overview = self.registry.overview("project", self.study)
+        self.assertEqual(overview["registered_trial_count"], 3)
+        self.assertEqual(overview["failed_trial_count"], 2)
+        self.assertEqual(overview["holdout_access_attempts"], 0)
+        self.assertTrue(audit_study(self.registry, "project", self.study)[2]["passed"])
+        for trial in (good, partial, broken):
+            self.assertTrue(
+                verify_study_export(
+                    export_trial(
+                        self.registry,
+                        "project",
+                        trial["id"],
+                        actor="reviewer",
+                        reason="Independent replay",
+                    )
+                )["passed"]
+            )
+
