@@ -169,3 +169,20 @@ class StudyTests(unittest.TestCase):
                 )["passed"]
             )
 
+    def test_pending_attempt_blocks_selection_and_cannot_be_hidden(self):
+        good = self.register()
+        self.execute(good)
+        pending = self.register(key="pending")
+        with self.assertRaises(ValueError):
+            self.select(good)
+        self.execute(pending)
+        self.select(good)
+        self.assertEqual(
+            self.registry.overview("project", self.study)["selection"]["trial"],
+            good["id"],
+        )
+        with self.assertRaises(ValueError):
+            self.register(key="late")
+        with self.assertRaises(ValueError):
+            self.select(good)
+
