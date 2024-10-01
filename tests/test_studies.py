@@ -186,3 +186,17 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.select(good)
 
+    def test_holdout_requires_selection_and_same_method(self):
+        with self.assertRaises(ValueError):
+            self.register(holdout(self.inputs), "holdout", "holdout")
+        good = self.register()
+        self.execute(good)
+        self.select(good)
+        changed = holdout(self.inputs)
+        changed["configuration"]["shrinkage"] = "0.3"
+        resign(changed)
+        with self.assertRaises(ValueError):
+            self.register(changed, "changed", "holdout")
+        trial = self.register(holdout(self.inputs), "holdout", "holdout")
+        self.assertEqual(trial["partition"], "holdout")
+
