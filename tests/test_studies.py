@@ -231,3 +231,18 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(after["holdout_access_attempts"], 5)
         self.assertTrue(verify_study_export(document)["execution_replayed"])
 
+    def test_holdout_metadata_does_not_disclose_result_numbers(self):
+        good = self.register()
+        self.execute(good)
+        self.select(good)
+        trial = self.register(holdout(self.inputs), "holdout", "holdout")
+        self.execute(trial)
+        overview = self.registry.overview("project", self.study)
+        self.assertTrue(
+            all(
+                "result" not in row and "summary" not in row
+                for row in overview["trials"]
+            )
+        )
+        self.assertEqual(overview["holdout_access_attempts"], 1)
+
