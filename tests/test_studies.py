@@ -200,3 +200,34 @@ class StudyTests(unittest.TestCase):
         trial = self.register(holdout(self.inputs), "holdout", "holdout")
         self.assertEqual(trial["partition"], "holdout")
 
+    def test_holdout_registration_is_not_claimed_as_external_blindness(self):
+        good = self.register()
+        self.execute(good)
+        self.select(good)
+        trial = self.register(holdout(self.inputs), "holdout", "holdout")
+        before = self.registry.overview("project", self.study)
+        self.assertTrue(before["holdout_registry_unopened"])
+        self.assertEqual(before["holdout_access_attempts"], 0)
+        self.registry.read(
+            "project",
+            trial["id"],
+            actor="reviewer",
+            reason="Open captured holdout inputs",
+        )
+        self.execute(trial)
+        self.execute(trial)
+        self.registry.read(
+            "project", trial["id"], actor="reviewer", reason="Read result again"
+        )
+        document = export_trial(
+            self.registry,
+            "project",
+            trial["id"],
+            actor="reviewer",
+            reason="Share review evidence",
+        )
+        after = self.registry.overview("project", self.study)
+        self.assertFalse(after["holdout_registry_unopened"])
+        self.assertEqual(after["holdout_access_attempts"], 5)
+        self.assertTrue(verify_study_export(document)["execution_replayed"])
+
