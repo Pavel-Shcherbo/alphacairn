@@ -246,3 +246,11 @@ class StudyTests(unittest.TestCase):
         )
         self.assertEqual(overview["holdout_access_attempts"], 1)
 
+    def test_window_boundaries_reject_cross_partition_trials(self):
+        with self.assertRaises(ValueError):
+            self.register(self.inputs, "wrong-window", "holdout")
+        bad = copy.deepcopy(self.plan)
+        bad["holdout"]["start"] = bad["development"]["end"]
+        with self.assertRaises(ValueError):
+            declaration(bad)
+
