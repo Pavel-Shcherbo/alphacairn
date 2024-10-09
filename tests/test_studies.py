@@ -254,3 +254,14 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             declaration(bad)
 
+    def test_cached_result_retry_does_not_execute_twice(self):
+        trial = self.register()
+        first = self.execute(trial)
+        with patch(
+            "alphacairn.study_runner.compute",
+            side_effect=AssertionError("repeated execution"),
+        ):
+            again = self.execute(trial)
+        self.assertEqual(first, again)
+        self.assertEqual(len(audit_study(self.registry, "project", self.study)[1]), 4)
+
