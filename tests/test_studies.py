@@ -299,3 +299,17 @@ class StudyTests(unittest.TestCase):
         self.assertTrue(proof["passed"])
         self.assertEqual(proof["summary"]["equity"], "10948.90")
 
+    def test_omitting_failed_attempt_from_export_breaks_complete_context(self):
+        good = self.register()
+        self.execute(good)
+        other = self.register(key="other")
+        self.execute(other)
+        document = export_trial(
+            self.registry, "project", good["id"], actor="a", reason="b"
+        )
+        document["context"]["trials"].pop()
+        document["context"]["registered_trial_count"] -= 1
+        resign(document)
+        with self.assertRaisesRegex(ValueError, "omitted"):
+            verify_study_export(document)
+
