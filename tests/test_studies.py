@@ -265,3 +265,22 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(first, again)
         self.assertEqual(len(audit_study(self.registry, "project", self.study)[1]), 4)
 
+    def test_rehashed_wrong_result_cannot_be_read_from_cache(self):
+        trial = self.register()
+        self.execute(trial)
+        with self.registry.transaction() as db:
+            row = self.registry.trial(db, "project", trial["id"])
+            report = json.loads(row["result"])
+            report["valuation"]["equity"] = "999999"
+            resign(report)
+            db.execute(
+                "UPDATE trials SET result=? WHERE id=?",
+                (canonical(report), trial["id"]),
+            )
+        with self.assertRaisesRegex(ValueError, "completion history"):
+            self.execute(trial)
+        with self.assertRaises(ValueError):
+            audit_study(self.registry, "project", self.study)
+        with self.assertRaises(ValueError):
+            self.registry.read("project", trial["id"], actor="a", reason="b")
+
