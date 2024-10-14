@@ -284,3 +284,18 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.registry.read("project", trial["id"], actor="a", reason="b")
 
+    def test_exports_remain_verifiable_without_database(self):
+        trial = self.register()
+        self.execute(trial)
+        document = export_trial(
+            self.registry,
+            "project",
+            trial["id"],
+            actor="reviewer",
+            reason="Portable control",
+        )
+        self.registry.path.unlink()
+        proof = verify_study_export(document)
+        self.assertTrue(proof["passed"])
+        self.assertEqual(proof["summary"]["equity"], "10948.90")
+
