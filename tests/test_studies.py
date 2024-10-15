@@ -313,3 +313,18 @@ class StudyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "omitted"):
             verify_study_export(document)
 
+    def test_removing_holdout_access_count_or_chain_event_is_detected(self):
+        good = self.register()
+        self.execute(good)
+        self.select(good)
+        trial = self.register(holdout(self.inputs), "holdout", "holdout")
+        self.execute(trial)
+        document = export_trial(
+            self.registry, "project", trial["id"], actor="a", reason="b"
+        )
+        document["context"]["holdout_access_attempts"] = 0
+        document["context"]["holdout_registry_unopened"] = True
+        resign(document)
+        with self.assertRaisesRegex(ValueError, "access"):
+            verify_study_export(document)
+
