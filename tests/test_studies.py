@@ -328,3 +328,31 @@ class StudyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "access"):
             verify_study_export(document)
 
+    def test_interrupted_trial_is_retained_without_false_replay_claim(self):
+        now = [100.0]
+        registry = StudyRegistry(self.root / "recovery.sqlite", clock=lambda: now[0])
+        study = registry.create("project", self.plan)["id"]
+        trial = registry.register(
+            "project", study, self.inputs, "development", "one", "Interrupted control"
+        )
+
+        def crash(*_):
+            raise KeyboardInterrupt()
+
+        with (
+            patch("alphacairn.study_runner.compute", crash),
+            self.assertRaises(KeyboardInterrupt),
+        ):
+            run_trial(registry, "project", trial["id"], actor="a", reason="b")
+        with self.assertRaises(ValueError):
+            registry.recover("project", trial["id"], 2, actor="a", reason="b")
+        now[0] = 701.0
+        registry.recover("project", trial["id"], 2, actor="a", reason="b")
+        proof = verify_study_export(
+            export_trial(registry, "project", trial["id"], actor="a", reason="b")
+        )
+        self.assertFalse(proof["execution_replayed"])
+        self.assertFalse(proof["complete"])
+        with self.assertRaises(ValueError):
+            registry.recover("project", trial["id"], 2, actor="a", reason="b")
+
