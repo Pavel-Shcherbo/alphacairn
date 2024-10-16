@@ -356,3 +356,23 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             registry.recover("project", trial["id"], 2, actor="a", reason="b")
 
+    def test_commit_time_lease_expiry_rolls_back_result_and_event(self):
+        now = [100.0]
+        self.registry.clock = lambda: now[0]
+        trial = self.register()
+        from alphacairn.study_runner import compute
+
+        def delayed(*args):
+            result = compute(*args)
+            now[0] = 701.0
+            return result
+
+        with (
+            patch("alphacairn.study_runner.compute", delayed),
+            self.assertRaisesRegex(ValueError, "lease"),
+        ):
+            self.execute(trial)
+        overview = self.registry.overview("project", self.study)
+        self.assertEqual(overview["trials"][0]["status"], "running")
+        self.assertEqual(len(audit_study(self.registry, "project", self.study)[1]), 3)
+
