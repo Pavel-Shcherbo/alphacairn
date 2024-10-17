@@ -402,3 +402,44 @@ class StudyTests(unittest.TestCase):
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
             self.assertEqual(sum(pool.map(select, range(4))), 1)
 
+    def test_strategy_family_runs_real_captured_execution(self):
+        catalog = MarketCatalog(self.root / "market.sqlite", create=True)
+        config = load("strategy-control.json")
+        for kind, file in [
+            ("bar", "strategy-bars.json"),
+            ("membership", "strategy-universe.json"),
+        ]:
+            catalog.ingest(
+                config["source"], kind, canonical(load(file)), request_key=kind
+            )
+        inputs = capture_strategy(catalog, config)
+        plan = copy.deepcopy(self.plan)
+        plan.update(
+            name="synthetic-strategy-registry",
+            family="strategy",
+            development={
+                "start": "2020-01-01T00:00:00Z",
+                "end": "2020-01-10T00:00:00Z",
+            },
+            holdout={"start": "2020-02-01T00:00:00Z", "end": "2020-02-10T00:00:00Z"},
+        )
+        study = self.registry.create("project", plan)["id"]
+        trial = self.registry.register(
+            "project",
+            study,
+            inputs,
+            "development",
+            "strategy",
+            "Real captured strategy",
+        )
+        result = self.execute(trial)
+        self.assertEqual(result["summary"]["equity"], "86.50")
+        self.assertEqual(result["summary"]["fills"], 6)
+        self.assertTrue(
+            verify_study_export(
+                export_trial(
+                    self.registry, "project", trial["id"], actor="a", reason="b"
+                )
+            )["passed"]
+        )
+
