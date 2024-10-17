@@ -376,3 +376,29 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(overview["trials"][0]["status"], "running")
         self.assertEqual(len(audit_study(self.registry, "project", self.study)[1]), 3)
 
+    def test_concurrent_registration_and_selection_are_serialized(self):
+        def register(_):
+            return StudyRegistry(self.registry.path).register(
+                "project",
+                self.study,
+                self.inputs,
+                "development",
+                "same",
+                "Same control",
+            )
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            values = list(pool.map(register, range(4)))
+        self.assertEqual(len({v["id"] for v in values}), 1)
+        self.execute(values[0])
+
+        def select(_):
+            try:
+                self.select(values[0])
+                return True
+            except ValueError:
+                return False
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+            self.assertEqual(sum(pool.map(select, range(4))), 1)
+
