@@ -443,3 +443,41 @@ class StudyTests(unittest.TestCase):
             )["passed"]
         )
 
+    def test_comparison_defaults_withhold_holdout_and_opening_is_logged(self):
+        good = self.register()
+        self.execute(good)
+        self.select(good)
+        trial = self.register(holdout(self.inputs), "holdout", "holdout")
+        self.execute(trial)
+        before = self.registry.overview("project", self.study)[
+            "holdout_access_attempts"
+        ]
+        comparison = compare_trials(
+            self.registry,
+            "project",
+            self.study,
+            actor="reviewer",
+            reason="Compare development",
+        )
+        self.assertEqual(len(comparison["comparisons"]), 2)
+        self.assertIsNone(comparison["comparisons"][1]["summary"])
+        self.assertTrue(comparison["comparisons"][1]["withheld"])
+        self.assertEqual(
+            self.registry.overview("project", self.study)["holdout_access_attempts"],
+            before,
+        )
+        opened = compare_trials(
+            self.registry,
+            "project",
+            self.study,
+            actor="reviewer",
+            reason="Review holdout explicitly",
+            include_holdout=True,
+        )
+        self.assertEqual(opened["comparisons"][1]["summary"]["equity"], "10948.90")
+        self.assertEqual(
+            self.registry.overview("project", self.study)["holdout_access_attempts"],
+            before + 1,
+        )
+        self.assertTrue(audit_study(self.registry, "project", self.study)[2]["passed"])
+
