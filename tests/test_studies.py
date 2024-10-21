@@ -481,3 +481,36 @@ class StudyTests(unittest.TestCase):
         )
         self.assertTrue(audit_study(self.registry, "project", self.study)[2]["passed"])
 
+    def test_interrupted_trial_cannot_carry_a_fabricated_result(self):
+        self.registry.clock = lambda: 100.0
+        trial = self.register()
+        with (
+            patch("alphacairn.study_runner.compute", side_effect=KeyboardInterrupt()),
+            self.assertRaises(KeyboardInterrupt),
+        ):
+            self.execute(trial)
+        self.registry.clock = lambda: 701.0
+        self.registry.recover(
+            "project", trial["id"], 2, actor="reviewer", reason="Interrupted worker"
+        )
+        document = export_trial(
+            self.registry,
+            "project",
+            trial["id"],
+            actor="reviewer",
+            reason="Retain interrupted proof",
+        )
+        document["trial"]["result"] = {"invented": "success"}
+        resign(document)
+        with self.assertRaisesRegex(ValueError, "uncommitted"):
+            verify_study_export(document)
+        with self.registry.transaction() as db:
+            db.execute(
+                "UPDATE trials SET result=? WHERE id=?",
+                (canonical({"invented": "success"}), trial["id"]),
+            )
+        with self.assertRaisesRegex(ValueError, "uncommitted"):
+            self.registry.read(
+                "project", trial["id"], actor="reviewer", reason="Inspect"
+            )
+
