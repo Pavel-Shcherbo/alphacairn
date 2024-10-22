@@ -93,3 +93,7 @@ Capture a journal-backed portfolio with explicit quotes and history, inspect con
 ## Frozen research registry
 
 Retain every registered risk or strategy attempt, compare successful and failed results, lock a development selection and track explicit access to a declared holdout. Frozen inputs and one trial’s complete study context export for independent replay. See the [research registry guide](docs/RESEARCH_REGISTRY.md) and `python3 -m alphacairn.studies --help`.
+
+## Saved research experiments
+
+Open [the local saved-experiments page](http://127.0.0.1:8412/research.html) to declare development/holdout windows, register frozen risk or strategy inputs, retain failed attempts, inspect exact stress results and export replay evidence. Explicit holdout access and durable request recovery preserve the study history through refreshes and lost responses. See the [research workbench guide](docs/RESEARCH_WORKBENCH.md) for the workflow, HTTP interface and local limits.
