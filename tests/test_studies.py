@@ -514,3 +514,111 @@ class StudyTests(unittest.TestCase):
                 "project", trial["id"], actor="reviewer", reason="Inspect"
             )
 
+    def test_cli_complete_flow_and_create_only_export(self):
+        definition = self.root / "study.json"
+        definition.write_text(json.dumps(self.plan))
+        inputs = self.root / "inputs.json"
+        inputs.write_bytes(canonical(self.inputs))
+        args = [
+            sys.executable,
+            "-m",
+            "alphacairn.studies",
+            "--database",
+            str(self.root / "cli.sqlite"),
+            "--project",
+            "project",
+        ]
+
+        def cli(*tail, expected=0):
+            result = subprocess.run(
+                args + list(map(str, tail)), capture_output=True, text=True
+            )
+            self.assertEqual(result.returncode, expected, result.stderr)
+            return json.loads(result.stdout) if result.stdout else None
+
+        study = cli("create", definition)["id"]
+        trial = cli(
+            "register",
+            study,
+            inputs,
+            "--partition",
+            "development",
+            "--request-key",
+            "one",
+            "--label",
+            "CLI control",
+        )["id"]
+        cli("run", trial, "--actor", "reviewer", "--reason", "Control")
+        cli(
+            "select",
+            trial,
+            "--study",
+            study,
+            "--actor",
+            "reviewer",
+            "--reason",
+            "Freeze choice",
+        )
+        output = self.root / "export.json"
+        cli(
+            "export",
+            trial,
+            "--output",
+            output,
+            "--actor",
+            "reviewer",
+            "--reason",
+            "Review",
+        )
+        self.assertTrue(cli("verify", output)["passed"])
+        recovery = StudyRegistry(self.root / "cli.sqlite", clock=lambda: 100.0)
+        plan = copy.deepcopy(self.plan)
+        plan["name"] = "cli-recovery"
+        later_study = recovery.create("project", plan)["id"]
+        pending = recovery.register(
+            "project",
+            later_study,
+            self.inputs,
+            "development",
+            "pending",
+            "Recovery control",
+        )
+        with (
+            patch("alphacairn.study_runner.compute", side_effect=KeyboardInterrupt()),
+            self.assertRaises(KeyboardInterrupt),
+        ):
+            run_trial(
+                recovery,
+                "project",
+                pending["id"],
+                actor="reviewer",
+                reason="Interrupted local run",
+            )
+        recovered = cli(
+            "recover",
+            pending["id"],
+            "--generation",
+            2,
+            "--actor",
+            "reviewer",
+            "--reason",
+            "Reconcile expired run",
+            expected=1,
+        )
+        self.assertEqual(recovered["status"], "interrupted")
+
+        cli(
+            "export",
+            trial,
+            "--output",
+            output,
+            "--actor",
+            "reviewer",
+            "--reason",
+            "Review",
+            expected=2,
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
