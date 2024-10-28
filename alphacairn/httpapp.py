@@ -2,12 +2,13 @@
 
 import argparse
 import json
+import sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
 
-def serve(evaluate, example, default_port):
+def serve(evaluate, example, default_port, *, research=None):
     parser = argparse.ArgumentParser(description="Start the local workbench")
     parser.add_argument("--port", type=int, default=default_port)
     args = parser.parse_args()
@@ -52,7 +53,15 @@ def serve(evaluate, example, default_port):
                 self.respond(200, {"status": "ok"})
             elif path == "/api/example":
                 self.respond(200, example())
-            elif path in {"/", "/index.html", "/app.js", "/style.css"}:
+            elif path in {
+                "/",
+                "/index.html",
+                "/app.js",
+                "/style.css",
+                "/research.html",
+                "/research.js",
+                "/research.css",
+            }:
                 name = "index.html" if path == "/" else path[1:]
                 mime = {
                     "html": "text/html",
@@ -80,27 +89,58 @@ def serve(evaluate, example, default_port):
                     403, {"error": "Only local workbench requests are accepted"}
                 )
                 return
-            if urlsplit(self.path).path != "/api/evaluate":
+            path = urlsplit(self.path).path
+            if path not in {"/api/evaluate", "/api/research"} or (
+                path == "/api/research" and research is None
+            ):
                 self.respond(404, {"error": "Unknown route"})
                 return
             try:
                 length = int(self.headers.get("Content-Length", "0"))
-                if not 0 < length <= 1024 * 1024 or self.headers.get(
-                    "Transfer-Encoding"
-                ):
-                    raise ValueError("Provide a JSON request smaller than 1 MiB")
+                maximum = 8 * 1024 * 1024 if path == "/api/research" else 1024 * 1024
+                if not 0 < length <= maximum or self.headers.get("Transfer-Encoding"):
+                    raise ValueError(
+                        f"Provide a JSON request of at most {maximum} bytes"
+                    )
                 if (
                     self.headers.get("Content-Type", "").split(";")[0]
                     != "application/json"
                 ):
                     raise ValueError("Content-Type must be application/json")
                 self.connection.settimeout(5)
-                params = json.loads(self.rfile.read(length))
+
+                def pairs(values):
+                    result = {}
+                    for key, value in values:
+                        if key in result:
+                            raise ValueError("Duplicate JSON field")
+                        result[key] = value
+                    return result
+
+                def reject(value):
+                    raise ValueError("JSON numbers must be finite")
+
+                params = json.loads(
+                    self.rfile.read(length),
+                    object_pairs_hook=pairs,
+                    parse_constant=reject,
+                )
                 if not isinstance(params, dict):
                     raise ValueError("Expected a JSON object")
-                result = evaluate(params)
+                result = (
+                    research(params) if path == "/api/research" else evaluate(params)
+                )
                 self.respond(200, result)
-            except (ValueError, KeyError, TypeError, OSError, TimeoutError) as error:
+            except (
+                ValueError,
+                KeyError,
+                TypeError,
+                OSError,
+                TimeoutError,
+                sqlite3.Error,
+                ArithmeticError,
+                RecursionError,
+            ) as error:
                 self.respond(400, {"error": str(error)})
 
     with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as server:
