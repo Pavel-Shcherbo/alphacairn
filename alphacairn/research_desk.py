@@ -24,3 +24,6 @@ MAX_RESPONSE = 16 * 1024 * 1024
 class BoundRegistry(StudyRegistry):
     """Keep existing registry operations in the caller's one request transaction."""
 
+    def __init__(self, registry, db):
+        self.path, self.clock, self.db = registry.path, registry.clock, db
+
