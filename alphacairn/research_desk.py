@@ -32,3 +32,12 @@ class BoundRegistry(StudyRegistry):
         yield self.db
 
 
+def fields(value, required, optional=()):
+    if (
+        not isinstance(value, dict)
+        or not set(required) <= set(value)
+        or set(value) - set(required) - set(optional)
+    ):
+        raise ValueError("research request has missing or unsupported fields")
+
+
