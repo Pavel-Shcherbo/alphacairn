@@ -27,3 +27,8 @@ class BoundRegistry(StudyRegistry):
     def __init__(self, registry, db):
         self.path, self.clock, self.db = registry.path, registry.clock, db
 
+    @contextmanager
+    def transaction(self, write=True):
+        yield self.db
+
+
