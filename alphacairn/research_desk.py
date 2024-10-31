@@ -41,3 +41,53 @@ def fields(value, required, optional=()):
         raise ValueError("research request has missing or unsupported fields")
 
 
+def examples():
+    directory = examples_directory()
+
+    def read(name):
+        return json.loads((directory / name).read_bytes())
+
+    with tempfile.TemporaryDirectory(prefix="alphacairn-risk-example-") as temporary:
+        ledger = Ledger(
+            Path(temporary) / "example.sqlite", read("portfolio-account.json")
+        )
+        ledger.apply_batch(read("portfolio-events.json"))
+        inputs = capture_risk_inputs(
+            ledger.path,
+            read("risk-control.json"),
+            read("risk-history.json"),
+            read("risk-quotes.json"),
+        )
+    incomplete = copy.deepcopy(inputs)
+    incomplete["history"]["observations"] = incomplete["history"]["observations"][:2]
+    invalid = copy.deepcopy(inputs)
+    invalid["quotes"]["marks"]["crypto:demo"]["timestamp"] = "2026-01-03T00:00:00Z"
+    later = copy.deepcopy(inputs)
+    shift = lambda value: timestamp_text(timestamp(value) + timedelta(days=31))
+    for field in ("as_of", "history_start", "history_end"):
+        later["configuration"][field] = shift(later["configuration"][field])
+    later["quotes"]["as_of"] = shift(later["quotes"]["as_of"])
+    for quote in list(later["quotes"]["marks"].values()) + list(
+        later["quotes"]["fx"].values()
+    ):
+        quote["timestamp"] = shift(quote["timestamp"])
+    for point in later["history"]["observations"]:
+        point["at"] = shift(point["at"])
+        point["available_at"] = shift(point["available_at"])
+    for value in (incomplete, invalid, later):
+        value["sha256"] = digest({k: v for k, v in value.items() if k != "sha256"})
+    return {
+        "definition": read("study-risk-plan.json"),
+        "inputs": inputs,
+        "controls": {
+            "baseline": inputs,
+            "incomplete": incomplete,
+            "invalid": invalid,
+            "holdout": later,
+        },
+        "source": "Synthetic portfolio and declared price/FX shocks; not a market feed",
+    }
+
+
+class ResearchDesk:
+    pass
