@@ -90,4 +90,10 @@ def examples():
 
 
 class ResearchDesk:
-    pass
+    def __init__(self, path):
+        self.registry = StudyRegistry(path)
+        with self.registry.transaction() as db:
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS desk_receipts(project TEXT NOT NULL,request_key TEXT NOT NULL,request_sha256 TEXT NOT NULL,result BLOB NOT NULL,result_sha256 TEXT NOT NULL,PRIMARY KEY(project,request_key))"
+            )
+
