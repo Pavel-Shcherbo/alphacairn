@@ -97,3 +97,89 @@ class ResearchDesk:
                 "CREATE TABLE IF NOT EXISTS desk_receipts(project TEXT NOT NULL,request_key TEXT NOT NULL,request_sha256 TEXT NOT NULL,result BLOB NOT NULL,result_sha256 TEXT NOT NULL,PRIMARY KEY(project,request_key))"
             )
 
+    def dispatch(self, params):
+        fields(
+            params,
+            ("action",),
+            (
+                "project",
+                "study",
+                "trial",
+                "definition",
+                "inputs",
+                "partition",
+                "label",
+                "request_key",
+                "actor",
+                "reason",
+                "include_holdout",
+                "acknowledge_holdout",
+                "generation",
+                "after",
+                "limit",
+            ),
+        )
+        if len(canonical(params)) > MAX_REQUEST:
+            raise ValueError("research request exceeds 8 MiB")
+        action = params["action"]
+        if action == "examples":
+            fields(params, ("action",))
+            return examples()
+        project = identity(params.get("project"), "project")
+        if action in ("list", "view", "receipt"):
+            with self.registry.transaction(False) as db:
+                registry = BoundRegistry(self.registry, db)
+                if action == "list":
+                    fields(params, ("action", "project"))
+                    return self.bounded_response(self.list_in_view(registry, project))
+                if action == "receipt":
+                    fields(params, ("action", "project", "request_key"))
+                    row = db.execute(
+                        "SELECT result,result_sha256 FROM desk_receipts WHERE project=? AND request_key=?",
+                        (project, key(params["request_key"])),
+                    ).fetchone()
+                    if row is None:
+                        raise ValueError("request receipt not found in this project")
+                    return self.receipt(row)
+                fields(params, ("action", "project", "study"), ("after", "limit"))
+                return self.bounded_response(
+                    self.view(
+                        registry,
+                        project,
+                        params["study"],
+                        params.get("after", 0),
+                        params.get("limit", 50),
+                    )
+                )
+        request_key = key(params.get("request_key"))
+        request_sha = digest(params)
+        # Foreground local requests are one transaction, including computation and
+        # response recording. A process failure leaves the registered trial ready.
+        with self.registry.transaction() as db:
+            prior = db.execute(
+                "SELECT * FROM desk_receipts WHERE project=? AND request_key=?",
+                (project, request_key),
+            ).fetchone()
+            if prior is not None:
+                if prior["request_sha256"] != request_sha:
+                    raise ValueError(
+                        "request key identifies another research operation"
+                    )
+                return self.receipt(prior)
+            if db.execute("SELECT count(*) FROM desk_receipts").fetchone()[0] >= 10000:
+                raise ValueError(
+                    "research desk reached 10,000 retained request receipts"
+                )
+            registry = BoundRegistry(self.registry, db)
+            result = self.operate(registry, project, action, params)
+            encoded = canonical(result)
+            if len(encoded) > MAX_RESPONSE:
+                raise ValueError(
+                    "research response exceeds 16 MiB; use the CLI for larger evidence"
+                )
+            db.execute(
+                "INSERT INTO desk_receipts VALUES(?,?,?,?,?)",
+                (project, request_key, request_sha, encoded, digest(result)),
+            )
+            return result
+
