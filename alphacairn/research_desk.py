@@ -183,3 +183,11 @@ class ResearchDesk:
             )
             return result
 
+    @staticmethod
+    def bounded_response(result):
+        if len(canonical(result)) > MAX_RESPONSE:
+            raise ValueError(
+                "research response exceeds 16 MiB; use the CLI for larger evidence"
+            )
+        return result
+
