@@ -191,3 +191,10 @@ class ResearchDesk:
             )
         return result
 
+    @staticmethod
+    def receipt(row):
+        result = decode(row["result"])
+        if digest(result) != row["result_sha256"]:
+            raise ValueError("saved research response identity changed")
+        return ResearchDesk.bounded_response(result)
+
