@@ -198,3 +198,30 @@ class ResearchDesk:
             raise ValueError("saved research response identity changed")
         return ResearchDesk.bounded_response(result)
 
+    @staticmethod
+    def list_in_view(registry, project):
+        rows = registry.db.execute(
+            "SELECT id,definition,created,selection FROM studies WHERE project=? ORDER BY created,id",
+            (project,),
+        ).fetchall()
+        studies = []
+        for row in rows:
+            checked = registry.study(registry.db, project, row["id"])
+            definition = decode(checked["definition"])
+            counts = registry.db.execute(
+                "SELECT count(*),sum(status IN ('failed','incomplete','interrupted')) FROM trials WHERE study_id=?",
+                (row["id"],),
+            ).fetchone()
+            studies.append(
+                {
+                    "id": row["id"],
+                    "name": definition["name"],
+                    "family": definition["family"],
+                    "created": row["created"],
+                    "selected": row["selection"] is not None,
+                    "trial_count": counts[0],
+                    "unsuccessful_count": counts[1] or 0,
+                }
+            )
+        return {"project": project, "studies": studies}
+
