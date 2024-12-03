@@ -225,3 +225,61 @@ class ResearchDesk:
             )
         return {"project": project, "studies": studies}
 
+    @staticmethod
+    def view(registry, project, study, after=0, limit=50):
+        if (
+            type(after) is not int
+            or after < 0
+            or type(limit) is not int
+            or not 1 <= limit <= 100
+        ):
+            raise ValueError(
+                "event paging requires a nonnegative cursor and limit 1–100"
+            )
+        context, items, proof = audit_study(registry, project, study)
+        comparison = compare_trials(
+            registry,
+            project,
+            study,
+            actor="local-reader",
+            reason="Metadata and development comparison",
+            include_holdout=False,
+        )
+        selected = [item for item in items if item["sequence"] > after]
+        page = selected[:limit]
+        held = {row["id"] for row in context["trials"] if row["partition"] == "holdout"}
+        safe_page = []
+        for item in page:
+            if item["payload"].get("trial") in held:
+                item = {
+                    **item,
+                    "payload": {
+                        k: v
+                        for k, v in item["payload"].items()
+                        if k
+                        in (
+                            "trial",
+                            "partition",
+                            "status",
+                            "input_sha256",
+                            "result_sha256",
+                            "purpose",
+                            "actor",
+                            "reason",
+                            "generation",
+                        )
+                    },
+                    "payload_redacted": True,
+                }
+            safe_page.append(item)
+        return {
+            "context": context,
+            "comparison": comparison,
+            "audit": {
+                k: v for k, v in proof.items() if k not in ("finished", "contracts")
+            },
+            "events": safe_page,
+            "next_after": page[-1]["sequence"] if page else after,
+            "has_more": len(selected) > limit,
+        }
+
