@@ -283,3 +283,84 @@ class ResearchDesk:
             "has_more": len(selected) > limit,
         }
 
+    def operate(self, registry, project, action, params):
+        base = ("action", "project", "request_key")
+        if action == "create":
+            fields(params, (*base, "definition"))
+            return registry.create(project, params["definition"])
+        if action == "register":
+            fields(params, (*base, "study", "inputs", "partition", "label"))
+            if len(canonical(params["inputs"])) > 4 * 1024 * 1024:
+                raise ValueError("browser trial inputs exceed 4 MiB; use the CLI")
+            return registry.register(
+                project,
+                params["study"],
+                params["inputs"],
+                params["partition"],
+                params["request_key"],
+                params["label"],
+            )
+        actor = prose(params.get("actor"), "actor", 100)
+        reason = prose(params.get("reason"), "reason")
+        if action == "compare":
+            fields(
+                params,
+                (*base, "study", "actor", "reason", "include_holdout"),
+                ("acknowledge_holdout",),
+            )
+            if (
+                params["include_holdout"] is True
+                and params.get("acknowledge_holdout") is not True
+            ):
+                raise ValueError("explicitly acknowledge holdout access")
+            return compare_trials(
+                registry,
+                project,
+                params["study"],
+                actor=actor,
+                reason=reason,
+                include_holdout=params["include_holdout"],
+            )
+        if action == "select":
+            fields(params, (*base, "study", "trial", "actor", "reason"))
+            return registry.select(
+                project, params["study"], params["trial"], actor=actor, reason=reason
+            )
+        if action in ("run", "inspect", "export", "recover"):
+            fields(
+                params,
+                (*base, "study", "trial", "actor", "reason"),
+                ("generation",) if action == "recover" else ("acknowledge_holdout",),
+            )
+            row = registry.trial(registry.db, project, params["trial"])
+            if row["study_id"] != params["study"]:
+                raise ValueError("trial does not belong to the selected study")
+            if (
+                row["partition"] == "holdout"
+                and action != "recover"
+                and params.get("acknowledge_holdout") is not True
+            ):
+                raise ValueError("explicitly acknowledge holdout access")
+            if action == "run":
+                return run_trial(
+                    registry, project, params["trial"], actor=actor, reason=reason
+                )
+            if action == "recover":
+                return registry.recover(
+                    project,
+                    params["trial"],
+                    params.get("generation"),
+                    actor=actor,
+                    reason=reason,
+                )
+            if action == "export":
+                return export_trial(
+                    registry, project, params["trial"], actor=actor, reason=reason
+                )
+            result = registry.read(project, params["trial"], actor=actor, reason=reason)
+            study = registry.study(registry.db, project, result["record"]["study_id"])
+            result["summary"] = summary(
+                decode(study["definition"])["family"], result["result"]
+            )
+            return result
+        raise ValueError("unknown research action")
