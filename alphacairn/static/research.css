@@ -1,0 +1,288 @@
+.research-desk .workspace {
+  min-width: 0;
+}
+.research-desk .sidebar label {
+  margin-top: 24px;
+}
+.research-desk .sidebar > button {
+  margin-top: 12px;
+  width: 100%;
+}
+.research-desk .sidebar footer {
+  position: static;
+  margin-top: 32px;
+}
+.research-desk .sidebar nav {
+  margin-bottom: 24px;
+}
+.research-desk [aria-current="page"] {
+  background: var(--raised);
+}
+.research-desk .study-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+}
+.research-desk .study-list button {
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.research-desk .study-list button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--raised);
+}
+.research-desk .study-list small {
+  font-size: 12px;
+}
+.research-desk #desk-status {
+  min-height: 24px;
+  margin: 0 0 12px;
+  color: var(--secondary);
+}
+.research-desk .desk-section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.research-desk summary {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 0;
+}
+.research-desk details[open] > summary {
+  margin-bottom: 20px;
+}
+.research-desk .desk-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px 24px;
+}
+.research-desk .desk-form label {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+.research-desk .wide {
+  grid-column: 1 / -1;
+}
+.research-desk input:not([type="checkbox"]),
+.research-desk select,
+.research-desk textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.research-desk textarea {
+  resize: vertical;
+}
+.research-desk #inputs {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+}
+.research-desk .field-action {
+  align-self: end;
+}
+.research-desk .window-rail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+.research-desk .window-rail > div {
+  padding: 16px 20px;
+  min-width: 0;
+}
+.research-desk .window-rail p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--secondary);
+  overflow-wrap: anywhere;
+}
+.research-desk .holdout-window {
+  border-left: 2px dashed var(--line);
+}
+.research-desk .study-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  color: var(--secondary);
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.research-desk .section-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.research-desk .section-line h2 {
+  margin: 0;
+}
+.research-desk .table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.research-desk table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.research-desk th,
+.research-desk td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.research-desk th {
+  color: var(--secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.research-desk td:first-child {
+  min-width: 140px;
+  overflow-wrap: anywhere;
+}
+.research-desk .number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.research-desk td button {
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 13px;
+  margin: 0 4px 4px 0;
+}
+.research-desk .acknowledgement {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 20px 0 12px;
+}
+.research-desk input[type="checkbox"] {
+  margin-top: 4px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  accent-color: var(--accent);
+}
+.research-desk pre {
+  max-height: 400px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  background: var(--page);
+  padding: 16px;
+}
+.research-desk .result-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin-bottom: 24px;
+}
+.research-desk .result-summary span {
+  display: grid;
+  gap: 4px;
+  color: var(--secondary);
+}
+.research-desk .result-summary strong {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.research-desk .stress-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(100px, 2fr) 100px;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.research-desk .stress-track {
+  display: flex;
+  height: 12px;
+  background: var(--raised);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.research-desk .stress-bar {
+  height: 12px;
+  background: var(--accent);
+}
+.research-desk .stress-row[data-loss="true"] .stress-bar {
+  background: var(--negative);
+}
+.research-desk #pending-recovery {
+  border-left: 4px solid var(--accent);
+  padding: 12px 20px;
+  background: var(--surface);
+  margin-bottom: 20px;
+}
+.research-desk #events {
+  padding-left: 24px;
+}
+.research-desk #events li {
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+.research-desk #events small {
+  display: block;
+}
+.research-desk .status-failed,
+.research-desk .status-incomplete {
+  color: var(--negative);
+}
+@media (max-width: 760px) {
+  .research-desk .sidebar {
+    position: static;
+    width: auto;
+  }
+  .research-desk .sidebar footer {
+    display: none;
+  }
+  .research-desk .study-list {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .research-desk .desk-section {
+    padding: 16px;
+  }
+  .research-desk .desk-form,
+  .research-desk .window-rail {
+    grid-template-columns: 1fr;
+  }
+  .research-desk .holdout-window {
+    border-left: none;
+    border-top: 2px dashed var(--line);
+  }
+  .research-desk .stress-row {
+    grid-template-columns: minmax(80px, 1fr) minmax(60px, 1fr) 80px;
+    gap: 8px;
+  }
+  .research-desk h1 {
+    overflow-wrap: anywhere;
+  }
+}
+.research-desk #trial-meta,
+.research-desk .stress-row > span:first-child {
+  overflow-wrap: anywhere;
+}
+.research-desk .stress-row .number {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
