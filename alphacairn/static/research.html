@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Saved experiments · Alphacairn</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/research.css" />
+    <script src="/research.js" defer></script>
+  </head>
+  <body class="research-desk">
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="/">Alphacairn</a>
+        <p class="caption">Research with every attempt retained</p>
+        <nav aria-label="Workspace">
+          <a href="/">Trend study</a
+          ><a href="/research.html" aria-current="page">Saved experiments</a>
+        </nav>
+        <label
+          >Project<input id="project" value="local" maxlength="96"
+        /></label>
+        <button id="connect">Open project</button>
+        <div class="study-list" id="studies" aria-label="Saved studies"></div>
+        <footer>
+          Local research registry<br />Synthetic controls available
+        </footer>
+      </aside>
+      <main class="workspace">
+        <div class="topline">
+          <span id="project-context">Project local</span
+          ><span>Development and holdout</span>
+        </div>
+        <div id="desk-error" class="error" role="alert" hidden></div>
+        <p id="desk-status" role="status" aria-live="polite"></p>
+        <div id="pending-recovery" hidden>
+          <p>
+            An operation may already be saved. Recover its response before
+            submitting again.
+          </p>
+          <button id="recover-response">Recover saved response</button>
+        </div>
+        <header class="pagehead">
+          <div>
+            <h1 id="study-title">Saved experiments</h1>
+            <p id="hypothesis">
+              Declare a study before registering risk or strategy attempts
+            </p>
+          </div>
+          <button id="refresh">Refresh</button>
+        </header>
+        <details class="desk-section" id="new-study">
+          <summary>New study</summary>
+          <form id="create-study" class="desk-form">
+            <label
+              >Study name<input
+                id="study-name"
+                value="synthetic-risk-review"
+                required
+                maxlength="96"
+            /></label>
+            <label
+              >Family<select id="family">
+                <option value="risk">Portfolio risk</option>
+                <option value="strategy">Execution strategy</option>
+              </select></label
+            >
+            <label class="wide"
+              >Hypothesis<textarea id="study-hypothesis" rows="2" required>
+Compare declared covariance settings and retain every incomplete or invalid-data outcome.</textarea>
+            </label>
+            <label
+              >Development starts, UTC<input
+                id="dev-start"
+                value="2025-12-01T00:00:00Z"
+                required
+            /></label>
+            <label
+              >Development ends, UTC<input
+                id="dev-end"
+                value="2026-01-03T00:00:00Z"
+                required
+            /></label>
+            <label
+              >Holdout starts, UTC<input
+                id="hold-start"
+                value="2026-01-25T00:00:00Z"
+                required
+            /></label>
+            <label
+              >Holdout ends, UTC<input
+                id="hold-end"
+                value="2026-02-03T00:00:00Z"
+                required
+            /></label>
+            <div class="wide">
+              <button class="primary" type="submit">Create study</button>
+            </div>
+          </form>
+        </details>
+        <section id="study-content" hidden>
+          <div class="window-rail">
+            <div>
+              <strong>Development</strong>
+              <p id="development-window"></p>
+            </div>
+            <div class="holdout-window">
+              <strong>Holdout</strong>
+              <p id="holdout-window"></p>
+            </div>
+          </div>
+          <div class="study-facts">
+            <span id="attempt-count"></span><span id="selection-state"></span
+            ><span id="holdout-state"></span><span id="audit-state"></span>
+          </div>
+          <section class="desk-section">
+            <div class="section-line">
+              <h2>Registered attempts</h2>
+              <button id="compare-holdout">Compare with holdout</button>
+            </div>
+            <p class="muted">
+              Registration order includes failed and incomplete attempts.
+              Refresh hides holdout figures again.
+            </p>
+            <div
+              class="table-scroll"
+              tabindex="0"
+              aria-label="Registered attempt comparison"
+            >
+              <table id="attempts">
+                <thead>
+                  <tr>
+                    <th>Attempt</th>
+                    <th>Partition</th>
+                    <th>Status</th>
+                    <th class="number">Equity</th>
+                    <th class="number">Worst declared stress</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p id="empty-attempts" hidden>
+              No attempts yet. Import frozen risk or strategy inputs below.
+            </p>
+          </section>
+          <section class="desk-section">
+            <h2>Operator and access reason</h2>
+            <div class="desk-form">
+              <label
+                >Operator<input
+                  id="actor"
+                  value="local-reviewer"
+                  maxlength="100"
+                  required /></label
+              ><label
+                >Reason<input
+                  id="reason"
+                  value="Review the declared research hypothesis"
+                  maxlength="500"
+                  required
+              /></label>
+            </div>
+            <label class="acknowledgement"
+              ><input id="open-holdout" type="checkbox" />I understand that
+              running, inspecting, comparing or exporting holdout data records
+              access</label
+            >
+            <p class="muted">
+              Access accounting applies to this registry. It cannot establish
+              whether the original data was viewed elsewhere.
+            </p>
+          </section>
+          <details class="desk-section" id="register-section">
+            <summary>Register frozen inputs</summary>
+            <form id="register-trial" class="desk-form">
+              <label
+                >Attempt label<input
+                  id="trial-label"
+                  value="Synthetic baseline"
+                  required
+                  maxlength="200"
+              /></label>
+              <label
+                >Partition<select id="partition">
+                  <option value="development">Development</option>
+                  <option value="holdout">Holdout</option>
+                </select></label
+              >
+              <label
+                >Synthetic control<select id="control">
+                  <option value="baseline">Complete baseline</option>
+                  <option value="incomplete">Incomplete history</option>
+                  <option value="invalid">Invalid future quote</option>
+                  <option value="holdout">Later holdout window</option>
+                </select></label
+              >
+              <div class="field-action">
+                <button id="load-control" type="button">
+                  Load synthetic control
+                </button>
+              </div>
+              <label class="wide"
+                >Import frozen input JSON<input
+                  id="inputs-file"
+                  type="file"
+                  accept=".json,application/json"
+              /></label>
+              <label class="wide"
+                >Input document<textarea
+                  id="inputs"
+                  rows="8"
+                  spellcheck="false"
+                  placeholder="Export risk or strategy inputs from the CLI, or load a synthetic control"
+                ></textarea>
+              </label>
+              <p class="wide muted">
+                Synthetic controls use declared sample values. They are not
+                historical market observations. Imported documents retain their
+                original content hash.
+              </p>
+              <div class="wide">
+                <button type="submit" class="primary">Register attempt</button>
+              </div>
+            </form>
+          </details>
+          <section id="trial-detail" class="desk-section" hidden>
+            <div class="section-line">
+              <h2 id="trial-title">Attempt result</h2>
+              <button id="export-trial">Export replay evidence</button>
+            </div>
+            <p id="trial-meta" class="muted"></p>
+            <p id="trial-error" role="status"></p>
+            <div id="risk-results" hidden>
+              <div class="result-summary" id="risk-summary"></div>
+              <h3>Declared stress profit and loss</h3>
+              <div id="stress-results"></div>
+              <details>
+                <summary>Positions and data coverage</summary>
+                <div class="table-scroll">
+                  <table id="positions">
+                    <thead>
+                      <tr>
+                        <th>Instrument</th>
+                        <th class="number">Base value</th>
+                        <th>Coverage</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <pre id="coverage"></pre>
+              </details>
+            </div>
+            <details>
+              <summary>Retained result JSON</summary>
+              <pre id="result-json"></pre>
+            </details>
+          </section>
+          <details class="desk-section" id="event-section">
+            <summary>Study history</summary>
+            <ol id="events"></ol>
+            <button id="more-events">Load more history</button>
+          </details>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
