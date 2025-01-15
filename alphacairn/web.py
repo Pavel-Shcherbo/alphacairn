@@ -5,7 +5,7 @@ from .backtest import dataset_digest, parse_bars, simulate
 from .analytics import compare, summarize
 from .httpapp import serve
 from .walkforward import walk_forward
-from .resources import examples_directory
+from .resources import examples_directory, state_directory
 from .portfolio_web import portfolio_example, evaluate_portfolio
 
 
@@ -96,4 +96,7 @@ def evaluate(params):
 
 
 if __name__ == "__main__":
-    serve(evaluate, example, 8412)
+    from .research_desk import ResearchDesk
+
+    desk = ResearchDesk(state_directory("alphacairn") / "research.sqlite")
+    serve(evaluate, example, 8412, research=desk.dispatch)
