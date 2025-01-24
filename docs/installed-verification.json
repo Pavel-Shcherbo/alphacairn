@@ -1,5 +1,5 @@
 {
-  "wheel_sha256": "f37c127a92009b8fe0101021707917f977746bdcea0e710a6f15bfc78e41ad86",
+  "wheel_sha256": "b6605de87bea920b9e7f45951d25b27fff532a8d16a06415a4fee69016b85c3e",
   "examples_exported": [
     "corporate-execution.json",
     "execution-scenario.json",
@@ -30,6 +30,7 @@
   "portfolio_cli_lifecycle_passed": true,
   "portfolio_http_success_and_failures_passed": true,
   "research_registry_and_holdout_access_passed": true,
+  "saved_research_workbench_and_holdout_receipts_passed": true,
   "multiasset_risk_stress_and_offline_replay_passed": true,
   "market_revision_windows_and_snapshot_study_passed": true,
   "multi_asset_execution_replay_and_fraction_control_passed": true,
