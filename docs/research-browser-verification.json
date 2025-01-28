@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "scope": "Real local desktop/mobile browser controls with synthetic frozen risk inputs; content replay, not source authentication or predictive validity",
+  "desktop_viewport": [
+    1440,
+    1000
+  ],
+  "mobile_viewport": [
+    390,
+    844
+  ],
+  "inspected_visual_batches": 3,
+  "registered_attempts": 4,
+  "unsuccessful_attempts": 2,
+  "independent_sqlite_status_counts": {
+    "failed": 1,
+    "incomplete": 1,
+    "succeeded": 2
+  },
+  "independent_holdout_access_events": 3,
+  "independent_trial_execution_starts": 4,
+  "independent_study_count_after_lost_create": 2,
+  "unacknowledged_holdout_blocked": true,
+  "selection_blocked_until_development_resolved": true,
+  "lost_response_recovered_after_reload_without_extra_access": true,
+  "precommit_network_failure_retried_with_original_request": true,
+  "late_view_does_not_overwrite_current_study": true,
+  "default_refresh_withholds_holdout": true,
+  "desktop_document_overflow": false,
+  "mobile_document_overflow": false,
+  "unexpected_page_errors": [],
+  "expected_console_failures": [
+    "Two deliberately aborted API responses",
+    "One missing-receipt HTTP 400 before retrying the original request"
+  ],
+  "independent_equity": "10948.90",
+  "downloaded_export_holdout_accesses_at_export": 2,
+  "downloaded_export_fresh_replay_passed": true,
+  "artifacts": {
+    "research-desktop.png": "a9a53eb00b41271718d515e31f5ed8cd73089f25b44662a579d6f001c37cd9fb",
+    "research-mobile.png": "72eef06e4405c0c1f5932d5cd225105244eabb3119b809ba2ab6f435ff86a587",
+    "research-study-evidence.json": "c4a9ce7a48ab88c3f9cd9b76ddbc7a384c66bb03410772662d934d968d079b48"
+  }
+}
