@@ -1,0 +1,2113 @@
+{
+  "format": "alphacairn.study-evidence.v1",
+  "context": {
+    "id": "d0e5949cb23946d484a11efff7b61b71",
+    "definition": {
+      "development": {
+        "end": "2026-01-03T00:00:00.000000Z",
+        "start": "2025-12-01T00:00:00.000000Z"
+      },
+      "family": "risk",
+      "holdout": {
+        "end": "2026-02-03T00:00:00.000000Z",
+        "start": "2026-01-25T00:00:00.000000Z"
+      },
+      "hypothesis": "Compare declared covariance settings and retain every incomplete or invalid-data outcome.",
+      "name": "synthetic-risk-review",
+      "version": 1
+    },
+    "selection": {
+      "actor": "local-reviewer",
+      "created": 1793794933.096729,
+      "reason": "Review the declared research hypothesis",
+      "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+      "trial": "29afa47abd264aaea662375ab6bb349a"
+    },
+    "trials": [
+      {
+        "id": "29afa47abd264aaea662375ab6bb349a",
+        "sequence": 1,
+        "study_id": "d0e5949cb23946d484a11efff7b61b71",
+        "partition": "development",
+        "label": "Complete baseline",
+        "input_sha256": "ae8fdb8e392d650437edbe6bdba10ff471c4dd3003bb79b529c5154b5726a733",
+        "status": "succeeded",
+        "generation": 3,
+        "created": 1793794932.758155,
+        "finished": 1793794932.952207,
+        "lease_until": null
+      },
+      {
+        "id": "a6300286a4704af3bba9a37592391a5d",
+        "sequence": 2,
+        "study_id": "d0e5949cb23946d484a11efff7b61b71",
+        "partition": "development",
+        "label": "Incomplete history",
+        "input_sha256": "38271f6d18744844e737867528f1eecf87b33f5ed408fd151de20feb5f63d982",
+        "status": "incomplete",
+        "generation": 3,
+        "created": 1793794932.824123,
+        "finished": 1793794933.0198731,
+        "lease_until": null
+      },
+      {
+        "id": "4cf2c95f46074856b43f06130a92d192",
+        "sequence": 3,
+        "study_id": "d0e5949cb23946d484a11efff7b61b71",
+        "partition": "development",
+        "label": "Invalid future quote",
+        "input_sha256": "010fe952f4054431447903a2777698ce38f652bbed7c129c328a4590d7f1dbf8",
+        "status": "failed",
+        "generation": 3,
+        "created": 1793794932.8847182,
+        "finished": 1793794933.062678,
+        "lease_until": null
+      },
+      {
+        "id": "60376997946e4a0facce58433420a292",
+        "sequence": 4,
+        "study_id": "d0e5949cb23946d484a11efff7b61b71",
+        "partition": "holdout",
+        "label": "Later holdout window",
+        "input_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+        "status": "succeeded",
+        "generation": 3,
+        "created": 1793794933.158779,
+        "finished": 1793794933.257348,
+        "lease_until": null
+      }
+    ],
+    "registered_trial_count": 4,
+    "failed_trial_count": 2,
+    "holdout_access_attempts": 2,
+    "holdout_registry_unopened": false,
+    "scope": "Registry-local access accounting only"
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "study_created",
+      "payload": {
+        "definition_sha256": "0a5669bc6d879cf6fd5465c83dae07832979b74e622b17b81d1d045d426f0644"
+      },
+      "previous_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "sha256": "9eaf1d9b8c76bc2b2fd087f0b13399345eee2674144ee340c8fda7671868a328",
+      "created": 1793794663.935786
+    },
+    {
+      "sequence": 2,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_registered",
+      "payload": {
+        "contract": {
+          "end": "2026-01-02T16:00:00.000000Z",
+          "inputs_sha256": "ae8fdb8e392d650437edbe6bdba10ff471c4dd3003bb79b529c5154b5726a733",
+          "recipe": {
+            "account": {
+              "base_currency": "USD",
+              "currencies": {
+                "EUR": 2,
+                "USD": 2
+              },
+              "instruments": [
+                {
+                  "id": "equity:demo-us",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-US"
+                },
+                {
+                  "id": "equity:demo-eu",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "EUR",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-EU"
+                },
+                {
+                  "id": "crypto:demo",
+                  "kind": "crypto_spot",
+                  "price_tick": "0.01",
+                  "quantity_step": "0.00000001",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO-USD",
+                  "venue": "SYNTHETIC-SPOT"
+                }
+              ],
+              "name": "synthetic-research"
+            },
+            "configuration": {
+              "concentration_limits": {
+                "currency": "0.8",
+                "instrument": "0.2",
+                "kind": "0.7",
+                "venue": "0.2"
+              },
+              "confidence": "0.95",
+              "max_age_seconds": 86400,
+              "max_gap_days": 4,
+              "min_observations": 4,
+              "periods_per_year": 252,
+              "scenarios": [
+                {
+                  "fx_shocks": {},
+                  "id": "unchanged",
+                  "price_shocks": {}
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "equity-and-crypto-drop",
+                  "price_shocks": {
+                    "crypto:demo": "-0.5",
+                    "equity:demo-eu": "-0.1",
+                    "equity:demo-us": "-0.2"
+                  }
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "eur-weakness",
+                  "price_shocks": {}
+                }
+              ],
+              "shrinkage": "0.1",
+              "version": 1
+            },
+            "family": "risk"
+          },
+          "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+          "start": "2025-12-26T21:00:00.000000Z"
+        },
+        "input_sha256": "ae8fdb8e392d650437edbe6bdba10ff471c4dd3003bb79b529c5154b5726a733",
+        "partition": "development",
+        "request_sha256": "8024d729d5b4618ee5b4a5c41666ecc9667d97c1e5ca99d6eeadf175488b26d4",
+        "trial": "29afa47abd264aaea662375ab6bb349a"
+      },
+      "previous_sha256": "9eaf1d9b8c76bc2b2fd087f0b13399345eee2674144ee340c8fda7671868a328",
+      "sha256": "b17dfd211db520d2585fb0c19256290f165752e0a99187bac43e59d73ccd25ca",
+      "created": 1793794932.758376
+    },
+    {
+      "sequence": 3,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_registered",
+      "payload": {
+        "contract": {
+          "end": "2026-01-02T16:00:00.000000Z",
+          "inputs_sha256": "38271f6d18744844e737867528f1eecf87b33f5ed408fd151de20feb5f63d982",
+          "recipe": {
+            "account": {
+              "base_currency": "USD",
+              "currencies": {
+                "EUR": 2,
+                "USD": 2
+              },
+              "instruments": [
+                {
+                  "id": "equity:demo-us",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-US"
+                },
+                {
+                  "id": "equity:demo-eu",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "EUR",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-EU"
+                },
+                {
+                  "id": "crypto:demo",
+                  "kind": "crypto_spot",
+                  "price_tick": "0.01",
+                  "quantity_step": "0.00000001",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO-USD",
+                  "venue": "SYNTHETIC-SPOT"
+                }
+              ],
+              "name": "synthetic-research"
+            },
+            "configuration": {
+              "concentration_limits": {
+                "currency": "0.8",
+                "instrument": "0.2",
+                "kind": "0.7",
+                "venue": "0.2"
+              },
+              "confidence": "0.95",
+              "max_age_seconds": 86400,
+              "max_gap_days": 4,
+              "min_observations": 4,
+              "periods_per_year": 252,
+              "scenarios": [
+                {
+                  "fx_shocks": {},
+                  "id": "unchanged",
+                  "price_shocks": {}
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "equity-and-crypto-drop",
+                  "price_shocks": {
+                    "crypto:demo": "-0.5",
+                    "equity:demo-eu": "-0.1",
+                    "equity:demo-us": "-0.2"
+                  }
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "eur-weakness",
+                  "price_shocks": {}
+                }
+              ],
+              "shrinkage": "0.1",
+              "version": 1
+            },
+            "family": "risk"
+          },
+          "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+          "start": "2025-12-26T21:00:00.000000Z"
+        },
+        "input_sha256": "38271f6d18744844e737867528f1eecf87b33f5ed408fd151de20feb5f63d982",
+        "partition": "development",
+        "request_sha256": "3dabd85ffea9cbf05efd40ff7be9308eb2f1a724551b43b63cba94a679bfcbf7",
+        "trial": "a6300286a4704af3bba9a37592391a5d"
+      },
+      "previous_sha256": "b17dfd211db520d2585fb0c19256290f165752e0a99187bac43e59d73ccd25ca",
+      "sha256": "3fd83dfc8f659c91c75cfcfbacb1c5cb51b2102e2e258cd0e23448c6138ab0a4",
+      "created": 1793794932.824321
+    },
+    {
+      "sequence": 4,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_registered",
+      "payload": {
+        "contract": {
+          "end": "2026-01-02T16:00:00.000000Z",
+          "inputs_sha256": "010fe952f4054431447903a2777698ce38f652bbed7c129c328a4590d7f1dbf8",
+          "recipe": {
+            "account": {
+              "base_currency": "USD",
+              "currencies": {
+                "EUR": 2,
+                "USD": 2
+              },
+              "instruments": [
+                {
+                  "id": "equity:demo-us",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-US"
+                },
+                {
+                  "id": "equity:demo-eu",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "EUR",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-EU"
+                },
+                {
+                  "id": "crypto:demo",
+                  "kind": "crypto_spot",
+                  "price_tick": "0.01",
+                  "quantity_step": "0.00000001",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO-USD",
+                  "venue": "SYNTHETIC-SPOT"
+                }
+              ],
+              "name": "synthetic-research"
+            },
+            "configuration": {
+              "concentration_limits": {
+                "currency": "0.8",
+                "instrument": "0.2",
+                "kind": "0.7",
+                "venue": "0.2"
+              },
+              "confidence": "0.95",
+              "max_age_seconds": 86400,
+              "max_gap_days": 4,
+              "min_observations": 4,
+              "periods_per_year": 252,
+              "scenarios": [
+                {
+                  "fx_shocks": {},
+                  "id": "unchanged",
+                  "price_shocks": {}
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "equity-and-crypto-drop",
+                  "price_shocks": {
+                    "crypto:demo": "-0.5",
+                    "equity:demo-eu": "-0.1",
+                    "equity:demo-us": "-0.2"
+                  }
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "eur-weakness",
+                  "price_shocks": {}
+                }
+              ],
+              "shrinkage": "0.1",
+              "version": 1
+            },
+            "family": "risk"
+          },
+          "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+          "start": "2025-12-26T21:00:00.000000Z"
+        },
+        "input_sha256": "010fe952f4054431447903a2777698ce38f652bbed7c129c328a4590d7f1dbf8",
+        "partition": "development",
+        "request_sha256": "bdea31e17c8a5aeb825e4a60a6cad9561c55923ded9190a64d0da4b2d358b884",
+        "trial": "4cf2c95f46074856b43f06130a92d192"
+      },
+      "previous_sha256": "3fd83dfc8f659c91c75cfcfbacb1c5cb51b2102e2e258cd0e23448c6138ab0a4",
+      "sha256": "ff8ea6f0fe232a984440f37dc78e5bb6d3d443959225b3a9c6c6da0cecd91915",
+      "created": 1793794932.885237
+    },
+    {
+      "sequence": 5,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_started",
+      "payload": {
+        "generation": 2,
+        "trial": "29afa47abd264aaea662375ab6bb349a"
+      },
+      "previous_sha256": "ff8ea6f0fe232a984440f37dc78e5bb6d3d443959225b3a9c6c6da0cecd91915",
+      "sha256": "daa0775d03761b1143490f58325d6c54b80d0d26c4bf9f00939d93bb3a45edf6",
+      "created": 1793794932.930249
+    },
+    {
+      "sequence": 6,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_finished",
+      "payload": {
+        "error": null,
+        "result_sha256": "9e06e7f4c62f979ba639766e7e79e8117465d78a9d102645cc81ca09c26c39a6",
+        "status": "succeeded",
+        "trial": "29afa47abd264aaea662375ab6bb349a"
+      },
+      "previous_sha256": "daa0775d03761b1143490f58325d6c54b80d0d26c4bf9f00939d93bb3a45edf6",
+      "sha256": "34d222865f30733bc8103d8fb9f2e2ec418da9803be05dfa6ae35dd6c729b049",
+      "created": 1793794932.952074
+    },
+    {
+      "sequence": 7,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_started",
+      "payload": {
+        "generation": 2,
+        "trial": "a6300286a4704af3bba9a37592391a5d"
+      },
+      "previous_sha256": "34d222865f30733bc8103d8fb9f2e2ec418da9803be05dfa6ae35dd6c729b049",
+      "sha256": "cb4a6c9b1b835a4cb88c74031c88004d75887358feb5c78e306bc1c3ac8d7b27",
+      "created": 1793794933.0120032
+    },
+    {
+      "sequence": 8,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_finished",
+      "payload": {
+        "error": null,
+        "result_sha256": "0387f841ff2afa8d4e7636dd77dfd531079679d26792a386cd7e8e31baa2250a",
+        "status": "incomplete",
+        "trial": "a6300286a4704af3bba9a37592391a5d"
+      },
+      "previous_sha256": "cb4a6c9b1b835a4cb88c74031c88004d75887358feb5c78e306bc1c3ac8d7b27",
+      "sha256": "78ba89790fc5f927fe3adb7974f3e5a87aa540c770e7e15f053ffce667bc6373",
+      "created": 1793794933.019804
+    },
+    {
+      "sequence": 9,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_started",
+      "payload": {
+        "generation": 2,
+        "trial": "4cf2c95f46074856b43f06130a92d192"
+      },
+      "previous_sha256": "78ba89790fc5f927fe3adb7974f3e5a87aa540c770e7e15f053ffce667bc6373",
+      "sha256": "605231845dc4320f5236aa645948f37f9cdbfd8f40d603e4b04d27bfdd77c6ca",
+      "created": 1793794933.0544572
+    },
+    {
+      "sequence": 10,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_finished",
+      "payload": {
+        "error": {
+          "message": "mark timestamp lies after valuation time",
+          "type": "ValueError"
+        },
+        "result_sha256": null,
+        "status": "failed",
+        "trial": "4cf2c95f46074856b43f06130a92d192"
+      },
+      "previous_sha256": "605231845dc4320f5236aa645948f37f9cdbfd8f40d603e4b04d27bfdd77c6ca",
+      "sha256": "929cbdd8c57bb2d9ec032d21bcb67d8c06ba4b1705ebea39b2658921379b5810",
+      "created": 1793794933.062648
+    },
+    {
+      "sequence": 11,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "selection_locked",
+      "payload": {
+        "actor": "local-reviewer",
+        "created": 1793794933.096729,
+        "reason": "Review the declared research hypothesis",
+        "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+        "trial": "29afa47abd264aaea662375ab6bb349a"
+      },
+      "previous_sha256": "929cbdd8c57bb2d9ec032d21bcb67d8c06ba4b1705ebea39b2658921379b5810",
+      "sha256": "35e131f80ab42b696058a1cf4827bc8936e535f08ce758374c613d8213c8ee9d",
+      "created": 1793794933.097002
+    },
+    {
+      "sequence": 12,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_registered",
+      "payload": {
+        "contract": {
+          "end": "2026-02-02T16:00:00.000000Z",
+          "inputs_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+          "recipe": {
+            "account": {
+              "base_currency": "USD",
+              "currencies": {
+                "EUR": 2,
+                "USD": 2
+              },
+              "instruments": [
+                {
+                  "id": "equity:demo-us",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-US"
+                },
+                {
+                  "id": "equity:demo-eu",
+                  "kind": "equity",
+                  "price_tick": "0.01",
+                  "quantity_step": "1",
+                  "quote_currency": "EUR",
+                  "symbol": "DEMO",
+                  "venue": "SYNTHETIC-EU"
+                },
+                {
+                  "id": "crypto:demo",
+                  "kind": "crypto_spot",
+                  "price_tick": "0.01",
+                  "quantity_step": "0.00000001",
+                  "quote_currency": "USD",
+                  "symbol": "DEMO-USD",
+                  "venue": "SYNTHETIC-SPOT"
+                }
+              ],
+              "name": "synthetic-research"
+            },
+            "configuration": {
+              "concentration_limits": {
+                "currency": "0.8",
+                "instrument": "0.2",
+                "kind": "0.7",
+                "venue": "0.2"
+              },
+              "confidence": "0.95",
+              "max_age_seconds": 86400,
+              "max_gap_days": 4,
+              "min_observations": 4,
+              "periods_per_year": 252,
+              "scenarios": [
+                {
+                  "fx_shocks": {},
+                  "id": "unchanged",
+                  "price_shocks": {}
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "equity-and-crypto-drop",
+                  "price_shocks": {
+                    "crypto:demo": "-0.5",
+                    "equity:demo-eu": "-0.1",
+                    "equity:demo-us": "-0.2"
+                  }
+                },
+                {
+                  "fx_shocks": {
+                    "EUR": "-0.1"
+                  },
+                  "id": "eur-weakness",
+                  "price_shocks": {}
+                }
+              ],
+              "shrinkage": "0.1",
+              "version": 1
+            },
+            "family": "risk"
+          },
+          "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+          "start": "2026-01-26T21:00:00.000000Z"
+        },
+        "input_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+        "partition": "holdout",
+        "request_sha256": "330a93004be6a7e140a19588674f8eb62db2768d6259caf43e7d98ade8d9b98d",
+        "trial": "60376997946e4a0facce58433420a292"
+      },
+      "previous_sha256": "35e131f80ab42b696058a1cf4827bc8936e535f08ce758374c613d8213c8ee9d",
+      "sha256": "f53927e49f76f30365a665866ecddf3a83a2504d61c8002fbd817e5bee8c64d9",
+      "created": 1793794933.1593459
+    },
+    {
+      "sequence": 13,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "holdout_access",
+      "payload": {
+        "actor": "local-reviewer",
+        "purpose": "run",
+        "reason": "Review the declared research hypothesis",
+        "trial": "60376997946e4a0facce58433420a292"
+      },
+      "previous_sha256": "f53927e49f76f30365a665866ecddf3a83a2504d61c8002fbd817e5bee8c64d9",
+      "sha256": "2018125c232d0c986b4003d3c64dccdc78c3e814d5e9c0415d26628a7cf88fcb",
+      "created": 1793794933.246027
+    },
+    {
+      "sequence": 14,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_started",
+      "payload": {
+        "generation": 2,
+        "trial": "60376997946e4a0facce58433420a292"
+      },
+      "previous_sha256": "2018125c232d0c986b4003d3c64dccdc78c3e814d5e9c0415d26628a7cf88fcb",
+      "sha256": "c32ce8db0e057fe791533de626763736f6a2b29f233e982a25b185277ab64e6d",
+      "created": 1793794933.246752
+    },
+    {
+      "sequence": 15,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "trial_finished",
+      "payload": {
+        "error": null,
+        "result_sha256": "f0f5595d970d75bf7f98a3b818dfd057a2658b990e623b14d8cdc7a898cb42d1",
+        "status": "succeeded",
+        "trial": "60376997946e4a0facce58433420a292"
+      },
+      "previous_sha256": "c32ce8db0e057fe791533de626763736f6a2b29f233e982a25b185277ab64e6d",
+      "sha256": "1d10b4b19e2c8a79bbc71300b9890c341af1b8c30084260184784cb937b13df7",
+      "created": 1793794933.257257
+    },
+    {
+      "sequence": 16,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "kind": "holdout_access",
+      "payload": {
+        "actor": "local-reviewer",
+        "purpose": "export",
+        "reason": "Review the declared research hypothesis",
+        "trial": "60376997946e4a0facce58433420a292"
+      },
+      "previous_sha256": "1d10b4b19e2c8a79bbc71300b9890c341af1b8c30084260184784cb937b13df7",
+      "sha256": "7b70fc96ea0c47bf9a4645058ee4a623ad58785d8bd265ae807fbb32cd8e2b8b",
+      "created": 1793794933.4289181
+    }
+  ],
+  "trial": {
+    "record": {
+      "id": "60376997946e4a0facce58433420a292",
+      "sequence": 4,
+      "study_id": "d0e5949cb23946d484a11efff7b61b71",
+      "partition": "holdout",
+      "label": "Later holdout window",
+      "input_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+      "status": "succeeded",
+      "generation": 3,
+      "created": 1793794933.158779,
+      "finished": 1793794933.257348,
+      "lease_until": null
+    },
+    "inputs": {
+      "configuration": {
+        "as_of": "2026-02-02T16:00:00.000000Z",
+        "concentration_limits": {
+          "currency": "0.8",
+          "instrument": "0.2",
+          "kind": "0.7",
+          "venue": "0.2"
+        },
+        "confidence": "0.95",
+        "history_end": "2026-02-01T21:00:00.000000Z",
+        "history_start": "2026-01-26T21:00:00.000000Z",
+        "max_age_seconds": 86400,
+        "max_gap_days": 4,
+        "min_observations": 4,
+        "name": "synthetic-multiasset-risk",
+        "periods_per_year": 252,
+        "scenarios": [
+          {
+            "fx_shocks": {},
+            "id": "unchanged",
+            "price_shocks": {}
+          },
+          {
+            "fx_shocks": {
+              "EUR": "-0.1"
+            },
+            "id": "equity-and-crypto-drop",
+            "price_shocks": {
+              "crypto:demo": "-0.5",
+              "equity:demo-eu": "-0.1",
+              "equity:demo-us": "-0.2"
+            }
+          },
+          {
+            "fx_shocks": {
+              "EUR": "-0.1"
+            },
+            "id": "eur-weakness",
+            "price_shocks": {}
+          }
+        ],
+        "shrinkage": "0.1",
+        "version": 1
+      },
+      "format": "alphacairn.risk-inputs.v1",
+      "history": {
+        "observations": [
+          {
+            "at": "2026-01-26T21:00:00.000000Z",
+            "available_at": "2026-01-26T21:00:00.000000Z",
+            "fx": {
+              "EUR": "1"
+            },
+            "prices": {
+              "crypto:demo": "20000",
+              "equity:demo-eu": "50",
+              "equity:demo-us": "100"
+            }
+          },
+          {
+            "at": "2026-01-27T21:00:00.000000Z",
+            "available_at": "2026-01-27T21:00:00.000000Z",
+            "fx": {
+              "EUR": "1.1"
+            },
+            "prices": {
+              "crypto:demo": "18000.0",
+              "equity:demo-eu": "55.0",
+              "equity:demo-us": "110.0"
+            }
+          },
+          {
+            "at": "2026-01-28T21:00:00.000000Z",
+            "available_at": "2026-01-28T21:00:00.000000Z",
+            "fx": {
+              "EUR": "0.99"
+            },
+            "prices": {
+              "crypto:demo": "19800.00",
+              "equity:demo-eu": "49.50",
+              "equity:demo-us": "99.00"
+            }
+          },
+          {
+            "at": "2026-01-29T21:00:00.000000Z",
+            "available_at": "2026-01-29T21:00:00.000000Z",
+            "fx": {
+              "EUR": "1.089"
+            },
+            "prices": {
+              "crypto:demo": "17820.000",
+              "equity:demo-eu": "54.450",
+              "equity:demo-us": "108.900"
+            }
+          },
+          {
+            "at": "2026-01-30T21:00:00.000000Z",
+            "available_at": "2026-01-30T21:00:00.000000Z",
+            "fx": {
+              "EUR": "0.9801"
+            },
+            "prices": {
+              "crypto:demo": "19602.0000",
+              "equity:demo-eu": "49.0050",
+              "equity:demo-us": "98.0100"
+            }
+          },
+          {
+            "at": "2026-01-31T21:00:00.000000Z",
+            "available_at": "2026-01-31T21:00:00.000000Z",
+            "fx": {
+              "EUR": "1.07811"
+            },
+            "prices": {
+              "crypto:demo": "17641.80000",
+              "equity:demo-eu": "53.90550",
+              "equity:demo-us": "107.81100"
+            }
+          }
+        ],
+        "price_basis": "split_adjusted_price_only",
+        "source": "synthetic-risk-control",
+        "version": 1
+      },
+      "journal": {
+        "account": {
+          "base_currency": "USD",
+          "currencies": {
+            "EUR": 2,
+            "USD": 2
+          },
+          "instruments": [
+            {
+              "id": "equity:demo-us",
+              "kind": "equity",
+              "price_tick": "0.01",
+              "quantity_step": "1",
+              "quote_currency": "USD",
+              "symbol": "DEMO",
+              "venue": "SYNTHETIC-US"
+            },
+            {
+              "id": "equity:demo-eu",
+              "kind": "equity",
+              "price_tick": "0.01",
+              "quantity_step": "1",
+              "quote_currency": "EUR",
+              "symbol": "DEMO",
+              "venue": "SYNTHETIC-EU"
+            },
+            {
+              "id": "crypto:demo",
+              "kind": "crypto_spot",
+              "price_tick": "0.01",
+              "quantity_step": "0.00000001",
+              "quote_currency": "USD",
+              "symbol": "DEMO-USD",
+              "venue": "SYNTHETIC-SPOT"
+            }
+          ],
+          "name": "synthetic-research"
+        },
+        "events": [
+          {
+            "amount": "10000.00",
+            "currency": "USD",
+            "id": "fund",
+            "kind": "deposit",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fee": "2.00",
+            "id": "buy-first",
+            "instrument": "equity:demo-us",
+            "kind": "trade",
+            "price": "100",
+            "quantity": "10",
+            "side": "buy",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fee": "1.00",
+            "id": "buy-second",
+            "instrument": "equity:demo-us",
+            "kind": "trade",
+            "price": "120",
+            "quantity": "5",
+            "side": "buy",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fee": "3.00",
+            "id": "sell-partial",
+            "instrument": "equity:demo-us",
+            "kind": "trade",
+            "price": "150",
+            "quantity": "12",
+            "side": "sell",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "denominator": 1,
+            "id": "split",
+            "instrument": "equity:demo-us",
+            "kind": "split",
+            "numerator": 2,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "gross": "12.00",
+            "id": "dividend",
+            "instrument": "equity:demo-us",
+            "kind": "dividend",
+            "timestamp": "2026-01-02T12:00:00.000000Z",
+            "withholding": "3.00"
+          },
+          {
+            "amount": "1000.00",
+            "fee": "1.00",
+            "from_currency": "USD",
+            "id": "exchange",
+            "kind": "fx",
+            "rate": "0.9",
+            "timestamp": "2026-01-02T12:00:00.000000Z",
+            "to_currency": "EUR"
+          },
+          {
+            "fee": "1.00",
+            "id": "buy-europe",
+            "instrument": "equity:demo-eu",
+            "kind": "trade",
+            "price": "50",
+            "quantity": "10",
+            "side": "buy",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fee": "2.00",
+            "id": "buy-crypto",
+            "instrument": "crypto:demo",
+            "kind": "trade",
+            "price": "20000",
+            "quantity": "0.1",
+            "side": "buy",
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          }
+        ],
+        "receipts": [
+          {
+            "fifo_matches": [],
+            "id": "fund",
+            "kind": "deposit",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "10000.00",
+                "currency": "USD"
+              },
+              {
+                "account": "external_capital",
+                "amount": "-10000.00",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 1,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "buy-first",
+            "kind": "trade",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "-1002.00",
+                "currency": "USD"
+              },
+              {
+                "account": "inventory:equity:demo-us",
+                "amount": "1002.00",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 2,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "buy-second",
+            "kind": "trade",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "-601.00",
+                "currency": "USD"
+              },
+              {
+                "account": "inventory:equity:demo-us",
+                "amount": "601.00",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 3,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [
+              {
+                "basis": "1002.00",
+                "lot_id": 1,
+                "quantity": "10"
+              },
+              {
+                "basis": "240.40",
+                "lot_id": 2,
+                "quantity": "2"
+              }
+            ],
+            "id": "sell-partial",
+            "kind": "trade",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "1797.00",
+                "currency": "USD"
+              },
+              {
+                "account": "inventory:equity:demo-us",
+                "amount": "-1242.40",
+                "currency": "USD"
+              },
+              {
+                "account": "realized_income:equity:demo-us",
+                "amount": "-554.60",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 4,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "split",
+            "kind": "split",
+            "postings": [],
+            "sequence": 5,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "dividend",
+            "kind": "dividend",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "9.00",
+                "currency": "USD"
+              },
+              {
+                "account": "dividend_income",
+                "amount": "-12.00",
+                "currency": "USD"
+              },
+              {
+                "account": "withholding",
+                "amount": "3.00",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 6,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "exchange",
+            "kind": "fx",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "-1001.00",
+                "currency": "USD"
+              },
+              {
+                "account": "fx_clearing",
+                "amount": "1000.00",
+                "currency": "USD"
+              },
+              {
+                "account": "fx_fees",
+                "amount": "1.00",
+                "currency": "USD"
+              },
+              {
+                "account": "cash",
+                "amount": "900.00",
+                "currency": "EUR"
+              },
+              {
+                "account": "fx_clearing",
+                "amount": "-900.00",
+                "currency": "EUR"
+              }
+            ],
+            "sequence": 7,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "buy-europe",
+            "kind": "trade",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "-501.00",
+                "currency": "EUR"
+              },
+              {
+                "account": "inventory:equity:demo-eu",
+                "amount": "501.00",
+                "currency": "EUR"
+              }
+            ],
+            "sequence": 8,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          },
+          {
+            "fifo_matches": [],
+            "id": "buy-crypto",
+            "kind": "trade",
+            "postings": [
+              {
+                "account": "cash",
+                "amount": "-2002.00",
+                "currency": "USD"
+              },
+              {
+                "account": "inventory:crypto:demo",
+                "amount": "2002.00",
+                "currency": "USD"
+              }
+            ],
+            "sequence": 9,
+            "timestamp": "2026-01-02T12:00:00.000000Z"
+          }
+        ],
+        "state": {
+          "account": {
+            "base_currency": "USD",
+            "currencies": {
+              "EUR": 2,
+              "USD": 2
+            },
+            "instruments": [
+              {
+                "id": "equity:demo-us",
+                "kind": "equity",
+                "price_tick": "0.01",
+                "quantity_step": "1",
+                "quote_currency": "USD",
+                "symbol": "DEMO",
+                "venue": "SYNTHETIC-US"
+              },
+              {
+                "id": "equity:demo-eu",
+                "kind": "equity",
+                "price_tick": "0.01",
+                "quantity_step": "1",
+                "quote_currency": "EUR",
+                "symbol": "DEMO",
+                "venue": "SYNTHETIC-EU"
+              },
+              {
+                "id": "crypto:demo",
+                "kind": "crypto_spot",
+                "price_tick": "0.01",
+                "quantity_step": "0.00000001",
+                "quote_currency": "USD",
+                "symbol": "DEMO-USD",
+                "venue": "SYNTHETIC-SPOT"
+              }
+            ],
+            "name": "synthetic-research"
+          },
+          "accounts": {
+            "EUR": {
+              "cash": "399.00",
+              "fx_clearing": "-900.00",
+              "inventory:equity:demo-eu": "501.00"
+            },
+            "USD": {
+              "cash": "7200.00",
+              "dividend_income": "-12.00",
+              "external_capital": "-10000.00",
+              "fx_clearing": "1000.00",
+              "fx_fees": "1.00",
+              "inventory:crypto:demo": "2002.00",
+              "inventory:equity:demo-us": "360.60",
+              "realized_income:equity:demo-us": "-554.60",
+              "withholding": "3.00"
+            }
+          },
+          "cash": {
+            "EUR": "399.00",
+            "USD": "7200.00"
+          },
+          "last_sequence": 9,
+          "latest_timestamp": "2026-01-02T12:00:00.000000Z",
+          "lots": [
+            {
+              "acquired_at": "2026-01-02T12:00:00.000000Z",
+              "basis": "360.60",
+              "event_seq": 3,
+              "id": 2,
+              "instrument": "equity:demo-us",
+              "quantity": "6"
+            },
+            {
+              "acquired_at": "2026-01-02T12:00:00.000000Z",
+              "basis": "501.00",
+              "event_seq": 8,
+              "id": 3,
+              "instrument": "equity:demo-eu",
+              "quantity": "10"
+            },
+            {
+              "acquired_at": "2026-01-02T12:00:00.000000Z",
+              "basis": "2002.00",
+              "event_seq": 9,
+              "id": 4,
+              "instrument": "crypto:demo",
+              "quantity": "0.1"
+            }
+          ],
+          "positions": {
+            "crypto:demo": {
+              "basis": "2002.00",
+              "quantity": "0.1"
+            },
+            "equity:demo-eu": {
+              "basis": "501.00",
+              "quantity": "10"
+            },
+            "equity:demo-us": {
+              "basis": "360.60",
+              "quantity": "6"
+            }
+          }
+        }
+      },
+      "quotes": {
+        "as_of": "2026-02-02T16:00:00.000000Z",
+        "fx": {
+          "EUR": {
+            "rate": "1.1",
+            "timestamp": "2026-02-02T16:00:00.000000Z"
+          }
+        },
+        "marks": {
+          "crypto:demo": {
+            "price": "22000",
+            "timestamp": "2026-02-02T16:00:00.000000Z"
+          },
+          "equity:demo-eu": {
+            "price": "60",
+            "timestamp": "2026-02-02T16:00:00.000000Z"
+          },
+          "equity:demo-us": {
+            "price": "75",
+            "timestamp": "2026-02-02T16:00:00.000000Z"
+          }
+        },
+        "max_age_seconds": 86400
+      },
+      "sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685"
+    },
+    "contract": {
+      "end": "2026-02-02T16:00:00.000000Z",
+      "inputs_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+      "recipe": {
+        "account": {
+          "base_currency": "USD",
+          "currencies": {
+            "EUR": 2,
+            "USD": 2
+          },
+          "instruments": [
+            {
+              "id": "equity:demo-us",
+              "kind": "equity",
+              "price_tick": "0.01",
+              "quantity_step": "1",
+              "quote_currency": "USD",
+              "symbol": "DEMO",
+              "venue": "SYNTHETIC-US"
+            },
+            {
+              "id": "equity:demo-eu",
+              "kind": "equity",
+              "price_tick": "0.01",
+              "quantity_step": "1",
+              "quote_currency": "EUR",
+              "symbol": "DEMO",
+              "venue": "SYNTHETIC-EU"
+            },
+            {
+              "id": "crypto:demo",
+              "kind": "crypto_spot",
+              "price_tick": "0.01",
+              "quantity_step": "0.00000001",
+              "quote_currency": "USD",
+              "symbol": "DEMO-USD",
+              "venue": "SYNTHETIC-SPOT"
+            }
+          ],
+          "name": "synthetic-research"
+        },
+        "configuration": {
+          "concentration_limits": {
+            "currency": "0.8",
+            "instrument": "0.2",
+            "kind": "0.7",
+            "venue": "0.2"
+          },
+          "confidence": "0.95",
+          "max_age_seconds": 86400,
+          "max_gap_days": 4,
+          "min_observations": 4,
+          "periods_per_year": 252,
+          "scenarios": [
+            {
+              "fx_shocks": {},
+              "id": "unchanged",
+              "price_shocks": {}
+            },
+            {
+              "fx_shocks": {
+                "EUR": "-0.1"
+              },
+              "id": "equity-and-crypto-drop",
+              "price_shocks": {
+                "crypto:demo": "-0.5",
+                "equity:demo-eu": "-0.1",
+                "equity:demo-us": "-0.2"
+              }
+            },
+            {
+              "fx_shocks": {
+                "EUR": "-0.1"
+              },
+              "id": "eur-weakness",
+              "price_shocks": {}
+            }
+          ],
+          "shrinkage": "0.1",
+          "version": 1
+        },
+        "family": "risk"
+      },
+      "recipe_sha256": "dd69df2e132ee20d58935ac9dbe07671f441de43f69c421cde4663b966b8452b",
+      "start": "2026-01-26T21:00:00.000000Z"
+    },
+    "result": {
+      "as_of": "2026-02-02T16:00:00.000000Z",
+      "base_currency": "USD",
+      "complete": true,
+      "completed": true,
+      "concentration": {
+        "breaches": [
+          {
+            "base_value": "2200.000000000000000000",
+            "breached": true,
+            "group": "instrument",
+            "limit": "0.2",
+            "name": "crypto:demo",
+            "weight": "0.200933427102265981"
+          },
+          {
+            "base_value": "9850.000000000000000000",
+            "breached": true,
+            "group": "currency",
+            "limit": "0.8",
+            "name": "USD",
+            "weight": "0.899633753162418142"
+          },
+          {
+            "base_value": "2200.000000000000000000",
+            "breached": true,
+            "group": "venue",
+            "limit": "0.2",
+            "name": "SYNTHETIC-SPOT",
+            "weight": "0.200933427102265981"
+          }
+        ],
+        "complete": true,
+        "denominator": "total marked equity including cash and dividend assets",
+        "groups": {
+          "currency": [
+            {
+              "base_value": "1098.900000000000000000",
+              "breached": false,
+              "limit": "0.8",
+              "name": "EUR",
+              "weight": "0.100366246837581858"
+            },
+            {
+              "base_value": "9850.000000000000000000",
+              "breached": true,
+              "limit": "0.8",
+              "name": "USD",
+              "weight": "0.899633753162418142"
+            }
+          ],
+          "instrument": [
+            {
+              "base_value": "2200.000000000000000000",
+              "breached": true,
+              "limit": "0.2",
+              "name": "crypto:demo",
+              "weight": "0.200933427102265981"
+            },
+            {
+              "base_value": "660.000000000000000000",
+              "breached": false,
+              "limit": "0.2",
+              "name": "equity:demo-eu",
+              "weight": "0.060280028130679794"
+            },
+            {
+              "base_value": "450.000000000000000000",
+              "breached": false,
+              "limit": "0.2",
+              "name": "equity:demo-us",
+              "weight": "0.041100019180008951"
+            }
+          ],
+          "kind": [
+            {
+              "base_value": "7638.900000000000000000",
+              "breached": false,
+              "limit": "0.7",
+              "name": "cash",
+              "weight": "0.697686525587045274"
+            },
+            {
+              "base_value": "2200.000000000000000000",
+              "breached": false,
+              "limit": "0.7",
+              "name": "crypto_spot",
+              "weight": "0.200933427102265981"
+            },
+            {
+              "base_value": "1110.000000000000000000",
+              "breached": false,
+              "limit": "0.7",
+              "name": "equity",
+              "weight": "0.101380047310688745"
+            }
+          ],
+          "venue": [
+            {
+              "base_value": "660.000000000000000000",
+              "breached": false,
+              "limit": "0.2",
+              "name": "SYNTHETIC-EU",
+              "weight": "0.060280028130679794"
+            },
+            {
+              "base_value": "2200.000000000000000000",
+              "breached": true,
+              "limit": "0.2",
+              "name": "SYNTHETIC-SPOT",
+              "weight": "0.200933427102265981"
+            },
+            {
+              "base_value": "450.000000000000000000",
+              "breached": false,
+              "limit": "0.2",
+              "name": "SYNTHETIC-US",
+              "weight": "0.041100019180008951"
+            }
+          ]
+        }
+      },
+      "configuration_sha256": "f142fdb37cc467988a71cbd7ec5f9d6e39d42e384ee82f1493eddf9ba475916a",
+      "exposures": [
+        {
+          "asset_kind": "crypto_spot",
+          "base_value": "2200.00",
+          "currency": "USD",
+          "id": "asset:crypto:demo",
+          "instrument": "crypto:demo",
+          "kind": "position",
+          "venue": "SYNTHETIC-SPOT"
+        },
+        {
+          "asset_kind": "equity",
+          "base_value": "660.00",
+          "currency": "EUR",
+          "id": "asset:equity:demo-eu",
+          "instrument": "equity:demo-eu",
+          "kind": "position",
+          "venue": "SYNTHETIC-EU"
+        },
+        {
+          "asset_kind": "equity",
+          "base_value": "450.00",
+          "currency": "USD",
+          "id": "asset:equity:demo-us",
+          "instrument": "equity:demo-us",
+          "kind": "position",
+          "venue": "SYNTHETIC-US"
+        },
+        {
+          "asset_kind": "cash",
+          "base_value": "438.90",
+          "currency": "EUR",
+          "id": "cash:EUR",
+          "instrument": null,
+          "kind": "cash",
+          "venue": null
+        },
+        {
+          "asset_kind": "cash",
+          "base_value": "7200.00",
+          "currency": "USD",
+          "id": "cash:USD",
+          "instrument": null,
+          "kind": "cash",
+          "venue": null
+        }
+      ],
+      "format": "alphacairn.risk-report.v1",
+      "history": {
+        "effective_end": "2026-01-31T21:00:00.000000Z",
+        "effective_start": "2026-01-26T21:00:00.000000Z",
+        "evaluated": true,
+        "excluded_intervals": [],
+        "factors": [
+          {
+            "base_value": "2200.000000000000000000",
+            "currency": "USD",
+            "id": "asset:crypto:demo",
+            "instrument": "crypto:demo"
+          },
+          {
+            "base_value": "660.000000000000000000",
+            "currency": "EUR",
+            "id": "asset:equity:demo-eu",
+            "instrument": "equity:demo-eu"
+          },
+          {
+            "base_value": "450.000000000000000000",
+            "currency": "USD",
+            "id": "asset:equity:demo-us",
+            "instrument": "equity:demo-us"
+          },
+          {
+            "base_value": "438.900000000000000000",
+            "currency": "EUR",
+            "id": "fx:EUR",
+            "instrument": null
+          }
+        ],
+        "intervals": [
+          {
+            "from": "2026-01-26T21:00:00.000000Z",
+            "pnl": "7.490000000000000000",
+            "returns": {
+              "asset:crypto:demo": "-0.100000000000",
+              "asset:equity:demo-eu": "0.210000000000",
+              "asset:equity:demo-us": "0.100000000000",
+              "fx:EUR": "0.100000000000"
+            },
+            "to": "2026-01-27T21:00:00.000000Z"
+          },
+          {
+            "from": "2026-01-27T21:00:00.000000Z",
+            "pnl": "5.710000000000000000",
+            "returns": {
+              "asset:crypto:demo": "0.100000000000",
+              "asset:equity:demo-eu": "-0.190000000000",
+              "asset:equity:demo-us": "-0.100000000000",
+              "fx:EUR": "-0.100000000000"
+            },
+            "to": "2026-01-28T21:00:00.000000Z"
+          },
+          {
+            "from": "2026-01-28T21:00:00.000000Z",
+            "pnl": "7.490000000000000000",
+            "returns": {
+              "asset:crypto:demo": "-0.100000000000",
+              "asset:equity:demo-eu": "0.210000000000",
+              "asset:equity:demo-us": "0.100000000000",
+              "fx:EUR": "0.100000000000"
+            },
+            "to": "2026-01-29T21:00:00.000000Z"
+          },
+          {
+            "from": "2026-01-29T21:00:00.000000Z",
+            "pnl": "5.710000000000000000",
+            "returns": {
+              "asset:crypto:demo": "0.100000000000",
+              "asset:equity:demo-eu": "-0.190000000000",
+              "asset:equity:demo-us": "-0.100000000000",
+              "fx:EUR": "-0.100000000000"
+            },
+            "to": "2026-01-30T21:00:00.000000Z"
+          },
+          {
+            "from": "2026-01-30T21:00:00.000000Z",
+            "pnl": "7.490000000000000000",
+            "returns": {
+              "asset:crypto:demo": "-0.100000000000",
+              "asset:equity:demo-eu": "0.210000000000",
+              "asset:equity:demo-us": "0.100000000000",
+              "fx:EUR": "0.100000000000"
+            },
+            "to": "2026-01-31T21:00:00.000000Z"
+          }
+        ],
+        "minimum_required": 4,
+        "policy": "Adjacent complete observations only; no forward filling, no joining over gaps; split-adjusted price-only levels and base-per-quote FX; returns rounded half-even to 12 decimal places",
+        "source_observation_count": 6,
+        "used_return_count": 5,
+        "window_end": "2026-02-01T21:00:00.000000Z",
+        "window_start": "2026-01-26T21:00:00.000000Z"
+      },
+      "inputs_sha256": "0900e45aada88f329c4c1d9fd7e4ba6ce1e7cc6497dc5d9eb614ddad8b2a9685",
+      "journal_replayed": true,
+      "journal_sequence": 9,
+      "rounding_policy": "Journal currency rounding for baseline/stresses; stressed per-unit quotes rounded half-even to 18 places; historical simple returns rounded half-even to 12 places; covariance/tails exact on that grid; displayed diagnostics 18 places",
+      "scope": "Descriptive long-only equity/spot risk from a replayed journal, operator-declared synchronous price history and explicit shocks; no trading advice, regulatory capital or prediction",
+      "sha256": "2a32465312e115811084a9ce9de8fa6278288d802c3ded011ae35d5d18aa9509",
+      "statistics": {
+        "complete": true,
+        "covariance": {
+          "annualization_assumption": "Square-root-of-time scaling under the declared equal-period/no-serial-correlation approximation; not a forecast",
+          "annualized_volatility_fraction": "0.132676359049828317",
+          "components": [
+            {
+              "base_value": "2200.000000000000000000",
+              "component_volatility_base": "61.158318727837069648",
+              "id": "asset:crypto:demo",
+              "mean_return": "-0.020000000000000000",
+              "period_volatility": "0.109544511501033223",
+              "variance_contribution": "5596.536000000000000000",
+              "variance_contribution_exact": {
+                "denominator": "125",
+                "numerator": "699567"
+              },
+              "variance_share": "0.668331258767156406"
+            },
+            {
+              "base_value": "660.000000000000000000",
+              "component_volatility_base": "24.235415458515405787",
+              "id": "asset:equity:demo-eu",
+              "mean_return": "0.050000000000000000",
+              "period_volatility": "0.219089023002066445",
+              "variance_contribution": "2217.758400000000000000",
+              "variance_contribution_exact": {
+                "denominator": "625",
+                "numerator": "1386099"
+              },
+              "variance_share": "0.264841906335174966"
+            },
+            {
+              "base_value": "450.000000000000000000",
+              "component_volatility_base": "3.128151658296895175",
+              "id": "asset:equity:demo-us",
+              "mean_return": "0.020000000000000000",
+              "period_volatility": "0.109544511501033223",
+              "variance_contribution": "286.254000000000000000",
+              "variance_contribution_exact": {
+                "denominator": "500",
+                "numerator": "143127"
+              },
+              "variance_share": "0.034184091042590200"
+            },
+            {
+              "base_value": "438.900000000000000000",
+              "component_volatility_base": "2.987104533345730511",
+              "id": "fx:EUR",
+              "mean_return": "0.020000000000000000",
+              "period_volatility": "0.109544511501033223",
+              "variance_contribution": "273.346920000000000000",
+              "variance_contribution_exact": {
+                "denominator": "25000",
+                "numerator": "6833673"
+              },
+              "variance_share": "0.032642743855078427"
+            }
+          ],
+          "correlation": [
+            [
+              "1.000000000000000000",
+              "-0.900000000000000000",
+              "-0.900000000000000000",
+              "-0.900000000000000000"
+            ],
+            [
+              "-0.900000000000000000",
+              "1.000000000000000000",
+              "0.900000000000000000",
+              "0.900000000000000000"
+            ],
+            [
+              "-0.900000000000000000",
+              "0.900000000000000000",
+              "1.000000000000000000",
+              "0.900000000000000000"
+            ],
+            [
+              "-0.900000000000000000",
+              "0.900000000000000000",
+              "0.900000000000000000",
+              "1.000000000000000000"
+            ]
+          ],
+          "covariance": [
+            [
+              "0.012000000000000000",
+              "-0.021600000000000000",
+              "-0.010800000000000000",
+              "-0.010800000000000000"
+            ],
+            [
+              "-0.021600000000000000",
+              "0.048000000000000000",
+              "0.021600000000000000",
+              "0.021600000000000000"
+            ],
+            [
+              "-0.010800000000000000",
+              "0.021600000000000000",
+              "0.012000000000000000",
+              "0.010800000000000000"
+            ],
+            [
+              "-0.010800000000000000",
+              "0.021600000000000000",
+              "0.010800000000000000",
+              "0.012000000000000000"
+            ]
+          ],
+          "covariance_exact": [
+            [
+              {
+                "denominator": "250",
+                "numerator": "3"
+              },
+              {
+                "denominator": "1250",
+                "numerator": "-27"
+              },
+              {
+                "denominator": "2500",
+                "numerator": "-27"
+              },
+              {
+                "denominator": "2500",
+                "numerator": "-27"
+              }
+            ],
+            [
+              {
+                "denominator": "1250",
+                "numerator": "-27"
+              },
+              {
+                "denominator": "125",
+                "numerator": "6"
+              },
+              {
+                "denominator": "1250",
+                "numerator": "27"
+              },
+              {
+                "denominator": "1250",
+                "numerator": "27"
+              }
+            ],
+            [
+              {
+                "denominator": "2500",
+                "numerator": "-27"
+              },
+              {
+                "denominator": "1250",
+                "numerator": "27"
+              },
+              {
+                "denominator": "250",
+                "numerator": "3"
+              },
+              {
+                "denominator": "2500",
+                "numerator": "27"
+              }
+            ],
+            [
+              {
+                "denominator": "2500",
+                "numerator": "-27"
+              },
+              {
+                "denominator": "1250",
+                "numerator": "27"
+              },
+              {
+                "denominator": "2500",
+                "numerator": "27"
+              },
+              {
+                "denominator": "250",
+                "numerator": "3"
+              }
+            ]
+          ],
+          "factor_order": [
+            "asset:crypto:demo",
+            "asset:equity:demo-eu",
+            "asset:equity:demo-us",
+            "fx:EUR"
+          ],
+          "method": "sample covariance (n-1), then off-diagonal multiplied by (1-shrinkage); unchanged diagonal",
+          "period_volatility_base": "91.508990377995101121",
+          "period_volatility_fraction": "0.008357825021508563",
+          "periods_per_year": 252,
+          "regularized_diagnostics": {
+            "condition_number_one": "128.297297297297297297",
+            "condition_threshold": "100000000",
+            "factors": 4,
+            "ill_conditioned": false,
+            "inverse_used_for_portfolio_risk": false,
+            "rank": 4,
+            "singular": false,
+            "zero_variance_factors": []
+          },
+          "sample_covariance": [
+            [
+              "0.012000000000000000",
+              "-0.024000000000000000",
+              "-0.012000000000000000",
+              "-0.012000000000000000"
+            ],
+            [
+              "-0.024000000000000000",
+              "0.048000000000000000",
+              "0.024000000000000000",
+              "0.024000000000000000"
+            ],
+            [
+              "-0.012000000000000000",
+              "0.024000000000000000",
+              "0.012000000000000000",
+              "0.012000000000000000"
+            ],
+            [
+              "-0.012000000000000000",
+              "0.024000000000000000",
+              "0.012000000000000000",
+              "0.012000000000000000"
+            ]
+          ],
+          "sample_diagnostics": {
+            "condition_number_one": null,
+            "condition_threshold": "100000000",
+            "factors": 4,
+            "ill_conditioned": null,
+            "inverse_used_for_portfolio_risk": false,
+            "rank": 1,
+            "singular": true,
+            "zero_variance_factors": []
+          },
+          "shrinkage": "0.1",
+          "variance_base": "8373.895320000000000000",
+          "variance_base_exact": {
+            "denominator": "25000",
+            "numerator": "209347383"
+          }
+        },
+        "historical_tail": {
+          "confidence": "0.950000000000000000",
+          "expected_shortfall_base": "-5.710000000000000000",
+          "expected_shortfall_base_exact": {
+            "denominator": "100",
+            "numerator": "-571"
+          },
+          "expected_shortfall_fraction": "-0.000521513576706336",
+          "method": "Loss = negative static-exposure historical P&L. VaR is ceil(confidence*n) in ascending losses; ES integrates the worst (1-confidence)*n observation mass with a fractional boundary. Equal observation weights; signed gains are not floored at zero.",
+          "observations": 5,
+          "tail": [
+            {
+              "from": "2026-01-29T21:00:00.000000Z",
+              "loss": "-5.710000000000000000",
+              "observation_weight": "0.250000000000000000",
+              "observation_weight_exact": {
+                "denominator": "4",
+                "numerator": "1"
+              },
+              "to": "2026-01-30T21:00:00.000000Z"
+            }
+          ],
+          "tail_observation_mass": "0.250000000000000000",
+          "tail_observation_mass_exact": {
+            "denominator": "4",
+            "numerator": "1"
+          },
+          "value_at_risk_base": "-5.710000000000000000",
+          "value_at_risk_base_exact": {
+            "denominator": "100",
+            "numerator": "-571"
+          },
+          "value_at_risk_fraction": "-0.000521513576706336",
+          "var_rank": 5
+        }
+      },
+      "stresses": [
+        {
+          "complete": true,
+          "components": [
+            {
+              "after": "2200.00",
+              "before": "2200.00",
+              "id": "crypto:demo",
+              "kind": "positions",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "660.00",
+              "before": "660.00",
+              "id": "equity:demo-eu",
+              "kind": "positions",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "450.00",
+              "before": "450.00",
+              "id": "equity:demo-us",
+              "kind": "positions",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "438.90",
+              "before": "438.90",
+              "id": "EUR",
+              "kind": "cash",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "7200.00",
+              "before": "7200.00",
+              "id": "USD",
+              "kind": "cash",
+              "pnl": "0.000000000000000000"
+            }
+          ],
+          "equity": "10948.90",
+          "id": "unchanged",
+          "pnl": "0.000000000000000000",
+          "return": "0.000000000000000000",
+          "unused_fx_shocks": [],
+          "unused_price_shocks": []
+        },
+        {
+          "complete": true,
+          "components": [
+            {
+              "after": "1100.00",
+              "before": "2200.00",
+              "id": "crypto:demo",
+              "kind": "positions",
+              "pnl": "-1100.000000000000000000"
+            },
+            {
+              "after": "534.60",
+              "before": "660.00",
+              "id": "equity:demo-eu",
+              "kind": "positions",
+              "pnl": "-125.400000000000000000"
+            },
+            {
+              "after": "360.00",
+              "before": "450.00",
+              "id": "equity:demo-us",
+              "kind": "positions",
+              "pnl": "-90.000000000000000000"
+            },
+            {
+              "after": "395.01",
+              "before": "438.90",
+              "id": "EUR",
+              "kind": "cash",
+              "pnl": "-43.890000000000000000"
+            },
+            {
+              "after": "7200.00",
+              "before": "7200.00",
+              "id": "USD",
+              "kind": "cash",
+              "pnl": "0.000000000000000000"
+            }
+          ],
+          "equity": "9589.61",
+          "id": "equity-and-crypto-drop",
+          "pnl": "-1359.290000000000000000",
+          "return": "-0.124148544602654148",
+          "unused_fx_shocks": [],
+          "unused_price_shocks": []
+        },
+        {
+          "complete": true,
+          "components": [
+            {
+              "after": "2200.00",
+              "before": "2200.00",
+              "id": "crypto:demo",
+              "kind": "positions",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "594.00",
+              "before": "660.00",
+              "id": "equity:demo-eu",
+              "kind": "positions",
+              "pnl": "-66.000000000000000000"
+            },
+            {
+              "after": "450.00",
+              "before": "450.00",
+              "id": "equity:demo-us",
+              "kind": "positions",
+              "pnl": "0.000000000000000000"
+            },
+            {
+              "after": "395.01",
+              "before": "438.90",
+              "id": "EUR",
+              "kind": "cash",
+              "pnl": "-43.890000000000000000"
+            },
+            {
+              "after": "7200.00",
+              "before": "7200.00",
+              "id": "USD",
+              "kind": "cash",
+              "pnl": "0.000000000000000000"
+            }
+          ],
+          "equity": "10839.01",
+          "id": "eur-weakness",
+          "pnl": "-109.890000000000000000",
+          "return": "-0.010036624683758186",
+          "unused_fx_shocks": [],
+          "unused_price_shocks": []
+        }
+      ],
+      "valuation": {
+        "as_of": "2026-02-02T16:00:00.000000Z",
+        "base_currency": "USD",
+        "cash": [
+          {
+            "amount": "399.00",
+            "base_value": "438.90",
+            "currency": "EUR"
+          },
+          {
+            "amount": "7200.00",
+            "base_value": "7200.00",
+            "currency": "USD"
+          }
+        ],
+        "complete": true,
+        "equity": "10948.90",
+        "fx_direction": "base currency units per one quote currency unit",
+        "known_base_value": "10948.90",
+        "max_age_seconds": 86400,
+        "missing_inputs": [],
+        "positions": [
+          {
+            "base_value": "2200.00",
+            "basis": "2002.00",
+            "instrument": "crypto:demo",
+            "mark": "22000",
+            "market_value": "2200.00",
+            "quantity": "0.1",
+            "quote_currency": "USD",
+            "symbol": "DEMO-USD",
+            "unrealized_quote_pnl": "198.00",
+            "venue": "SYNTHETIC-SPOT",
+            "weight_percent": "20.093343"
+          },
+          {
+            "base_value": "660.00",
+            "basis": "501.00",
+            "instrument": "equity:demo-eu",
+            "mark": "60",
+            "market_value": "600.00",
+            "quantity": "10",
+            "quote_currency": "EUR",
+            "symbol": "DEMO",
+            "unrealized_quote_pnl": "99.00",
+            "venue": "SYNTHETIC-EU",
+            "weight_percent": "6.028003"
+          },
+          {
+            "base_value": "450.00",
+            "basis": "360.60",
+            "instrument": "equity:demo-us",
+            "mark": "75",
+            "market_value": "450.00",
+            "quantity": "6",
+            "quote_currency": "USD",
+            "symbol": "DEMO",
+            "unrealized_quote_pnl": "89.40",
+            "venue": "SYNTHETIC-US",
+            "weight_percent": "4.110002"
+          }
+        ],
+        "rounding_policy": "half-even at each cash/position conversion to base currency",
+        "scope": "current long-only settled-cash journal valuation; no FX profit attribution or tax reporting",
+        "sequence": 9,
+        "warnings": []
+      },
+      "warnings": [
+        {
+          "code": "operator_declared_history_basis",
+          "source": "synthetic-risk-control"
+        },
+        {
+          "code": "static_current_exposures",
+          "detail": "Historical shocks revalue current marked exposures; these are not realized historical portfolio returns"
+        },
+        {
+          "code": "sample_covariance_singular"
+        },
+        {
+          "code": "small_empirical_tail",
+          "observation_mass": "0.250000000000000000"
+        },
+        {
+          "code": "concentration_limit_breaches",
+          "count": 3
+        }
+      ]
+    },
+    "error": null
+  },
+  "sha256": "e0f18309ab3466cbcc9a8abc35d6cde1088fca22fbf7d816127fc812ac1b048f"
+}
