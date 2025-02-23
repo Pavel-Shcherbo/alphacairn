@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "scope": "Clean installed local browser API with synthetic risk data, independently read SQLite state and exact monetary stress reconciliation; no external blindness or predictive-validity claim",
+  "complete_attempt_status_counts": {
+    "failed": 1,
+    "incomplete": 1,
+    "succeeded": 2
+  },
+  "independent_holdout_access_events": 4,
+  "independent_execution_starts": 4,
+  "independent_equity": "10948.90",
+  "all_stress_components_reconciled": true,
+  "default_holdout_redaction": true,
+  "boolean_acknowledgement_required": true,
+  "lost_response_receipts_preserve_access_count": true,
+  "export_replayed_after_registry_removal": {
+    "passed": true,
+    "complete": true,
+    "execution_replayed": true,
+    "trial": "eabab5dddba244618e4c0daec4b7dcf5",
+    "status": "succeeded",
+    "registered_trial_count": 4,
+    "holdout_access_attempts": 3,
+    "holdout_registry_unopened": false,
+    "summary": {
+      "equity": "10948.90",
+      "base_currency": "USD",
+      "variance_base": "8373.895320000000000000",
+      "worst_declared_stress_pnl": "-1359.290000000000000000",
+      "complete": true
+    },
+    "source_authenticated": false,
+    "scope": "Frozen local research replay and complete registry attempt/access history; no proof of data blindness outside the registry or predictive validity"
+  }
+}
