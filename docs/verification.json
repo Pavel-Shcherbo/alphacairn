@@ -1,5 +1,5 @@
 {
-  "unit_tests": 243,
+  "unit_tests": 266,
   "unit_passed": true,
   "cli_passed": true,
   "source_hashes": {
@@ -19,7 +19,7 @@
     "alphacairn/execution_export.py": "cd363200c4fc1200684b9942458e947142747033e000d6199817374da9e666b5",
     "alphacairn/execution_model.py": "815e96f6e2148b39b02737737652c169e88af6ff504f794e4deca8129e290610",
     "alphacairn/execution_money.py": "ba232c5bf1b8a598ba44a5318e6d60d0f1c6e2df95405809d44da7e41e6208c0",
-    "alphacairn/httpapp.py": "aeae90d384d4ce2451d73504885e5d9da679f48768f34f50fda39f9ef24907a6",
+    "alphacairn/httpapp.py": "9dcfab7109c1073e5c4e42eec0c24ff5bd658b70a1df644bca616123c58ba3a0",
     "alphacairn/instruments.py": "488c69b1009f8502f8b03e21885860bdd9dd94a7665f1f0f9ecd2c48824c8a1e",
     "alphacairn/ledger.py": "45045229969c795c922aa9d810e08d0a55f0aa3e6ad4644dbfc31f8eecb8209e",
     "alphacairn/market_cli.py": "e68493160f61d2fe471bb1f07b39e5e06538fed74c8144d9ef72a2c9281bfd50",
@@ -30,6 +30,7 @@
     "alphacairn/portfolio.py": "d36e7dbfce69488a3ef8ebf9c5aa6bca8425bbae3b4b92c94f0a862b05e8ddc7",
     "alphacairn/portfolio_web.py": "3c6a28a951f4868d56006e028dfd33561fcced71b926e95d255c951485e37323",
     "alphacairn/research.py": "3ee710653154f2fff4e5c43b87da27e4006ab9834d69a0462c2d85054a389495",
+    "alphacairn/research_desk.py": "b570fd3e3ddf74de22eeffafe28f245aeca960863a9b33e54a74067adaa730db",
     "alphacairn/resources.py": "7b4881ac5e208822eea3c485114e2482ba81fc4336e113fdd301e87610b7d62e",
     "alphacairn/risk.py": "f3deb49ce6da2a14f0239c1a7b3ccb5b5b8fb542007e0ca99022f6939c75bacf",
     "alphacairn/risk_bundle.py": "4b85931ed3986a79b29c36e81d842ef9ffa9d1d735e177a7b56b5c3933e59fae",
@@ -47,7 +48,10 @@
     "alphacairn/session_zones.py": "58ea0e26ab800095e86ee06c60750f9ac9031afda59ca9fbfc7b6d47bd146661",
     "alphacairn/sessions.py": "15ab682ce941be787c804bdd7de1561195f959afa112f55774943dac92e2bcee",
     "alphacairn/static/app.js": "afb3f664210bf3aa2ee0d94b77a15d71fd5779ef5f9df650a0899403505ccd7d",
-    "alphacairn/static/index.html": "b8572bf4a66b27e39c9414200bbafaa9f7fa03f2aa93c9a7bd3ebca9be0f077f",
+    "alphacairn/static/index.html": "9a3446b59588d52f96d411e3dd8e0a2e4180f960a12dc522fbca55525fde9fac",
+    "alphacairn/static/research.css": "391f6af94f1e42e721b1c500d0f671e58801d70786a75942748a056b1952bf52",
+    "alphacairn/static/research.html": "9b54540c4a3fafe9786e0163107817425cd01ae30140bb6c272266c5471cb19a",
+    "alphacairn/static/research.js": "c403791a3d4855518ea31cf972c985e08a3117cb6e0d10b3f3edfde05e60ecf6",
     "alphacairn/static/style.css": "55a11843ce47983f71bfd2177ec982601eb44c49f9ac2e49c07739a058fb99e3",
     "alphacairn/strategy.py": "207cdcc88c1666c2bc1d9289f66ac12e0be8ed95a27f88768a636b005e422f74",
     "alphacairn/strategy_bundle.py": "ff11f27765d7454153a8991a203d4fb5569076b91cbfd22c93911e4a7ca5bffc",
@@ -60,6 +64,6 @@
     "alphacairn/study_store.py": "5dd8e66e453922b91282862c58524a0817bd2afa6c28d69855afece623689ca1",
     "alphacairn/valuation.py": "4d1ea7a17ddf776c4fa843a5fcd8dac41db89203ec1a8aabd47e04e74e4395f9",
     "alphacairn/walkforward.py": "0f32dab776be93df5c6ce31fabf2b9a0122df505fcc19a21c7b059a9eacbb098",
-    "alphacairn/web.py": "f2a3caf17ed32fd4d10a32b17fe6e92c7d8bf8f140f698fa3b64e4c839fdddcd"
+    "alphacairn/web.py": "735307a616c49aa98a7800d184f88fc3d7889aac75ed821dd5d0713f054f2246"
   }
 }
