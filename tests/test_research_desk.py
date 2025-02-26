@@ -22,4 +22,7 @@ from alphacairn.study_evidence import verify_study_export
 
 
 class ResearchDeskTests(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls):
+        cls.example = examples()
+
