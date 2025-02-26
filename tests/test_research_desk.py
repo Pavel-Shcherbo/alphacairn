@@ -26,3 +26,11 @@ class ResearchDeskTests(unittest.TestCase):
     def setUpClass(cls):
         cls.example = examples()
 
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / "research.sqlite"
+        self.desk = ResearchDesk(self.path)
+        self.counter = 0
+        self.study = self.op("create", definition=self.example["definition"])["id"]
+
