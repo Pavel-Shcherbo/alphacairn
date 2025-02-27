@@ -34,3 +34,17 @@ class ResearchDeskTests(unittest.TestCase):
         self.counter = 0
         self.study = self.op("create", definition=self.example["definition"])["id"]
 
+    def op(self, action, request_key=None, **values):
+        self.counter += 1
+        params = {
+            "action": action,
+            "project": "review",
+            "request_key": request_key or "request-" + str(self.counter),
+            **values,
+        }
+        if action in ("run", "inspect", "export", "recover", "select", "compare"):
+            params.update(actor="reviewer", reason="Independent synthetic control")
+        if action in ("run", "inspect", "export", "recover", "select"):
+            params.setdefault("study", self.study)
+        return self.desk.dispatch(params)
+
