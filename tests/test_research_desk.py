@@ -48,3 +48,13 @@ class ResearchDeskTests(unittest.TestCase):
             params.setdefault("study", self.study)
         return self.desk.dispatch(params)
 
+    def register(self, control="baseline", partition="development", **kwargs):
+        return self.op(
+            "register",
+            study=self.study,
+            inputs=self.example["controls"][control],
+            partition=partition,
+            label=control,
+            **kwargs,
+        )["id"]
+
