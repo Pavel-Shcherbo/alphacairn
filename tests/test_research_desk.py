@@ -58,3 +58,8 @@ class ResearchDeskTests(unittest.TestCase):
             **kwargs,
         )["id"]
 
+    def view(self, **values):
+        return self.desk.dispatch(
+            {"action": "view", "project": "review", "study": self.study, **values}
+        )
+
