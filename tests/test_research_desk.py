@@ -69,3 +69,23 @@ class ResearchDeskTests(unittest.TestCase):
         self.op("select", trial=trial)
         return self.register("holdout", "holdout")
 
+    def test_complete_comparison_retains_success_incomplete_and_failed(self):
+        trials = [
+            self.register(control) for control in ("baseline", "incomplete", "invalid")
+        ]
+        self.op("run", trial=trials[0])
+        with self.assertRaisesRegex(ValueError, "resolve every"):
+            self.op("select", trial=trials[0])
+        for trial in trials[1:]:
+            self.op("run", trial=trial)
+        value = self.view()
+        self.assertEqual(
+            [row["record"]["status"] for row in value["comparison"]["comparisons"]],
+            ["succeeded", "incomplete", "failed"],
+        )
+        self.assertEqual(value["context"]["failed_trial_count"], 2)
+        self.assertTrue(value["audit"]["passed"])
+        self.op("select", trial=trials[0])
+        with self.assertRaisesRegex(ValueError, "closed"):
+            self.register()
+
