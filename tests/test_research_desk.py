@@ -63,3 +63,9 @@ class ResearchDeskTests(unittest.TestCase):
             {"action": "view", "project": "review", "study": self.study, **values}
         )
 
+    def holdout(self):
+        trial = self.register()
+        self.op("run", trial=trial)
+        self.op("select", trial=trial)
+        return self.register("holdout", "holdout")
+
