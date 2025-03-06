@@ -89,3 +89,32 @@ class ResearchDeskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "closed"):
             self.register()
 
+    def test_independent_exact_equity_and_stress_reconciliation(self):
+        trial = self.register()
+        result = self.op("run", trial=trial)["result"]
+        self.assertEqual(
+            sum(Decimal(row["base_value"]) for row in result["exposures"]),
+            Decimal("10948.90"),
+        )
+        for stress in result["stresses"]:
+            self.assertEqual(
+                sum(Decimal(row["pnl"]) for row in stress["components"]),
+                Decimal(stress["pnl"]),
+            )
+            self.assertEqual(
+                Decimal(stress["equity"]) - Decimal("10948.90"), Decimal(stress["pnl"])
+            )
+        with closing(sqlite3.connect(self.path)) as db, db:
+            self.assertEqual(
+                db.execute(
+                    "SELECT status,generation FROM trials WHERE id=?", (trial,)
+                ).fetchone(),
+                ("succeeded", 3),
+            )
+            self.assertEqual(
+                db.execute(
+                    "SELECT count(*) FROM study_events WHERE kind='trial_finished'"
+                ).fetchone()[0],
+                1,
+            )
+
