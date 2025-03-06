@@ -118,3 +118,28 @@ class ResearchDeskTests(unittest.TestCase):
                 1,
             )
 
+    def test_default_view_withholds_holdout_and_never_logs_access(self):
+        held = self.holdout()
+        self.op("run", trial=held, acknowledge_holdout=True)
+        for _ in range(3):
+            value = self.view()
+            row = value["comparison"]["comparisons"][-1]
+            self.assertTrue(row["withheld"])
+            self.assertIsNone(row["summary"])
+            self.assertIsNone(row["error"])
+            self.assertEqual(value["context"]["holdout_access_attempts"], 1)
+            held_events = [
+                event
+                for event in value["events"]
+                if event["payload"].get("trial") == held
+            ]
+            self.assertTrue(held_events)
+            self.assertTrue(all(event["payload_redacted"] for event in held_events))
+            self.assertTrue(
+                all(
+                    "contract" not in event["payload"]
+                    and "error" not in event["payload"]
+                    for event in held_events
+                )
+            )
+
