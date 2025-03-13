@@ -143,3 +143,19 @@ class ResearchDeskTests(unittest.TestCase):
                 )
             )
 
+    def test_each_holdout_action_requires_boolean_acknowledgement(self):
+        held = self.holdout()
+        for action in ("run", "inspect", "export"):
+            for value in (None, False, 1, "true"):
+                with self.assertRaisesRegex(ValueError, "acknowledge"):
+                    self.op(action, trial=held, acknowledge_holdout=value)
+        for value in (None, False, 1):
+            with self.assertRaisesRegex(ValueError, "acknowledge"):
+                self.op(
+                    "compare",
+                    study=self.study,
+                    include_holdout=True,
+                    acknowledge_holdout=value,
+                )
+        self.assertEqual(self.view()["context"]["holdout_access_attempts"], 0)
+
