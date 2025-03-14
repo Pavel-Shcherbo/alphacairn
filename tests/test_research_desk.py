@@ -159,3 +159,26 @@ class ResearchDeskTests(unittest.TestCase):
                 )
         self.assertEqual(self.view()["context"]["holdout_access_attempts"], 0)
 
+    def test_run_retry_and_receipt_recovery_after_restart_do_not_duplicate_access(self):
+        held = self.holdout()
+        first = self.op(
+            "run", trial=held, request_key="holdout-run", acknowledge_holdout=True
+        )
+        self.desk = ResearchDesk(self.path)
+        repeated = self.op(
+            "run", trial=held, request_key="holdout-run", acknowledge_holdout=True
+        )
+        recovered = self.desk.dispatch(
+            {"action": "receipt", "project": "review", "request_key": "holdout-run"}
+        )
+        self.assertEqual(first, repeated)
+        self.assertEqual(first, recovered)
+        self.assertEqual(self.view()["context"]["holdout_access_attempts"], 1)
+        with self.assertRaisesRegex(ValueError, "another research operation"):
+            self.op(
+                "inspect",
+                trial=held,
+                request_key="holdout-run",
+                acknowledge_holdout=True,
+            )
+
