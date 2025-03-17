@@ -182,3 +182,24 @@ class ResearchDeskTests(unittest.TestCase):
                 acknowledge_holdout=True,
             )
 
+    def test_select_and_export_receipts_recover_lost_responses(self):
+        trial = self.register()
+        self.op("run", trial=trial)
+        selected = self.op("select", trial=trial, request_key="select")
+        self.assertEqual(selected, self.op("select", trial=trial, request_key="select"))
+        held = self.register("holdout", "holdout")
+        self.op("run", trial=held, acknowledge_holdout=True)
+        exported = self.op(
+            "export", trial=held, request_key="export", acknowledge_holdout=True
+        )
+        self.assertEqual(
+            exported,
+            self.op(
+                "export", trial=held, request_key="export", acknowledge_holdout=True
+            ),
+        )
+        self.assertEqual(self.view()["context"]["holdout_access_attempts"], 2)
+        self.assertTrue(verify_study_export(exported)["passed"])
+        self.path.unlink()
+        self.assertTrue(verify_study_export(exported)["execution_replayed"])
+
