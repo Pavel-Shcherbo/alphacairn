@@ -203,3 +203,27 @@ class ResearchDeskTests(unittest.TestCase):
         self.path.unlink()
         self.assertTrue(verify_study_export(exported)["execution_replayed"])
 
+    def test_concurrent_identical_runs_commit_one_execution_and_receipt(self):
+        trial = self.register()
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = list(
+                pool.map(
+                    lambda _: self.op("run", trial=trial, request_key="same-run"),
+                    range(4),
+                )
+            )
+        self.assertTrue(all(value == results[0] for value in results))
+        with closing(sqlite3.connect(self.path)) as db, db:
+            self.assertEqual(
+                db.execute(
+                    "SELECT count(*) FROM study_events WHERE kind='trial_started'"
+                ).fetchone()[0],
+                1,
+            )
+            self.assertEqual(
+                db.execute(
+                    "SELECT count(*) FROM desk_receipts WHERE request_key='same-run'"
+                ).fetchone()[0],
+                1,
+            )
+
