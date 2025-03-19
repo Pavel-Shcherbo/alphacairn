@@ -227,3 +227,38 @@ class ResearchDeskTests(unittest.TestCase):
                 1,
             )
 
+    def test_failure_after_computation_rolls_back_result_events_and_response(self):
+        trial = self.register()
+        original = self.desk.operate
+
+        def fail(*args):
+            original(*args)
+            raise RuntimeError("failure before response persistence")
+
+        with patch.object(self.desk, "operate", side_effect=fail):
+            with self.assertRaises(RuntimeError):
+                self.op("run", trial=trial, request_key="atomic-run")
+        with closing(sqlite3.connect(self.path)) as db, db:
+            self.assertEqual(
+                db.execute(
+                    "SELECT status,result FROM trials WHERE id=?", (trial,)
+                ).fetchone(),
+                ("registered", None),
+            )
+            self.assertEqual(
+                db.execute(
+                    "SELECT count(*) FROM study_events WHERE kind='trial_started'"
+                ).fetchone()[0],
+                0,
+            )
+            self.assertEqual(
+                db.execute(
+                    "SELECT count(*) FROM desk_receipts WHERE request_key='atomic-run'"
+                ).fetchone()[0],
+                0,
+            )
+        self.assertEqual(
+            self.op("run", trial=trial, request_key="atomic-run")["record"]["status"],
+            "succeeded",
+        )
+
