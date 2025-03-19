@@ -262,3 +262,11 @@ class ResearchDeskTests(unittest.TestCase):
             "succeeded",
         )
 
+    def test_oversized_response_rolls_back_selection(self):
+        trial = self.register()
+        self.op("run", trial=trial)
+        with patch("alphacairn.research_desk.MAX_RESPONSE", 1):
+            with self.assertRaisesRegex(ValueError, "response exceeds"):
+                self.op("select", trial=trial)
+        self.assertIsNone(self.view()["context"]["selection"])
+
