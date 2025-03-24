@@ -287,3 +287,29 @@ class ResearchDeskTests(unittest.TestCase):
                     self.desk.dispatch(params)
         self.assertEqual(self.view()["context"]["trials"][0]["status"], "succeeded")
 
+    def test_project_and_selected_study_fences(self):
+        trial = self.register()
+        second = copy.deepcopy(self.example["definition"])
+        second["name"] = "other-study"
+        other = self.op("create", definition=second)["id"]
+        with self.assertRaisesRegex(ValueError, "selected study"):
+            self.op("run", study=other, trial=trial)
+        with self.assertRaises(ValueError):
+            self.desk.dispatch(
+                {"action": "view", "project": "other-project", "study": self.study}
+            )
+        with self.assertRaises(ValueError):
+            self.desk.dispatch(
+                {
+                    "action": "receipt",
+                    "project": "other-project",
+                    "request_key": "request-1",
+                }
+            )
+        self.assertEqual(
+            self.desk.dispatch({"action": "list", "project": "other-project"})[
+                "studies"
+            ],
+            [],
+        )
+
