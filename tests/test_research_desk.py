@@ -270,3 +270,20 @@ class ResearchDeskTests(unittest.TestCase):
                 self.op("select", trial=trial)
         self.assertIsNone(self.view()["context"]["selection"])
 
+    def test_read_views_and_cached_responses_obey_the_response_budget(self):
+        trial = self.register()
+        self.op("run", trial=trial, request_key="saved-large")
+        with patch("alphacairn.research_desk.MAX_RESPONSE", 1):
+            for params in (
+                {"action": "view", "project": "review", "study": self.study},
+                {"action": "list", "project": "review"},
+                {
+                    "action": "receipt",
+                    "project": "review",
+                    "request_key": "saved-large",
+                },
+            ):
+                with self.assertRaisesRegex(ValueError, "response exceeds"):
+                    self.desk.dispatch(params)
+        self.assertEqual(self.view()["context"]["trials"][0]["status"], "succeeded")
+
