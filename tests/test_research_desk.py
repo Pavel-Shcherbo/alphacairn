@@ -313,3 +313,9 @@ class ResearchDeskTests(unittest.TestCase):
             [],
         )
 
+    def test_request_identity_conflict_does_not_register_another_trial(self):
+        self.register(request_key="one-input")
+        with self.assertRaisesRegex(ValueError, "another research operation"):
+            self.register("incomplete", request_key="one-input")
+        self.assertEqual(self.view()["context"]["registered_trial_count"], 1)
+
