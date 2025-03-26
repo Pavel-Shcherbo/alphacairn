@@ -319,3 +319,17 @@ class ResearchDeskTests(unittest.TestCase):
             self.register("incomplete", request_key="one-input")
         self.assertEqual(self.view()["context"]["registered_trial_count"], 1)
 
+    def test_corrupt_receipt_or_trial_result_is_not_reported_as_valid(self):
+        trial = self.register()
+        self.op("run", trial=trial, request_key="cached")
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute(
+                "UPDATE desk_receipts SET result=? WHERE request_key='cached'", (b"{}",)
+            )
+        with self.assertRaisesRegex(ValueError, "response identity"):
+            self.op("run", trial=trial, request_key="cached")
+        with closing(sqlite3.connect(self.path)) as db, db:
+            db.execute("UPDATE trials SET result=? WHERE id=?", (b"{}", trial))
+        with self.assertRaisesRegex(ValueError, "completion history"):
+            self.view()
+
