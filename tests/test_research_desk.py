@@ -333,3 +333,17 @@ class ResearchDeskTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "completion history"):
             self.view()
 
+    def test_paged_history_is_coherent_and_duplicate_free(self):
+        trial = self.register()
+        self.op("run", trial=trial)
+        first = self.view(limit=2)
+        second = self.view(limit=2, after=first["next_after"])
+        self.assertTrue(first["has_more"])
+        ids = [event["sequence"] for event in first["events"] + second["events"]]
+        self.assertEqual(ids, sorted(set(ids)))
+        self.assertEqual(first["audit"]["event_head"], second["audit"]["event_head"])
+        self.assertEqual(first["context"], second["context"])
+        for value in (-1, True):
+            with self.assertRaises(ValueError):
+                self.view(after=value)
+
