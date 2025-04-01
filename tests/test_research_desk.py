@@ -347,3 +347,19 @@ class ResearchDeskTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.view(after=value)
 
+    def test_expired_cli_run_can_be_recovered_with_a_generation_fence(self):
+        trial = self.register()
+        with self.desk.registry.transaction() as db:
+            db.execute(
+                "UPDATE trials SET status='running',generation=2,token='old',lease_until=1 WHERE id=?",
+                (trial,),
+            )
+            self.desk.registry.event(
+                db, self.study, "trial_started", {"trial": trial, "generation": 2}
+            )
+        with self.assertRaises(ValueError):
+            self.op("recover", trial=trial, generation=1)
+        recovered = self.op("recover", trial=trial, generation=2)
+        self.assertEqual(recovered["status"], "interrupted")
+        self.assertTrue(self.view()["audit"]["passed"])
+
