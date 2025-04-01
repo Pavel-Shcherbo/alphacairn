@@ -363,3 +363,45 @@ class ResearchDeskTests(unittest.TestCase):
         self.assertEqual(recovered["status"], "interrupted")
         self.assertTrue(self.view()["audit"]["passed"])
 
+    def test_strategy_inputs_run_through_the_same_browser_contract(self):
+        from alphacairn.market_store import MarketCatalog
+        from alphacairn.market_model import canonical
+        from alphacairn.resources import examples_directory
+        from alphacairn.strategy_inputs import capture_strategy
+
+        read = lambda name: json.loads((examples_directory() / name).read_bytes())
+        catalog = MarketCatalog(Path(self.temp.name) / "market.sqlite", create=True)
+        config = read("strategy-control.json")
+        for kind, file in [
+            ("bar", "strategy-bars.json"),
+            ("membership", "strategy-universe.json"),
+        ]:
+            catalog.ingest(
+                config["source"], kind, canonical(read(file)), request_key=kind
+            )
+        inputs = capture_strategy(catalog, config)
+        plan = copy.deepcopy(self.example["definition"])
+        plan.update(
+            name="strategy-browser",
+            family="strategy",
+            development={
+                "start": "2020-01-01T00:00:00Z",
+                "end": "2020-01-10T00:00:00Z",
+            },
+            holdout={"start": "2020-02-01T00:00:00Z", "end": "2020-02-10T00:00:00Z"},
+        )
+        study = self.op("create", definition=plan)["id"]
+        trial = self.op(
+            "register",
+            study=study,
+            inputs=inputs,
+            partition="development",
+            label="Captured strategy",
+        )["id"]
+        result = self.op("run", study=study, trial=trial)
+        self.assertEqual(result["summary"]["equity"], "86.50")
+        self.assertEqual(result["summary"]["fills"], 6)
+        self.assertTrue(
+            verify_study_export(self.op("export", study=study, trial=trial))["passed"]
+        )
+
