@@ -405,3 +405,42 @@ class ResearchDeskTests(unittest.TestCase):
             verify_study_export(self.op("export", study=study, trial=trial))["passed"]
         )
 
+    def test_process_termination_during_foreground_run_preserves_registered_attempt(
+        self,
+    ):
+        trial = self.register()
+        script = """
+import sys,time
+from unittest.mock import patch
+from alphacairn.research_desk import ResearchDesk
+from alphacairn.study_runner import compute
+
+def slow(*args):
+    print('computing',flush=True)
+    time.sleep(20)
+    return compute(*args)
+with patch('alphacairn.study_runner.compute',slow):
+    ResearchDesk(sys.argv[1]).dispatch({'action':'run','project':'review','study':sys.argv[2],'trial':sys.argv[3],'request_key':'terminated-run','actor':'process-reviewer','reason':'Interruption control'})
+"""
+        child = subprocess.Popen(
+            [sys.executable, "-c", script, str(self.path), self.study, trial],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        try:
+            ready, _, _ = select.select([child.stdout], [], [], 5)
+            self.assertTrue(ready)
+            self.assertEqual(child.stdout.readline().strip(), "computing")
+            child.kill()
+            child.communicate(timeout=5)
+        finally:
+            if child.poll() is None:
+                child.kill()
+                child.communicate(timeout=5)
+        value = self.view()
+        self.assertEqual(value["context"]["trials"][0]["status"], "registered")
+        self.assertTrue(value["audit"]["passed"])
+        result = self.op("run", trial=trial, request_key="terminated-run")
+        self.assertEqual(result["record"]["status"], "succeeded")
+
