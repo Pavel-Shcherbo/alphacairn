@@ -444,3 +444,27 @@ with patch('alphacairn.study_runner.compute',slow):
         result = self.op("run", trial=trial, request_key="terminated-run")
         self.assertEqual(result["record"]["status"], "succeeded")
 
+    def test_invalid_payloads_and_input_hashes_have_no_effect(self):
+        for value in (
+            [],
+            {"action": "list", "project": "review", "path": "/tmp/foreign"},
+            {"action": "list"},
+            {"action": "unsupported", "project": "review", "request_key": "x"},
+        ):
+            with self.assertRaises((ValueError, TypeError)):
+                self.desk.dispatch(value)
+        damaged = copy.deepcopy(self.example["inputs"])
+        damaged["quotes"]["as_of"] = "2030-01-01T00:00:00Z"
+        with self.assertRaises(ValueError):
+            self.op(
+                "register",
+                study=self.study,
+                inputs=damaged,
+                partition="development",
+                label="bad hash",
+            )
+        self.assertEqual(self.view()["context"]["registered_trial_count"], 0)
+
+
+class ResearchHTTPTests(unittest.TestCase):
+    pass
