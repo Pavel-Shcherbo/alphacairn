@@ -467,4 +467,21 @@ with patch('alphacairn.study_runner.compute',slow):
 
 
 class ResearchHTTPTests(unittest.TestCase):
-    pass
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        env = os.environ.copy()
+        env["ALPHACAIRN_STATE_DIR"] = cls.temp.name
+        cls.process = subprocess.Popen(
+            [sys.executable, "-m", "alphacairn.web", "--port", "0"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env,
+        )
+        ready, _, _ = select.select([cls.process.stdout], [], [], 8)
+        if not ready:
+            cls.process.terminate()
+            raise RuntimeError("workbench did not start")
+        cls.port = int(cls.process.stdout.readline().strip().rsplit(":", 1)[1])
+
