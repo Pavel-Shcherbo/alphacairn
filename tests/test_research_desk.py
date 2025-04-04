@@ -485,3 +485,9 @@ class ResearchHTTPTests(unittest.TestCase):
             raise RuntimeError("workbench did not start")
         cls.port = int(cls.process.stdout.readline().strip().rsplit(":", 1)[1])
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.process.terminate()
+        cls.process.communicate(timeout=5)
+        cls.temp.cleanup()
+
