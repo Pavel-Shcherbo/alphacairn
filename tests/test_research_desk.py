@@ -491,3 +491,19 @@ class ResearchHTTPTests(unittest.TestCase):
         cls.process.communicate(timeout=5)
         cls.temp.cleanup()
 
+    def request(self, payload=None, path="/api/research", headers=None, method="POST"):
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        self.addCleanup(connection.close)
+        head = {"Content-Type": "application/json", "X-Local-Request": "1"}
+        if headers:
+            head.update(headers)
+        raw = json.dumps(payload) if isinstance(payload, dict) else payload
+        connection.request(method, path, raw, head)
+        response = connection.getresponse()
+        body = response.read()
+        return response.status, (
+            json.loads(body)
+            if response.getheader("Content-Type", "").startswith("application/json")
+            else body
+        )
+
