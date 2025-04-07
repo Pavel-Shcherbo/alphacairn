@@ -551,3 +551,16 @@ class ResearchHTTPTests(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertTrue(value["audit"]["passed"])
 
+    def test_foreign_host_origin_and_missing_local_header_rejected(self):
+        for headers in (
+            {"Host": "outside.example"},
+            {"Origin": "https://outside.example"},
+            {"X-Local-Request": "0"},
+        ):
+            self.assertEqual(
+                self.request({"action": "list", "project": "local"}, headers=headers)[
+                    0
+                ],
+                403,
+            )
+
