@@ -507,3 +507,47 @@ class ResearchHTTPTests(unittest.TestCase):
             else body
         )
 
+    def test_actual_http_create_register_run_and_refresh(self):
+        code, example = self.request({"action": "examples"})
+        self.assertEqual(code, 200)
+        project = "http-lifecycle"
+        code, study = self.request(
+            {
+                "action": "create",
+                "project": project,
+                "request_key": "create",
+                "definition": example["definition"],
+            }
+        )
+        self.assertEqual(code, 200)
+        code, trial = self.request(
+            {
+                "action": "register",
+                "project": project,
+                "study": study["id"],
+                "request_key": "register",
+                "inputs": example["inputs"],
+                "partition": "development",
+                "label": "HTTP baseline",
+            }
+        )
+        self.assertEqual(code, 200)
+        code, result = self.request(
+            {
+                "action": "run",
+                "project": project,
+                "study": study["id"],
+                "trial": trial["id"],
+                "request_key": "run",
+                "actor": "http-reviewer",
+                "reason": "Local HTTP control",
+            }
+        )
+        self.assertEqual(code, 200)
+        self.assertEqual(result["summary"]["equity"], "10948.90")
+        code, value = self.request(
+            {"action": "view", "project": project, "study": study["id"]}
+        )
+        self.assertEqual(code, 200)
+        self.assertTrue(value["audit"]["passed"])
+
