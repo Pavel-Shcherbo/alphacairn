@@ -564,3 +564,13 @@ class ResearchHTTPTests(unittest.TestCase):
                 403,
             )
 
+    def test_duplicate_keys_nonfinite_numbers_and_routes_rejected(self):
+        for raw in (
+            '{"action":"list","action":"examples"}',
+            '{"action":"list","project":NaN}',
+            "[]",
+        ):
+            self.assertEqual(self.request(raw)[0], 400)
+        self.assertEqual(self.request({}, path="/api/research/unknown")[0], 404)
+        self.assertEqual(self.request(method="GET")[0], 404)
+
