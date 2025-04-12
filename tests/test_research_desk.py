@@ -583,3 +583,15 @@ class ResearchHTTPTests(unittest.TestCase):
             self.request("{}", headers={"Content-Type": "text/plain"})[0], 400
         )
 
+    def test_static_research_assets_and_existing_evaluate_remain_available(self):
+        for path in ("/research.html", "/research.js", "/research.css"):
+            code, raw = self.request(method="GET", path=path)
+            self.assertEqual(code, 200)
+            self.assertTrue(raw)
+        code, value = self.request({}, path="/api/evaluate")
+        self.assertEqual(code, 200)
+        self.assertEqual(value["bars"], 260)
+
+
+if __name__ == "__main__":
+    unittest.main()
