@@ -574,3 +574,12 @@ class ResearchHTTPTests(unittest.TestCase):
         self.assertEqual(self.request({}, path="/api/research/unknown")[0], 404)
         self.assertEqual(self.request(method="GET")[0], 404)
 
+    def test_request_byte_bounds_and_content_type_reject_before_work(self):
+        self.assertEqual(
+            self.request("{}", headers={"Content-Length": str(8 * 1024 * 1024 + 1)})[0],
+            400,
+        )
+        self.assertEqual(
+            self.request("{}", headers={"Content-Type": "text/plain"})[0], 400
+        )
+
