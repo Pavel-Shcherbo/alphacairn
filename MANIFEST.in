@@ -21,3 +21,6 @@ include examples/risk-history.json
 include examples/risk-quotes.json
 
 include examples/study-risk-plan.json
+
+include examples/opening-execution.json
+include examples/portfolio-opening-events.json
