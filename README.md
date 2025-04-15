@@ -97,3 +97,7 @@ Retain every registered risk or strategy attempt, compare successful and failed 
 ## Saved research experiments
 
 Open [the local saved-experiments page](http://127.0.0.1:8412/research.html) to declare development/holdout windows, register frozen risk or strategy inputs, retain failed attempts, inspect exact stress results and export replay evidence. Explicit holdout access and durable request recovery preserve the study history through refreshes and lost responses. See the [research workbench guide](docs/RESEARCH_WORKBENCH.md) for the workflow, HTTP interface and local limits.
+
+## Opening inventory
+
+Start execution or catalog-backed strategies with declared FIFO lots, acquisition dates and basis instead of fabricated purchases. Version 4 preserves opening market marks separately from book basis; persistent journals and the Portfolio editor accept opening events. See [opening holdings](docs/OPENING_HOLDINGS.md) for the complete examples and independent controls.
