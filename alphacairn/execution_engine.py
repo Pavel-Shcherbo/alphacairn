@@ -54,7 +54,9 @@ def _simulate(plan, should_cancel):
     book = ExecutionBook(plan)
     corporate = CorporateBook(book)
     scenario = plan.definition
-    marks = {}
+    from .opening_positions import opening_marks
+
+    marks = opening_marks(scenario)
     fx = {}
     curve = []
     curve_bytes = 0
@@ -106,7 +108,7 @@ def _simulate(plan, should_cancel):
     with tempfile.TemporaryDirectory(prefix="alphacairn-execution-") as directory:
         ledger = Ledger(Path(directory) / "fills.sqlite", plan.account.definition())
         corporate_checks = []
-        if scenario["version"] == 3:
+        if scenario["version"] in (3, 4):
             from .corporate_replay import replay_actions
 
             corporate_checks = replay_actions(
@@ -199,13 +201,13 @@ def _simulate(plan, should_cancel):
         "ledger_audit": replay,
         "assumptions": list(ASSUMPTIONS),
     }
-    if scenario["version"] in (2, 3) and scenario["calendar"] is not None:
+    if scenario["version"] in (2, 3, 4) and scenario["calendar"] is not None:
         from .session_calendar import validate_execution_calendar
 
         result["calendar_validation"] = validate_execution_calendar(
             scenario, plan.account
         )
-    if scenario["version"] == 3:
+    if scenario["version"] in (3, 4):
         result["corporate_actions"] = corporate.reports
         result["corporate_replay_checks"] = corporate_checks
         result["dividend_receivables"] = corporate.outstanding()
@@ -217,6 +219,10 @@ def _simulate(plan, should_cancel):
                 "Per-entitlement gross and withholding round half-even in quote currency. No inferred exchange entitlement, tax or broker rounding rules.",
             ]
         )
+    if scenario["version"] == 4:
+        from .opening_positions import describe_opening
+
+        result["opening_holdings"] = describe_opening(scenario, plan.account)
     if len(canonical(result)) > 24 * 1024 * 1024:
         raise ValueError("execution report exceeds 24 MiB; partition the study")
     result["sha256"] = digest(result)
