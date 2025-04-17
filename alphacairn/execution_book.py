@@ -41,6 +41,9 @@ class ExecutionBook:
                         "amount": text(value),
                     }
                 )
+        from .opening_positions import seed_opening
+
+        seed_opening(self)
         for sequence, command in enumerate(self.definition["commands"]):
             if command["action"] == "submit":
                 self._register_submission(command, sequence)
@@ -57,7 +60,7 @@ class ExecutionBook:
 
     def _register_submission(self, command, sequence):
         """Install a normalized submission before activation by a trusted planner."""
-        if self.definition["version"] == 3:
+        if self.definition["version"] in (3, 4):
             command = copy.deepcopy(command)
         if command["id"] in self.orders:
             raise ValueError("duplicate execution-book order ID")
@@ -76,7 +79,7 @@ class ExecutionBook:
             "completed_at": None,
         }
 
-        if self.definition["version"] == 3:
+        if self.definition["version"] in (3, 4):
             self.orders[command["id"]]["original_definition"] = copy.deepcopy(command)
             self.orders[command["id"]]["corporate_adjustments"] = []
 
@@ -351,7 +354,7 @@ class ExecutionBook:
                         "completed_at": order["completed_at"],
                     }
                 )
-                if self.definition["version"] == 3:
+                if self.definition["version"] in (3, 4):
                     result[-1]["original_definition"] = copy.deepcopy(
                         order["original_definition"]
                     )
