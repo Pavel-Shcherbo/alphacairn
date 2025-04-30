@@ -42,6 +42,7 @@ def normalize_event(event, spec):
     kind = event.get("kind")
     signatures = {
         "deposit": {"currency", "amount"},
+        "opening_lot": {"instrument", "quantity", "basis", "acquired_at"},
         "withdraw": {"currency", "amount"},
         "trade": {"instrument", "side", "quantity", "price", "fee"},
         "split": {"instrument", "numerator", "denominator"},
@@ -65,6 +66,18 @@ def normalize_event(event, spec):
                 currency=currency,
                 amount=text(exact_amount(event.get("amount"), places, positive=True)),
             )
+        elif kind == "opening_lot":
+            from .opening_positions import normalize_opening_lot
+
+            lot = normalize_opening_lot(
+                {
+                    key: event.get(key)
+                    for key in ("id", "instrument", "quantity", "basis", "acquired_at")
+                },
+                spec,
+                event["timestamp"],
+            )
+            result.update({key: value for key, value in lot.items() if key != "id"})
         elif kind == "dividend_payment":
             result["accrual_id"] = identity(
                 event.get("accrual_id"), "dividend accrual ID"
@@ -276,6 +289,41 @@ class Ledger:
             self._change_cash(db, currency, amount)
             post(currency, "cash", amount)
             post(currency, "external_capital", -amount)
+        elif kind == "opening_lot":
+            first = db.execute(
+                "SELECT timestamp FROM events ORDER BY seq LIMIT 1"
+            ).fetchone()
+            if (
+                first["timestamp"] != event["timestamp"]
+                or db.execute(
+                    "SELECT 1 FROM events WHERE kind NOT IN ('deposit','opening_lot') LIMIT 1"
+                ).fetchone()
+            ):
+                raise ValueError(
+                    "opening lots must precede activity at the journal's first timestamp"
+                )
+            previous_lot = db.execute(
+                "SELECT acquired_at FROM lots WHERE instrument=? ORDER BY acquired_at DESC LIMIT 1",
+                (event["instrument"],),
+            ).fetchone()
+            if previous_lot and previous_lot["acquired_at"] > event["acquired_at"]:
+                raise ValueError(
+                    "opening lots must be supplied in acquisition order for FIFO"
+                )
+            instrument = self.spec.instrument(event["instrument"])
+            basis = Decimal(event["basis"])
+            db.execute(
+                "INSERT INTO lots(event_seq,instrument,quantity,basis,acquired_at) VALUES(?,?,?,?,?)",
+                (
+                    sequence,
+                    instrument.id,
+                    event["quantity"],
+                    event["basis"],
+                    event["acquired_at"],
+                ),
+            )
+            post(instrument.quote_currency, "inventory:" + instrument.id, basis)
+            post(instrument.quote_currency, "external_capital", -basis)
         elif kind == "dividend_payment":
             parent = db.execute(
                 "SELECT payload FROM events WHERE event_id=? AND kind='dividend_accrual'",
