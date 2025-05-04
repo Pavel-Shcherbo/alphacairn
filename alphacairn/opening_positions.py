@@ -45,3 +45,42 @@ def normalize_opening_lot(value, account, at):
     }
 
 
+def compile_opening(lots, marks, account, at):
+    if not isinstance(lots, list) or len(lots) > MAX_OPENING_LOTS:
+        raise ValueError("opening holdings support at most 1,000 lots")
+    normalized = [normalize_opening_lot(item, account, at) for item in lots]
+    if any(len(item["id"]) > 80 for item in normalized):
+        raise ValueError("execution opening lot ID exceeds 80 characters")
+    if len({item["id"] for item in normalized}) != len(normalized):
+        raise ValueError("opening lot IDs must be unique")
+    normalized.sort(
+        key=lambda item: (item["instrument"], item["acquired_at"], item["id"])
+    )
+    names = {item["instrument"] for item in normalized}
+    if not isinstance(marks, list) or len(marks) > len(account.instruments):
+        raise ValueError("opening marks support at most one per account instrument")
+    seen = set()
+    quotes = []
+    with arithmetic():
+        for item in marks:
+            if not isinstance(item, dict) or set(item) != {"instrument", "at", "price"}:
+                raise ValueError("opening mark requires instrument, at and price")
+            instrument = account.instrument(item["instrument"])
+            if instrument.id not in names or instrument.id in seen:
+                raise ValueError("opening marks require distinct held instruments")
+            when = timestamp(item["at"])
+            if when > timestamp(at):
+                raise ValueError("opening mark cannot come from the future")
+            instrument.require_active(when)
+            price = aligned(item["price"], instrument.price_tick, "opening mark")
+            seen.add(instrument.id)
+            quotes.append(
+                {
+                    "instrument": instrument.id,
+                    "at": timestamp_text(when),
+                    "price": text(price),
+                }
+            )
+    return normalized, sorted(quotes, key=lambda item: item["instrument"])
+
+
