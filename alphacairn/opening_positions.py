@@ -84,3 +84,15 @@ def compile_opening(lots, marks, account, at):
     return normalized, sorted(quotes, key=lambda item: item["instrument"])
 
 
+def opening_events(definition):
+    return [
+        {
+            **{key: value for key, value in lot.items() if key != "id"},
+            "id": "simopen-" + lot["id"],
+            "kind": "opening_lot",
+            "timestamp": definition["starts_at"],
+        }
+        for lot in definition.get("initial_lots", [])
+    ]
+
+
