@@ -96,3 +96,13 @@ def opening_events(definition):
     ]
 
 
+def seed_opening(book):
+    with arithmetic():
+        for lot in book.definition.get("initial_lots", []):
+            name = lot["instrument"]
+            book.positions[name] = book.positions.get(name, ZERO) + Decimal(
+                lot["quantity"]
+            )
+    book.ledger_events.extend(opening_events(book.definition))
+
+
