@@ -113,3 +113,26 @@ def opening_marks(definition):
     }
 
 
+def describe_opening(definition, account):
+    with arithmetic():
+        positions = {}
+        basis = {currency: ZERO for currency, _ in account.currencies}
+        for lot in definition["initial_lots"]:
+            instrument = account.instrument(lot["instrument"])
+            item = positions.setdefault(
+                instrument.id, {"quantity": ZERO, "basis": ZERO}
+            )
+            item["quantity"] += Decimal(lot["quantity"])
+            item["basis"] += Decimal(lot["basis"])
+            basis[instrument.quote_currency] += Decimal(lot["basis"])
+        return {
+            "lot_count": len(definition["initial_lots"]),
+            "positions": {
+                name: {key: text(value) for key, value in row.items()}
+                for name, row in sorted(positions.items())
+            },
+            "basis_by_currency": {key: text(value) for key, value in basis.items()},
+            "policy": "Opening inventory is contributed at declared book basis, without cash expenditure, fees or simulated turnover; acquisition times determine FIFO before subsequent simulated purchases.",
+            "basis_is_market_value": False,
+            "source_authenticated": False,
+        }
