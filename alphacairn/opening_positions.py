@@ -106,3 +106,10 @@ def seed_opening(book):
     book.ledger_events.extend(opening_events(book.definition))
 
 
+def opening_marks(definition):
+    return {
+        item["instrument"]: {"at": item["at"], "price": item["price"]}
+        for item in definition.get("initial_marks", [])
+    }
+
+
