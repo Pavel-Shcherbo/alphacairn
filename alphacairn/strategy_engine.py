@@ -183,7 +183,7 @@ def _simulate(prepared, should_cancel):
         )
     ):
         raise RuntimeError("strategy planning differs from full execution replay")
-    if plan.definition["version"] == 3 and (
+    if plan.definition["version"] in (3, 4) and (
         execution["corporate_actions"] != corporate.reports
         or execution["dividend_receivables"] != corporate.outstanding()
     ):
