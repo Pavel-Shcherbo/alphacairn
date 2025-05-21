@@ -87,7 +87,7 @@ def compile_strategy(definition):
     if (
         isinstance(execution, dict)
         and type(execution.get("version")) is int
-        and execution["version"] == 3
+        and execution["version"] in (3, 4)
     ):
         expected_execution = EXECUTION_FIELDS | {
             "calendar",
@@ -95,6 +95,12 @@ def compile_strategy(definition):
             "corporate_actions",
             "price_basis",
         }
+    if (
+        isinstance(execution, dict)
+        and type(execution.get("version")) is int
+        and execution["version"] == 4
+    ):
+        expected_execution |= {"initial_lots", "initial_marks"}
     if not isinstance(execution, dict) or set(execution) != expected_execution:
         raise ValueError("strategy execution template excludes bars and commands")
     account = AccountSpec.compile(execution["account"])
@@ -417,7 +423,7 @@ def prepare_strategy_inputs(document):
                     "age_seconds": None,
                 }
                 adjusted = None
-                if plan.definition["version"] == 3:
+                if plan.definition["version"] in (3, 4):
                     from .corporate_signals import signal_prices, fraction_text
 
                     actions = plan.definition["corporate_actions"]
