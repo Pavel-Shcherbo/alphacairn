@@ -80,7 +80,13 @@ def trial_contract(family, inputs):
             "liquidity",
         ):
             config.pop(field)
-        for field in ("starts_at", "ends_at", "fx", "corporate_actions"):
+        for field in (
+            "starts_at",
+            "ends_at",
+            "fx",
+            "corporate_actions",
+            "initial_marks",
+        ):
             config["execution"].pop(field, None)
         recipe = {"family": family, "configuration": config}
     else:
