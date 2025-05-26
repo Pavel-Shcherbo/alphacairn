@@ -1,0 +1,110 @@
+{
+  "version": 4,
+  "account": {
+    "name": "synthetic-execution-control",
+    "base_currency": "USD",
+    "currencies": {
+      "USD": 2
+    },
+    "instruments": [
+      {
+        "id": "A",
+        "symbol": "A",
+        "venue": "SYNTHETIC",
+        "kind": "equity",
+        "quote_currency": "USD",
+        "quantity_step": "1",
+        "price_tick": "0.01"
+      }
+    ]
+  },
+  "starts_at": "2020-01-01T00:00:00Z",
+  "ends_at": "2020-01-04T17:00:00Z",
+  "initial_cash": {
+    "USD": "0"
+  },
+  "fees": {
+    "rate_bps": "0",
+    "minimum": {
+      "USD": "0.50"
+    }
+  },
+  "slippage_bps": "0",
+  "max_mark_age_seconds": 432000,
+  "bars": [
+    {
+      "instrument": "A",
+      "session": "2020-01-02",
+      "opened_at": "2020-01-02T09:00:00Z",
+      "closed_at": "2020-01-02T17:00:00Z",
+      "open": "10",
+      "high": "10",
+      "low": "10",
+      "close": "10",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-02T08:00:00Z"
+    },
+    {
+      "instrument": "A",
+      "session": "2020-01-03",
+      "opened_at": "2020-01-03T09:00:00Z",
+      "closed_at": "2020-01-03T17:00:00Z",
+      "open": "12",
+      "high": "12",
+      "low": "12",
+      "close": "12",
+      "liquidity": "100",
+      "liquidity_known_at": "2020-01-03T08:00:00Z"
+    }
+  ],
+  "commands": [
+    {
+      "action": "submit",
+      "id": "sell",
+      "at": "2020-01-01T12:00:00Z",
+      "instrument": "A",
+      "side": "sell",
+      "quantity": "3",
+      "kind": "market",
+      "time_in_force": "IOC"
+    },
+    {
+      "action": "submit",
+      "id": "buy",
+      "at": "2020-01-02T18:00:00Z",
+      "instrument": "A",
+      "side": "buy",
+      "quantity": "2",
+      "kind": "market",
+      "time_in_force": "IOC"
+    }
+  ],
+  "fx": [],
+  "calendar": null,
+  "calendar_policy": null,
+  "price_basis": "unadjusted",
+  "corporate_actions": [],
+  "initial_lots": [
+    {
+      "id": "recent",
+      "instrument": "A",
+      "quantity": "3",
+      "basis": "27.00",
+      "acquired_at": "2019-12-15T00:00:00Z"
+    },
+    {
+      "id": "old",
+      "instrument": "A",
+      "quantity": "2",
+      "basis": "13.01",
+      "acquired_at": "2019-06-01T00:00:00Z"
+    }
+  ],
+  "initial_marks": [
+    {
+      "instrument": "A",
+      "at": "2020-01-01T00:00:00Z",
+      "price": "8"
+    }
+  ]
+}
