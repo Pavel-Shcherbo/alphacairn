@@ -1,0 +1,83 @@
+[
+  {
+    "id": "fund",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "deposit",
+    "currency": "USD",
+    "amount": "8397"
+  },
+  {
+    "id": "opening-1",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "opening_lot",
+    "instrument": "equity:demo-us",
+    "quantity": "10",
+    "basis": "1002",
+    "acquired_at": "2025-06-01T00:00:00Z"
+  },
+  {
+    "id": "opening-2",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "opening_lot",
+    "instrument": "equity:demo-us",
+    "quantity": "5",
+    "basis": "601",
+    "acquired_at": "2025-12-01T00:00:00Z"
+  },
+  {
+    "id": "sell-partial",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "trade",
+    "instrument": "equity:demo-us",
+    "side": "sell",
+    "quantity": "12",
+    "price": "150",
+    "fee": "3"
+  },
+  {
+    "id": "split",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "split",
+    "instrument": "equity:demo-us",
+    "numerator": 2,
+    "denominator": 1
+  },
+  {
+    "id": "dividend",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "dividend",
+    "instrument": "equity:demo-us",
+    "gross": "12",
+    "withholding": "3"
+  },
+  {
+    "id": "exchange",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "fx",
+    "from_currency": "USD",
+    "to_currency": "EUR",
+    "amount": "1000",
+    "rate": "0.9",
+    "fee": "1"
+  },
+  {
+    "id": "buy-europe",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "trade",
+    "instrument": "equity:demo-eu",
+    "side": "buy",
+    "quantity": "10",
+    "price": "50",
+    "fee": "1"
+  },
+  {
+    "id": "buy-crypto",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "trade",
+    "instrument": "crypto:demo",
+    "side": "buy",
+    "quantity": "0.1",
+    "price": "20000",
+    "fee": "2"
+  }
+]
