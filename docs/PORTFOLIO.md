@@ -81,3 +81,5 @@ Browser scenarios use disposable temporary databases, removed after calculation.
 ## Limits
 
 CLI JSON files are at most 2 MiB, 50 nesting levels and 100,000 structural nodes. An atomic batch holds 1–10,000 events; event pagination returns at most 1,000 rows. Accounts declare up to 32 currencies and 1,000 instruments. The browser limits scenarios to 50 instruments and 500 events. These are local-workload bounds, not a published throughput qualification. Long histories require further storage/index and reporting work before a capacity claim.
+
+Opening inventory is supported with the `opening_lot` event at the journal’s initial timestamp, before trading activity. It contributes lots/basis without spending cash. See [opening holdings](OPENING_HOLDINGS.md) for strict acquisition ordering, import examples and evidence.
