@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "scope": "Existing Portfolio editor with explicit opening lots; not full platform or broker qualification",
+  "download_reproduced_exactly": true,
+  "input_sha256": "a1a6d07267bbaafd093b33f828fb3d9e18fecbda5084978b0f32644a672b3e67",
+  "opening_lots": 2,
+  "opening_basis_usd": "1603.00",
+  "opening_cash_usd": "8397.00",
+  "independent_final_usd_cash_minor_units": 720000,
+  "independent_us_equity_basis": "360.60",
+  "independent_multi_asset_equity": "10948.90",
+  "late_opening_rejected": true,
+  "obsolete_export_disabled": true,
+  "desktop": [
+    1440,
+    1000
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "document_overflow": false,
+  "screenshots_inspected": true,
+  "unexpected_page_errors": [],
+  "expected_console_errors": 1,
+  "artifacts": {
+    "opening-portfolio-desktop.png": "62e21c3064314d90f7f290fc7e46925bffe2cf3a77f1e38978e6da78396862e1",
+    "opening-portfolio-mobile.png": "bb7eb6859e02ac86639c003368d3c67c99ad79fd5285059ad0b5ca76dedd42e3",
+    "opening-portfolio-example.json": "1d2015437014972e469925ef3550baf8e10e155eee054920413fb3d8b0be8104"
+  }
+}
