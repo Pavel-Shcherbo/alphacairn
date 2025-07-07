@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "scope": "Synthetic clean installed CLI/API and independently reconciled FIFO controls; not broker statement or live-market certification",
+  "independent_cash_minor_units": 500,
+  "independent_released_basis_minor_units": 2201,
+  "independent_realized_income_minor_units": 749,
+  "independent_remaining_basis_minor_units": 4250,
+  "initial_market_equity_usd": "40.00",
+  "opening_book_basis_usd": "40.01",
+  "final_equity_usd": "53.00",
+  "opening_does_not_create_fills_or_fees": true,
+  "persistent_journal_matches_simulation": true,
+  "duplicate_events_do_not_add_lots": true,
+  "api_statement_and_values_reconciled": true,
+  "opening_fixture_matches_independent_multi_asset_control": true,
+  "late_opening_rejected": true,
+  "create_only_bundle_preserved": true,
+  "portable_replay_without_source_or_journal": {
+    "passed": true,
+    "replayed": true,
+    "scenario_sha256": "74c3343c2e1d0471841b01df64834bd48e4e4e02a14d70edae89f05bd36cc223",
+    "report_sha256": "d2d0e09eaa20a7df996d35b2bceae383f5ee313906cb8a5586e3dfc7a0adadd8",
+    "fills": 2,
+    "open_orders": 0,
+    "accounting_reconciled": true,
+    "valuation_complete": true
+  },
+  "fills": [
+    {
+      "id": "simfill-000001",
+      "order_id": "sell",
+      "instrument": "A",
+      "side": "sell",
+      "at": "2020-01-02T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-02",
+      "quantity": "3",
+      "price": "10",
+      "notional": "30.00",
+      "fee": "0.50",
+      "currency": "USD",
+      "cash_after": "29.50",
+      "position_after": "2"
+    },
+    {
+      "id": "simfill-000002",
+      "order_id": "buy",
+      "instrument": "A",
+      "side": "buy",
+      "at": "2020-01-03T09:00:00.000000Z",
+      "phase": "open",
+      "session": "2020-01-03",
+      "quantity": "2",
+      "price": "12",
+      "notional": "24.00",
+      "fee": "0.50",
+      "currency": "USD",
+      "cash_after": "5.00",
+      "position_after": "4"
+    }
+  ],
+  "bundle_hashes": {
+    "equity.csv": "9772ce531f18f915336f03ff8d415d7380bec7dbc353a291cde6a1b2adc20531",
+    "fills.csv": "6e6a99b54cfe3c38923766c6d2909baab0fdcc166230f7246be2d17c0352bb01",
+    "ledger-events.json": "76a7489fe627ff66ad4c6784e7da8a4023322170394957fda3aed3ca0f6a77ed",
+    "manifest.json": "495a2485eadfec61f796171dd1a35470057b6c9b1c4d0079da0d712cae85c85a",
+    "orders.csv": "49d2f1eba651fe21070b5a8c9dd9cd0edb31c0a0408b672e618fb8cf48ca7442",
+    "report.json": "dbfec4b372985393ac60bef87a1d024ba5fc873dab18adb4501a6b38e44b760d",
+    "scenario.json": "0917111433908af27e9d5385d2a37b1427e754f49a0a8a85a94216248165461a"
+  },
+  "full_portfolio_acceptance": false
+}
