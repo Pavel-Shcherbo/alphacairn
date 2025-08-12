@@ -1,0 +1,551 @@
+{
+  "mode": "portfolio",
+  "input_sha256": "a1a6d07267bbaafd093b33f828fb3d9e18fecbda5084978b0f32644a672b3e67",
+  "inputs": {
+    "account": {
+      "name": "synthetic-research",
+      "base_currency": "USD",
+      "currencies": {
+        "EUR": 2,
+        "USD": 2
+      },
+      "instruments": [
+        {
+          "id": "equity:demo-us",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-US",
+          "kind": "equity",
+          "quote_currency": "USD",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "equity:demo-eu",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-EU",
+          "kind": "equity",
+          "quote_currency": "EUR",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "crypto:demo",
+          "symbol": "DEMO-USD",
+          "venue": "SYNTHETIC-SPOT",
+          "kind": "crypto_spot",
+          "quote_currency": "USD",
+          "quantity_step": "0.00000001",
+          "price_tick": "0.01"
+        }
+      ]
+    },
+    "events": [
+      {
+        "id": "fund",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "deposit",
+        "currency": "USD",
+        "amount": "8397.00"
+      },
+      {
+        "id": "opening-1",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "opening_lot",
+        "instrument": "equity:demo-us",
+        "quantity": "10",
+        "basis": "1002.00",
+        "acquired_at": "2025-06-01T00:00:00.000000Z"
+      },
+      {
+        "id": "opening-2",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "opening_lot",
+        "instrument": "equity:demo-us",
+        "quantity": "5",
+        "basis": "601.00",
+        "acquired_at": "2025-12-01T00:00:00.000000Z"
+      },
+      {
+        "id": "sell-partial",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "trade",
+        "instrument": "equity:demo-us",
+        "side": "sell",
+        "quantity": "12",
+        "price": "150",
+        "fee": "3.00"
+      },
+      {
+        "id": "split",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "split",
+        "instrument": "equity:demo-us",
+        "numerator": 2,
+        "denominator": 1
+      },
+      {
+        "id": "dividend",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "dividend",
+        "instrument": "equity:demo-us",
+        "gross": "12.00",
+        "withholding": "3.00"
+      },
+      {
+        "id": "exchange",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "fx",
+        "from_currency": "USD",
+        "to_currency": "EUR",
+        "amount": "1000.00",
+        "fee": "1.00",
+        "rate": "0.9"
+      },
+      {
+        "id": "buy-europe",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "trade",
+        "instrument": "equity:demo-eu",
+        "side": "buy",
+        "quantity": "10",
+        "price": "50",
+        "fee": "1.00"
+      },
+      {
+        "id": "buy-crypto",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "trade",
+        "instrument": "crypto:demo",
+        "side": "buy",
+        "quantity": "0.1",
+        "price": "20000",
+        "fee": "2.00"
+      }
+    ],
+    "quotes": {
+      "as_of": "2026-01-02T16:00:00Z",
+      "marks": {
+        "equity:demo-us": {
+          "price": "75",
+          "timestamp": "2026-01-02T16:00:00Z"
+        },
+        "equity:demo-eu": {
+          "price": "60",
+          "timestamp": "2026-01-02T16:00:00Z"
+        },
+        "crypto:demo": {
+          "price": "22000",
+          "timestamp": "2026-01-02T16:00:00Z"
+        }
+      },
+      "fx": {
+        "EUR": {
+          "rate": "1.1",
+          "timestamp": "2026-01-02T16:00:00Z"
+        }
+      }
+    },
+    "statement": {
+      "cash": {
+        "USD": "7200",
+        "EUR": "399"
+      },
+      "positions": {
+        "equity:demo-us": "6",
+        "equity:demo-eu": "10",
+        "crypto:demo": "0.1"
+      }
+    }
+  },
+  "receipts": [
+    {
+      "sequence": 1,
+      "id": "fund",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "deposit",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "8397.00"
+        },
+        {
+          "currency": "USD",
+          "account": "external_capital",
+          "amount": "-8397.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 2,
+      "id": "opening-1",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "opening_lot",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "inventory:equity:demo-us",
+          "amount": "1002.00"
+        },
+        {
+          "currency": "USD",
+          "account": "external_capital",
+          "amount": "-1002.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 3,
+      "id": "opening-2",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "opening_lot",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "inventory:equity:demo-us",
+          "amount": "601.00"
+        },
+        {
+          "currency": "USD",
+          "account": "external_capital",
+          "amount": "-601.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 4,
+      "id": "sell-partial",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "trade",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "1797.00"
+        },
+        {
+          "currency": "USD",
+          "account": "inventory:equity:demo-us",
+          "amount": "-1242.40"
+        },
+        {
+          "currency": "USD",
+          "account": "realized_income:equity:demo-us",
+          "amount": "-554.60"
+        }
+      ],
+      "fifo_matches": [
+        {
+          "lot_id": 1,
+          "quantity": "10",
+          "basis": "1002.00"
+        },
+        {
+          "lot_id": 2,
+          "quantity": "2",
+          "basis": "240.40"
+        }
+      ],
+      "duplicate": false
+    },
+    {
+      "sequence": 5,
+      "id": "split",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "split",
+      "postings": [],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 6,
+      "id": "dividend",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "dividend",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "9.00"
+        },
+        {
+          "currency": "USD",
+          "account": "dividend_income",
+          "amount": "-12.00"
+        },
+        {
+          "currency": "USD",
+          "account": "withholding",
+          "amount": "3.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 7,
+      "id": "exchange",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "fx",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "-1001.00"
+        },
+        {
+          "currency": "USD",
+          "account": "fx_clearing",
+          "amount": "1000.00"
+        },
+        {
+          "currency": "USD",
+          "account": "fx_fees",
+          "amount": "1.00"
+        },
+        {
+          "currency": "EUR",
+          "account": "cash",
+          "amount": "900.00"
+        },
+        {
+          "currency": "EUR",
+          "account": "fx_clearing",
+          "amount": "-900.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 8,
+      "id": "buy-europe",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "trade",
+      "postings": [
+        {
+          "currency": "EUR",
+          "account": "cash",
+          "amount": "-501.00"
+        },
+        {
+          "currency": "EUR",
+          "account": "inventory:equity:demo-eu",
+          "amount": "501.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 9,
+      "id": "buy-crypto",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "trade",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "-2002.00"
+        },
+        {
+          "currency": "USD",
+          "account": "inventory:crypto:demo",
+          "amount": "2002.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    }
+  ],
+  "state": {
+    "account": {
+      "name": "synthetic-research",
+      "base_currency": "USD",
+      "currencies": {
+        "EUR": 2,
+        "USD": 2
+      },
+      "instruments": [
+        {
+          "id": "equity:demo-us",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-US",
+          "kind": "equity",
+          "quote_currency": "USD",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "equity:demo-eu",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-EU",
+          "kind": "equity",
+          "quote_currency": "EUR",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "crypto:demo",
+          "symbol": "DEMO-USD",
+          "venue": "SYNTHETIC-SPOT",
+          "kind": "crypto_spot",
+          "quote_currency": "USD",
+          "quantity_step": "0.00000001",
+          "price_tick": "0.01"
+        }
+      ]
+    },
+    "cash": {
+      "EUR": "399.00",
+      "USD": "7200.00"
+    },
+    "positions": {
+      "crypto:demo": {
+        "quantity": "0.1",
+        "basis": "2002.00"
+      },
+      "equity:demo-eu": {
+        "quantity": "10",
+        "basis": "501.00"
+      },
+      "equity:demo-us": {
+        "quantity": "6",
+        "basis": "360.60"
+      }
+    },
+    "lots": [
+      {
+        "id": 2,
+        "event_seq": 3,
+        "instrument": "equity:demo-us",
+        "quantity": "6",
+        "basis": "360.60",
+        "acquired_at": "2025-12-01T00:00:00.000000Z"
+      },
+      {
+        "id": 3,
+        "event_seq": 8,
+        "instrument": "equity:demo-eu",
+        "quantity": "10",
+        "basis": "501.00",
+        "acquired_at": "2026-01-02T12:00:00.000000Z"
+      },
+      {
+        "id": 4,
+        "event_seq": 9,
+        "instrument": "crypto:demo",
+        "quantity": "0.1",
+        "basis": "2002.00",
+        "acquired_at": "2026-01-02T12:00:00.000000Z"
+      }
+    ],
+    "accounts": {
+      "EUR": {
+        "cash": "399.00",
+        "fx_clearing": "-900.00",
+        "inventory:equity:demo-eu": "501.00"
+      },
+      "USD": {
+        "cash": "7200.00",
+        "dividend_income": "-12.00",
+        "external_capital": "-10000.00",
+        "fx_clearing": "1000.00",
+        "fx_fees": "1.00",
+        "inventory:crypto:demo": "2002.00",
+        "inventory:equity:demo-us": "360.60",
+        "realized_income:equity:demo-us": "-554.60",
+        "withholding": "3.00"
+      }
+    },
+    "last_sequence": 9,
+    "latest_timestamp": "2026-01-02T12:00:00.000000Z"
+  },
+  "valuation": {
+    "complete": true,
+    "sequence": 9,
+    "as_of": "2026-01-02T16:00:00.000000Z",
+    "base_currency": "USD",
+    "equity": "10948.90",
+    "known_base_value": "10948.90",
+    "cash": [
+      {
+        "currency": "EUR",
+        "amount": "399.00",
+        "base_value": "438.90"
+      },
+      {
+        "currency": "USD",
+        "amount": "7200.00",
+        "base_value": "7200.00"
+      }
+    ],
+    "positions": [
+      {
+        "instrument": "crypto:demo",
+        "symbol": "DEMO-USD",
+        "venue": "SYNTHETIC-SPOT",
+        "quantity": "0.1",
+        "quote_currency": "USD",
+        "basis": "2002.00",
+        "mark": "22000",
+        "market_value": "2200.00",
+        "unrealized_quote_pnl": "198.00",
+        "base_value": "2200.00",
+        "weight_percent": "20.093343"
+      },
+      {
+        "instrument": "equity:demo-eu",
+        "symbol": "DEMO",
+        "venue": "SYNTHETIC-EU",
+        "quantity": "10",
+        "quote_currency": "EUR",
+        "basis": "501.00",
+        "mark": "60",
+        "market_value": "600.00",
+        "unrealized_quote_pnl": "99.00",
+        "base_value": "660.00",
+        "weight_percent": "6.028003"
+      },
+      {
+        "instrument": "equity:demo-us",
+        "symbol": "DEMO",
+        "venue": "SYNTHETIC-US",
+        "quantity": "6",
+        "quote_currency": "USD",
+        "basis": "360.60",
+        "mark": "75",
+        "market_value": "450.00",
+        "unrealized_quote_pnl": "89.40",
+        "base_value": "450.00",
+        "weight_percent": "4.110002"
+      }
+    ],
+    "missing_inputs": [],
+    "warnings": [],
+    "max_age_seconds": 86400,
+    "fx_direction": "base currency units per one quote currency unit",
+    "rounding_policy": "half-even at each cash/position conversion to base currency",
+    "scope": "current long-only settled-cash journal valuation; no FX profit attribution or tax reporting"
+  },
+  "reconciliation": {
+    "matched": true,
+    "sequence": 9,
+    "differences": [],
+    "policy": "exact comparison; missing keys are zero; no automatic reconciliation entries"
+  },
+  "audit": {
+    "passed": true,
+    "sequence": 9,
+    "issues": [],
+    "scope": "journal hashes, balanced postings, cash and lot checks, full event replay; not external statement verification"
+  },
+  "passed": true,
+  "storage_policy": "disposable browser scenario; use the portfolio CLI for a persistent journal"
+}
