@@ -28,3 +28,7 @@ from test_execution import scenario, bar, order
 from test_strategy import load
 
 
+def control():
+    return load("opening-execution.json")
+
+
