@@ -32,3 +32,17 @@ def control():
     return load("opening-execution.json")
 
 
+def event(name="lot", acquired="2019-01-01T00:00:00Z", quantity="5", basis="40.01"):
+    return {
+        "id": name,
+        "timestamp": "2020-01-01T00:00:00Z",
+        "kind": "opening_lot",
+        "instrument": "A",
+        "quantity": quantity,
+        "basis": basis,
+        "acquired_at": acquired,
+    }
+
+
+class OpeningTests(unittest.TestCase):
+    pass
