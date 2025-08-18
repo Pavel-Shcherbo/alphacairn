@@ -51,3 +51,16 @@ class OpeningTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.ledger = Ledger(self.root / "ledger.sqlite", control()["account"])
 
+    def test_opening_does_not_spend_cash_or_make_a_trade(self):
+        receipt = self.ledger.apply(event())
+        state = self.ledger.state()
+        self.assertEqual(state["cash"], {})
+        self.assertEqual(state["positions"]["A"], {"quantity": "5", "basis": "40.01"})
+        self.assertEqual(
+            state["accounts"]["USD"],
+            {"external_capital": "-40.01", "inventory:A": "40.01"},
+        )
+        self.assertEqual(state["lots"][0]["acquired_at"], "2019-01-01T00:00:00.000000Z")
+        self.assertEqual(sum(Fraction(p["amount"]) for p in receipt["postings"]), 0)
+        self.assertTrue(self.ledger.audit()["passed"])
+
