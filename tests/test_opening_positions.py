@@ -45,4 +45,9 @@ def event(name="lot", acquired="2019-01-01T00:00:00Z", quantity="5", basis="40.0
 
 
 class OpeningTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.ledger = Ledger(self.root / "ledger.sqlite", control()["account"])
+
