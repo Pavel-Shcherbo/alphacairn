@@ -64,3 +64,16 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(sum(Fraction(p["amount"]) for p in receipt["postings"]), 0)
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_initial_lots_sorted_by_acquisition_independent_of_input_order(self):
+        compiled = compile_execution(control())
+        self.assertEqual(
+            [row["id"] for row in compiled.definition["initial_lots"]],
+            ["old", "recent"],
+        )
+        other = control()
+        other["initial_lots"].reverse()
+        self.assertEqual(compiled.sha256, compile_execution(other).sha256)
+        self.assertEqual(
+            compiled.definition, compile_execution(compiled.definition).definition
+        )
+
