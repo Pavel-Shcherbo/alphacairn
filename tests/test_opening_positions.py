@@ -77,3 +77,24 @@ class OpeningTests(unittest.TestCase):
             compiled.definition, compile_execution(compiled.definition).definition
         )
 
+    def test_fifo_sale_then_purchase_matches_integer_cent_controls(self):
+        result = simulate_execution(control())
+        self.assertEqual(result["cash"], {"USD": "5.00"})
+        self.assertEqual(result["positions"]["A"], {"quantity": "4", "basis": "42.50"})
+        self.assertEqual(
+            result["ledger_state"]["accounts"]["USD"]["realized_income:A"], "-7.49"
+        )
+        self.assertEqual(result["equity_curve"][0]["equity"], "40.00")
+        self.assertEqual(result["valuation"]["equity"], "53.00")
+        self.assertEqual(
+            [row["kind"] for row in result["ledger_events"]],
+            ["opening_lot", "opening_lot", "trade", "trade"],
+        )
+        self.assertEqual(len(result["fills"]), 2)
+        self.assertEqual(result["fees_by_currency"], {"USD": "1.00"})
+        self.assertEqual(
+            result["opening_holdings"]["basis_by_currency"], {"USD": "40.01"}
+        )
+        self.assertFalse(result["opening_holdings"]["basis_is_market_value"])
+        self.assertTrue(result["ledger_audit"]["passed"])
+
