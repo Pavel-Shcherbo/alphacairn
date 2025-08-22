@@ -98,3 +98,23 @@ class OpeningTests(unittest.TestCase):
         self.assertFalse(result["opening_holdings"]["basis_is_market_value"])
         self.assertTrue(result["ledger_audit"]["passed"])
 
+    def test_opening_cost_zero_is_not_missing_basis(self):
+        self.ledger.apply(event(basis="0"))
+        self.ledger.apply(
+            {
+                "id": "sell",
+                "timestamp": "2020-01-02T00:00:00Z",
+                "kind": "trade",
+                "instrument": "A",
+                "side": "sell",
+                "quantity": "1",
+                "price": "10",
+                "fee": "0.50",
+            }
+        )
+        self.assertEqual(self.ledger.state()["positions"]["A"]["basis"], "0.00")
+        self.assertEqual(
+            self.ledger.state()["accounts"]["USD"]["realized_income:A"], "-9.50"
+        )
+        self.assertTrue(self.ledger.audit()["passed"])
+
