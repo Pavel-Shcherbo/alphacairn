@@ -118,3 +118,33 @@ class OpeningTests(unittest.TestCase):
         )
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_partial_basis_rounding_keeps_residual_cent(self):
+        self.ledger.apply(event(quantity="2", basis="13.01"))
+        self.ledger.apply(
+            {
+                "id": "s1",
+                "timestamp": "2020-01-02T00:00:00Z",
+                "kind": "trade",
+                "instrument": "A",
+                "side": "sell",
+                "quantity": "1",
+                "price": "10",
+            }
+        )
+        self.assertEqual(self.ledger.state()["positions"]["A"]["basis"], "6.51")
+        self.ledger.apply(
+            {
+                "id": "s2",
+                "timestamp": "2020-01-03T00:00:00Z",
+                "kind": "trade",
+                "instrument": "A",
+                "side": "sell",
+                "quantity": "1",
+                "price": "10",
+            }
+        )
+        self.assertEqual(self.ledger.state()["positions"], {})
+        self.assertEqual(
+            self.ledger.state()["accounts"]["USD"]["realized_income:A"], "-6.99"
+        )
+
