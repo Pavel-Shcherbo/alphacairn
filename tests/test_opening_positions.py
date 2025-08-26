@@ -148,3 +148,12 @@ class OpeningTests(unittest.TestCase):
             self.ledger.state()["accounts"]["USD"]["realized_income:A"], "-6.99"
         )
 
+    def test_concurrent_same_opening_receipt_creates_one_lot(self):
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            receipts = list(pool.map(lambda _: self.ledger.apply(event()), range(4)))
+        self.assertEqual(sum(not r["duplicate"] for r in receipts), 1)
+        self.assertEqual(len(self.ledger.state()["lots"]), 1)
+        changed = event(basis="40.02")
+        with self.assertRaisesRegex(ValueError, "conflicts"):
+            self.ledger.apply(changed)
+
