@@ -157,3 +157,30 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "conflicts"):
             self.ledger.apply(changed)
 
+    def test_opening_only_at_first_timestamp_and_before_activity(self):
+        self.ledger.apply(
+            {
+                "id": "cash",
+                "kind": "deposit",
+                "timestamp": "2020-01-01T00:00:00Z",
+                "currency": "USD",
+                "amount": "1",
+            }
+        )
+        later = event()
+        later["timestamp"] = "2020-01-02T00:00:00Z"
+        with self.assertRaisesRegex(ValueError, "first timestamp"):
+            self.ledger.apply(later)
+        self.ledger.apply(
+            {
+                "id": "out",
+                "kind": "withdraw",
+                "timestamp": "2020-01-01T00:00:00Z",
+                "currency": "USD",
+                "amount": "1",
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "precede activity"):
+            self.ledger.apply(event())
+        self.assertEqual(self.ledger.state()["positions"], {})
+
