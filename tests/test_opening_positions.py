@@ -184,3 +184,11 @@ class OpeningTests(unittest.TestCase):
             self.ledger.apply(event())
         self.assertEqual(self.ledger.state()["positions"], {})
 
+    def test_bad_acquisition_order_rolls_back_entire_opening_batch(self):
+        with self.assertRaisesRegex(ValueError, "acquisition order"):
+            self.ledger.apply_batch(
+                [event("new", "2019-12-01T00:00:00Z"), event("old")]
+            )
+        self.assertEqual(self.ledger.state()["last_sequence"], 0)
+        self.assertEqual(self.ledger.state()["lots"], [])
+
