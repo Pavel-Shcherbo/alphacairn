@@ -192,3 +192,21 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["last_sequence"], 0)
         self.assertEqual(self.ledger.state()["lots"], [])
 
+    def test_bad_lot_units_basis_clock_identity_and_fields_rejected(self):
+        changes = [
+            {"quantity": "0"},
+            {"quantity": "1.1"},
+            {"basis": "-1"},
+            {"basis": "0.001"},
+            {"basis": True},
+            {"acquired_at": "2020-01-02T00:00:00Z"},
+            {"acquired_at": "2019-01-01"},
+            {"instrument": "missing"},
+            {"source": "unknown"},
+            {"id": "a" * 97},
+        ]
+        for change in changes:
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.ledger.apply({**event(), **change})
+        self.assertEqual(self.ledger.state()["last_sequence"], 0)
+
