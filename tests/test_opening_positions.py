@@ -210,3 +210,13 @@ class OpeningTests(unittest.TestCase):
                 self.ledger.apply({**event(), **change})
         self.assertEqual(self.ledger.state()["last_sequence"], 0)
 
+    def test_missing_and_future_acquisitions_rejected(self):
+        value = event()
+        del value["acquired_at"]
+        with self.assertRaises(ValueError):
+            normalize_event(value, self.ledger.spec)
+        definition = control()
+        definition["account"]["instruments"][0]["active_from"] = "2019-09-01T00:00:00Z"
+        with self.assertRaises(ValueError):
+            compile_execution(definition)
+
