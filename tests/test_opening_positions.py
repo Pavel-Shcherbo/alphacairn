@@ -220,3 +220,11 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             compile_execution(definition)
 
+    def test_missing_mark_reports_incomplete_opening_instead_of_using_cost(self):
+        value = control()
+        value["initial_marks"] = []
+        result = simulate_execution(value)
+        self.assertFalse(result["equity_curve"][0]["complete"])
+        self.assertIsNone(result["equity_curve"][0]["equity"])
+        self.assertTrue(result["valuation"]["complete"])
+
