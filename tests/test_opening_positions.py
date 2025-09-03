@@ -228,3 +228,11 @@ class OpeningTests(unittest.TestCase):
         self.assertIsNone(result["equity_curve"][0]["equity"])
         self.assertTrue(result["valuation"]["complete"])
 
+    def test_stale_mark_is_not_current_and_future_mark_rejected(self):
+        value = control()
+        value["initial_marks"][0]["at"] = "2019-12-01T00:00:00Z"
+        self.assertFalse(simulate_execution(value)["equity_curve"][0]["complete"])
+        value["initial_marks"][0]["at"] = "2020-01-01T00:00:01Z"
+        with self.assertRaisesRegex(ValueError, "future"):
+            compile_execution(value)
+
