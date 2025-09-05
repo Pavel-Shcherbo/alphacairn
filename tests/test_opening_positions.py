@@ -236,3 +236,14 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "future"):
             compile_execution(value)
 
+    def test_duplicate_lots_marks_and_unheld_marks_rejected(self):
+        for field in ["initial_lots", "initial_marks"]:
+            value = control()
+            value[field].append(copy.deepcopy(value[field][0]))
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                compile_execution(value)
+        value = control()
+        value["initial_lots"] = []
+        with self.assertRaisesRegex(ValueError, "held instruments"):
+            compile_execution(value)
+
