@@ -260,3 +260,10 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(compile_execution(value).definition["version"], 1)
         self.assertNotIn("opening_holdings", simulate_execution(value))
 
+    def test_lot_limit_and_non_list_are_rejected(self):
+        for lots in [None, {}, [event()] * 1001]:
+            value = control()
+            value["initial_lots"] = lots
+            with self.subTest(kind=type(lots).__name__), self.assertRaises(ValueError):
+                compile_execution(value)
+
