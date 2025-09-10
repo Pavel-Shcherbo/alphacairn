@@ -247,3 +247,16 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "held instruments"):
             compile_execution(value)
 
+    def test_old_versions_remain_strict_and_v4_requires_explicit_opening(self):
+        value = control()
+        value["version"] = 3
+        with self.assertRaises(ValueError):
+            compile_execution(value)
+        value = control()
+        del value["initial_lots"]
+        with self.assertRaises(ValueError):
+            compile_execution(value)
+        value = scenario()
+        self.assertEqual(compile_execution(value).definition["version"], 1)
+        self.assertNotIn("opening_holdings", simulate_execution(value))
+
