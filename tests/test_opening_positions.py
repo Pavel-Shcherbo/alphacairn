@@ -267,3 +267,23 @@ class OpeningTests(unittest.TestCase):
             with self.subTest(kind=type(lots).__name__), self.assertRaises(ValueError):
                 compile_execution(value)
 
+    def test_opening_split_dividend_sale_reconciles_entitlement_and_basis(self):
+        value = control()
+        value["commands"] = [order("sale", quantity="3", side="sell")]
+        value["corporate_actions"] = [
+            split(at=value["starts_at"]),
+            dividend(
+                ex="2020-01-02T08:00:00Z",
+                pay="2020-01-03T08:00:00Z",
+                amount="1",
+                bps="1000",
+            ),
+        ]
+        result = simulate_execution(value)
+        self.assertEqual(result["positions"]["A"]["quantity"], "7")
+        self.assertEqual(result["positions"]["A"]["basis"], "30.25")
+        self.assertEqual(result["cash"], {"USD": "38.50"})
+        self.assertEqual(result["corporate_actions"][1]["eligible_quantity"], "10")
+        self.assertTrue(result["corporate_replay_checks"][0]["passed"])
+        self.assertFalse(result["equity_curve"][0]["complete"])
+
