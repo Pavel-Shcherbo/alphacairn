@@ -295,3 +295,15 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(result["positions"]["A"]["quantity"], "5")
         self.assertEqual(result["cash"], {"USD": "0.00"})
 
+    def test_isolated_decimal_context_and_compiled_mutation_guard(self):
+        with localcontext() as ctx:
+            ctx.prec = 3
+            ctx.traps[Inexact] = True
+            self.assertEqual(
+                simulate_execution(control())["valuation"]["equity"], "53.00"
+            )
+        plan = compile_execution(control())
+        plan.definition["initial_lots"][0]["basis"] = "0"
+        with self.assertRaisesRegex(ValueError, "mutated"):
+            simulate_execution(plan)
+
