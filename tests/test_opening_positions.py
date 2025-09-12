@@ -287,3 +287,11 @@ class OpeningTests(unittest.TestCase):
         self.assertTrue(result["corporate_replay_checks"][0]["passed"])
         self.assertFalse(result["equity_curve"][0]["complete"])
 
+    def test_opening_cannot_finance_buy_until_an_actual_sale(self):
+        value = control()
+        value["commands"] = [order("buy", quantity="1")]
+        result = simulate_execution(value)
+        self.assertEqual(result["fills"], [])
+        self.assertEqual(result["positions"]["A"]["quantity"], "5")
+        self.assertEqual(result["cash"], {"USD": "0.00"})
+
