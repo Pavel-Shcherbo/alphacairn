@@ -307,3 +307,20 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "mutated"):
             simulate_execution(plan)
 
+    def test_portable_bundle_replays_without_source_and_reconciles_csv(self):
+        value = control()
+        report = simulate_execution(value)
+        directory = self.root / "bundle"
+        write_execution(value, report, directory)
+        value.clear()
+        self.ledger.path.unlink()
+        self.assertTrue(verify_execution_bundle(directory)["passed"])
+        with (directory / "fills.csv").open(newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        cash = 0
+        for row in rows:
+            cents = int(Fraction(row["notional"]) * 100)
+            fee = int(Fraction(row["fee"]) * 100)
+            cash += (cents if row["side"] == "sell" else -cents) - fee
+        self.assertEqual(cash, 500)
+
