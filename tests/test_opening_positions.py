@@ -331,3 +331,24 @@ class OpeningTests(unittest.TestCase):
         db.close()
         self.assertFalse(self.ledger.audit()["passed"])
 
+    def test_portfolio_http_evaluator_accepts_opening_and_reconciles_statement(self):
+        output = evaluate_portfolio(
+            {
+                "mode": "portfolio",
+                "account": control()["account"],
+                "events": [event()],
+                "quotes": {
+                    "as_of": "2020-01-01T00:00:00Z",
+                    "marks": {"A": {"price": "8", "timestamp": "2020-01-01T00:00:00Z"}},
+                    "fx": {},
+                },
+                "statement": {"cash": {}, "positions": {"A": "5"}},
+            }
+        )
+        self.assertTrue(output["passed"])
+        self.assertEqual(output["valuation"]["equity"], "40.00")
+        self.ledger.apply(event())
+        capture = capture_journal(self.ledger.path)
+        self.assertEqual(capture["events"][0]["kind"], "opening_lot")
+        self.assertEqual(capture["state"]["positions"]["A"]["basis"], "40.01")
+
