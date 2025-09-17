@@ -324,3 +324,10 @@ class OpeningTests(unittest.TestCase):
             cash += (cents if row["side"] == "sell" else -cents) - fee
         self.assertEqual(cash, 500)
 
+    def test_corrupted_acquisition_in_cache_is_detected_by_replay(self):
+        self.ledger.apply(event())
+        with sqlite3.connect(self.ledger.path) as db:
+            db.execute("update lots set acquired_at='2019-02-01T00:00:00.000000Z'")
+        db.close()
+        self.assertFalse(self.ledger.audit()["passed"])
+
