@@ -385,3 +385,13 @@ class OpeningTests(unittest.TestCase):
         result = simulate_execution(value)
         self.assertFalse(result["valuation"]["complete"])
 
+    def test_empty_opening_is_supported_without_inventing_balances(self):
+        value = control()
+        value["initial_lots"] = []
+        value["initial_marks"] = []
+        value["commands"] = []
+        result = simulate_execution(value)
+        self.assertEqual(result["positions"], {})
+        self.assertEqual(result["ledger_events"], [])
+        self.assertEqual(result["opening_holdings"]["lot_count"], 0)
+
