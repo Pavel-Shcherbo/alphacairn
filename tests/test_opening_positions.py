@@ -360,3 +360,28 @@ class OpeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "80 characters"):
             compile_execution(value)
 
+    def test_foreign_currency_crypto_opening_uses_explicit_fx(self):
+        value = control()
+        value["initial_cash"] = {}
+        value["commands"] = []
+        value["account"]["currencies"]["EUR"] = 2
+        asset = value["account"]["instruments"][0]
+        asset.update(kind="crypto_spot", quote_currency="EUR", quantity_step="0.001")
+        value["initial_lots"] = [
+            {
+                "id": "crypto",
+                "instrument": "A",
+                "quantity": "0.125",
+                "basis": "0.89",
+                "acquired_at": "2019-01-01T00:00:00Z",
+            }
+        ]
+        value["fx"] = [{"currency": "EUR", "at": value["starts_at"], "rate": "1.1"}]
+        result = simulate_execution(value)
+        self.assertEqual(result["equity_curve"][0]["equity"], "1.10")
+        self.assertEqual(result["valuation"]["equity"], "1.65")
+        self.assertEqual(result["positions"]["A"]["basis"], "0.89")
+        value["fx"] = []
+        result = simulate_execution(value)
+        self.assertFalse(result["valuation"]["complete"])
+
