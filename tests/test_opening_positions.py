@@ -352,3 +352,11 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(capture["events"][0]["kind"], "opening_lot")
         self.assertEqual(capture["state"]["positions"]["A"]["basis"], "40.01")
 
+    def test_maximum_user_lot_id_reserves_generated_event_prefix(self):
+        value = control()
+        value["initial_lots"][0]["id"] = "a" * 80
+        self.assertTrue(simulate_execution(value)["completed"])
+        value["initial_lots"][0]["id"] = "a" * 81
+        with self.assertRaisesRegex(ValueError, "80 characters"):
+            compile_execution(value)
+
