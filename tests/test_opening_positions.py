@@ -395,3 +395,60 @@ class OpeningTests(unittest.TestCase):
         self.assertEqual(result["ledger_events"], [])
         self.assertEqual(result["opening_holdings"]["lot_count"], 0)
 
+    def test_strategy_sizes_from_opening_inventory_and_exports_it(self):
+        catalog = MarketCatalog(self.root / "market.sqlite", create=True)
+        config = load("strategy-control.json")
+        for name, kind in [
+            ("strategy-bars.json", "bar"),
+            ("strategy-universe.json", "membership"),
+        ]:
+            catalog.ingest(
+                config["source"], kind, canonical(load(name)), request_key=kind
+            )
+        template = config["execution"]
+        template.update(
+            version=4,
+            calendar=None,
+            calendar_policy=None,
+            price_basis="unadjusted",
+            corporate_actions=[],
+            initial_lots=[
+                {
+                    "id": "held",
+                    "instrument": "STOCK-A",
+                    "quantity": "3",
+                    "basis": "20",
+                    "acquired_at": "2019-01-01T00:00:00Z",
+                }
+            ],
+            initial_marks=[
+                {"instrument": "STOCK-A", "at": template["starts_at"], "price": "10"}
+            ],
+        )
+        inputs = capture_strategy(catalog, config)
+        result = simulate_strategy(inputs)
+        self.assertEqual(result["decisions"][0]["positions_before"]["STOCK-A"], "3")
+        self.assertEqual(result["decisions"][0]["actions"][0]["outcome"], "at_target")
+        self.assertEqual(result["execution"]["opening_holdings"]["lot_count"], 1)
+        write_strategy(inputs, result, self.root / "strategy")
+        catalog.path.unlink()
+        self.assertTrue(verify_strategy_bundle(self.root / "strategy")["passed"])
+        changed = copy.deepcopy(config)
+        changed["execution"]["initial_marks"][0]["price"] = "11"
+        catalog = MarketCatalog(self.root / "other.sqlite", create=True)
+        for name, kind in [
+            ("strategy-bars.json", "bar"),
+            ("strategy-universe.json", "membership"),
+        ]:
+            catalog.ingest(
+                config["source"], kind, canonical(load(name)), request_key=kind
+            )
+        other = capture_strategy(catalog, changed)
+        self.assertEqual(
+            trial_contract("strategy", inputs)["recipe_sha256"],
+            trial_contract("strategy", other)["recipe_sha256"],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
