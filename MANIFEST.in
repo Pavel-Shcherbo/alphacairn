@@ -24,3 +24,10 @@ include examples/study-risk-plan.json
 
 include examples/opening-execution.json
 include examples/portfolio-opening-events.json
+
+include examples/settlement-execution.json
+include examples/settlement-policy.json
+include examples/settlement-account.json
+include examples/portfolio-settlement-events.json
+include examples/portfolio-settlement-quotes.json
+include examples/portfolio-settlement-statement.json
