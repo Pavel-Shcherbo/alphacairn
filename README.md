@@ -101,3 +101,7 @@ Open [the local saved-experiments page](http://127.0.0.1:8412/research.html) to 
 ## Opening inventory
 
 Start execution or catalog-backed strategies with declared FIFO lots, acquisition dates and basis instead of fabricated purchases. Version 4 preserves opening market marks separately from book basis; persistent journals and the Portfolio editor accept opening events. See [opening holdings](docs/OPENING_HOLDINGS.md) for the complete examples and independent controls.
+
+## Cash settlement
+
+Version-5 execution/strategy studies distinguish settled funds, purchase reservations and delayed sale proceeds using explicit portable business-day calendars. The journal offers idempotent settlement batches, while Portfolio and risk reports expose pending claims separately. See [cash settlement](docs/SETTLEMENT.md) for complete commands, controls and limits.
