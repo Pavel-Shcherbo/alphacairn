@@ -165,6 +165,7 @@ class CorporateBook:
             book.cash[currency] = decimal_value(
                 book.cash[currency] + net, "cash after dividend", nonnegative=True
             )
+            book.settlements.external_credit(currency, net)
             payment = event_id(action, "payment")
             book.ledger_events.append(
                 {
