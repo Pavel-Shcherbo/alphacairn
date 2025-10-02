@@ -44,6 +44,9 @@ class ExecutionBook:
         from .opening_positions import seed_opening
 
         seed_opening(self)
+        from .settlement_book import SettlementBook
+
+        self.settlements = SettlementBook(self)
         for sequence, command in enumerate(self.definition["commands"]):
             if command["action"] == "submit":
                 self._register_submission(command, sequence)
@@ -60,7 +63,7 @@ class ExecutionBook:
 
     def _register_submission(self, command, sequence):
         """Install a normalized submission before activation by a trusted planner."""
-        if self.definition["version"] in (3, 4):
+        if self.definition["version"] in (3, 4, 5):
             command = copy.deepcopy(command)
         if command["id"] in self.orders:
             raise ValueError("duplicate execution-book order ID")
@@ -79,7 +82,7 @@ class ExecutionBook:
             "completed_at": None,
         }
 
-        if self.definition["version"] in (3, 4):
+        if self.definition["version"] in (3, 4, 5):
             self.orders[command["id"]]["original_definition"] = copy.deepcopy(command)
             self.orders[command["id"]]["corporate_adjustments"] = []
 
@@ -173,15 +176,33 @@ class ExecutionBook:
         )
         if len(self.ledger_events) >= 10000:
             raise ValueError("execution exceeds 10,000 funding/fill journal events")
+        fill_id = "simfill-" + str(len(self.fills) + 1).zfill(6)
+        settlement = None
+        if self.settlements.enabled:
+            settlement = self.settlements.fill(
+                fill_id,
+                instrument,
+                definition["side"],
+                quantity,
+                price,
+                notional,
+                fee,
+                at,
+                bar["definition"]["session"],
+            )
         sign = 1 if definition["side"] == "buy" else -1
-        self.cash[currency] = decimal_value(
-            (
-                self.cash[currency] - notional - fee
-                if sign == 1
-                else self.cash[currency] + notional - fee
-            ),
-            "cash after fill",
-            nonnegative=True,
+        self.cash[currency] = (
+            self.cash[currency]
+            if self.settlements.enabled
+            else decimal_value(
+                (
+                    self.cash[currency] - notional - fee
+                    if sign == 1
+                    else self.cash[currency] + notional - fee
+                ),
+                "cash after fill",
+                nonnegative=True,
+            )
         )
         self.positions[instrument.id] = decimal_value(
             position + sign * quantity, "position after fill", nonnegative=True
@@ -192,7 +213,6 @@ class ExecutionBook:
         order["price_quantity"] += quantity * price
         order["fees"] += fee
         order["last_block_reason"] = None
-        fill_id = "simfill-" + str(len(self.fills) + 1).zfill(6)
         fill = {
             "id": fill_id,
             "order_id": definition["id"],
@@ -209,19 +229,30 @@ class ExecutionBook:
             "cash_after": text(self.cash[currency]),
             "position_after": text(self.positions[instrument.id]),
         }
+        if settlement is not None:
+            fill.update(
+                settles_at=settlement["settles_at"],
+                settlement_date=settlement["settlement_date"],
+                cash_after=text(self.settlements.settled_cash[currency]),
+                available_cash_after=text(self.cash[currency]),
+                reserved_cash_after=text(
+                    self.settlements.settled_cash[currency] - self.cash[currency]
+                ),
+            )
         self.fills.append(fill)
-        self.ledger_events.append(
-            {
-                "id": fill_id,
-                "timestamp": at,
-                "kind": "trade",
-                "instrument": instrument.id,
-                "side": definition["side"],
-                "quantity": text(quantity),
-                "price": text(price),
-                "fee": text(fee),
-            }
-        )
+        if not self.settlements.enabled:
+            self.ledger_events.append(
+                {
+                    "id": fill_id,
+                    "timestamp": at,
+                    "kind": "trade",
+                    "instrument": instrument.id,
+                    "side": definition["side"],
+                    "quantity": text(quantity),
+                    "price": text(price),
+                    "fee": text(fee),
+                }
+            )
         self.emit("fill", at, order_id=definition["id"], fill_id=fill_id)
         if order["remaining"] == 0:
             self.terminal(order, "filled", at, "quantity_executed")
@@ -354,7 +385,7 @@ class ExecutionBook:
                         "completed_at": order["completed_at"],
                     }
                 )
-                if self.definition["version"] in (3, 4):
+                if self.definition["version"] in (3, 4, 5):
                     result[-1]["original_definition"] = copy.deepcopy(
                         order["original_definition"]
                     )
