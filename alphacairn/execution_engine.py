@@ -63,6 +63,7 @@ def _simulate(plan, should_cancel):
     for at, groups in timeline_groups(scenario):
         if should_cancel and should_cancel():
             raise ValueError("execution cancelled; no complete report was produced")
+        settled = book.settlements.process(at)
         for order_id in groups.get("expiry", []):
             book.expire(order_id, at)
         closes = groups.get("close", [])
@@ -81,6 +82,7 @@ def _simulate(plan, should_cancel):
             book.open_bars(at, groups["open"])
         if (
             closes
+            or settled
             or any(
                 groups.get(kind) for kind in ("split", "dividend_ex", "dividend_pay")
             )
@@ -88,14 +90,25 @@ def _simulate(plan, should_cancel):
         ):
             point = marked_value(
                 plan.account,
-                book.cash,
+                (
+                    book.settlements.settled_cash
+                    if book.settlements.enabled
+                    else book.cash
+                ),
                 book.positions,
                 marks,
                 fx,
                 at=at,
                 max_age=scenario["max_mark_age_seconds"],
                 receivables=corporate.outstanding(),
+                settlements=book.settlements.outstanding(),
             )
+            if book.settlements.enabled:
+                point["settlement_cash"] = book.settlements.summary()["cash"]
+                point["pending_settlements"] = sum(
+                    row["status"] == "pending"
+                    for row in book.settlements.entries.values()
+                )
             curve_bytes += len(canonical(point))
             if curve_bytes > 8 * 1024 * 1024:
                 raise ValueError(
@@ -108,7 +121,7 @@ def _simulate(plan, should_cancel):
     with tempfile.TemporaryDirectory(prefix="alphacairn-execution-") as directory:
         ledger = Ledger(Path(directory) / "fills.sqlite", plan.account.definition())
         corporate_checks = []
-        if scenario["version"] in (3, 4):
+        if scenario["version"] in (3, 4, 5):
             from .corporate_replay import replay_actions
 
             corporate_checks = replay_actions(
@@ -120,7 +133,9 @@ def _simulate(plan, should_cancel):
         elif book.ledger_events:
             ledger.apply_batch(book.ledger_events)
         journal = ledger.state()
-        for currency, value in book.cash.items():
+        for currency, value in (
+            book.settlements.settled_cash if book.settlements.enabled else book.cash
+        ).items():
             if Decimal(journal["cash"].get(currency, "0")) != value:
                 raise RuntimeError("execution cash differs from replayed journal")
         own = {name: value for name, value in book.positions.items() if value}
@@ -137,6 +152,17 @@ def _simulate(plan, should_cancel):
         }
         if outstanding != dividend_assets(journal, plan.account):
             raise RuntimeError("execution receivables differ from replayed journal")
+        if book.settlements.enabled:
+            from .settlement_accounts import obligations, cash_summary
+
+            if (
+                obligations(journal, plan.account) != book.settlements.outstanding()
+                or cash_summary(journal, plan.account)
+                != book.settlements.summary()["cash"]
+            ):
+                raise RuntimeError(
+                    "execution settlement claims or available cash differ from journal replay"
+                )
         replay = ledger.audit()
         if not replay["passed"]:
             raise RuntimeError("execution journal failed its independent replay audit")
@@ -190,7 +216,12 @@ def _simulate(plan, should_cancel):
             )
             for code, _ in plan.account.currencies
         },
-        "cash": {code: text(value) for code, value in book.cash.items()},
+        "cash": {
+            code: text(value)
+            for code, value in (
+                book.settlements.settled_cash if book.settlements.enabled else book.cash
+            ).items()
+        },
         "positions": journal["positions"],
         "liquidity": book.bar_reports(),
         "equity_curve": curve,
@@ -201,13 +232,13 @@ def _simulate(plan, should_cancel):
         "ledger_audit": replay,
         "assumptions": list(ASSUMPTIONS),
     }
-    if scenario["version"] in (2, 3, 4) and scenario["calendar"] is not None:
+    if scenario["version"] in (2, 3, 4, 5) and scenario["calendar"] is not None:
         from .session_calendar import validate_execution_calendar
 
         result["calendar_validation"] = validate_execution_calendar(
             scenario, plan.account
         )
-    if scenario["version"] in (3, 4):
+    if scenario["version"] in (3, 4, 5):
         result["corporate_actions"] = corporate.reports
         result["corporate_replay_checks"] = corporate_checks
         result["dividend_receivables"] = corporate.outstanding()
@@ -219,10 +250,29 @@ def _simulate(plan, should_cancel):
                 "Per-entitlement gross and withholding round half-even in quote currency. No inferred exchange entitlement, tax or broker rounding rules.",
             ]
         )
-    if scenario["version"] == 4:
+    if scenario["version"] in (4, 5):
         from .opening_positions import describe_opening
 
         result["opening_holdings"] = describe_opening(scenario, plan.account)
+    if book.settlements.enabled:
+        result["available_cash"] = {
+            code: text(value) for code, value in book.cash.items()
+        }
+        result["settlement"] = book.settlements.summary()
+        result["assumptions"][
+            0
+        ] = "Long-only spot cash account; settled funds back every purchase reservation. No borrowing, shorting, automatic FX exchange or use of unsettled sale proceeds."
+        result["assumptions"] = [
+            (
+                "FX rates mean base currency units per one quote currency unit; cash and signed trade claims convert as a net currency pool, positions and dividend assets separately with half-even rounding."
+                if value.startswith("FX rates mean")
+                else value
+            )
+            for value in result["assumptions"]
+        ]
+        result["assumptions"].append(
+            "Settlement follows explicit portable joint business-day calendars and per-instrument rules, without inferred market regulations. Due cash transitions precede closes, actions, commands and opens at a shared instant; same-instant new claims settle immediately. Positions and dividend ownership use trade-date holdings; securities-delivery restrictions, counterparty failures and netting are not modeled."
+        )
     if len(canonical(result)) > 24 * 1024 * 1024:
         raise ValueError("execution report exceeds 24 MiB; partition the study")
     result["sha256"] = digest(result)
