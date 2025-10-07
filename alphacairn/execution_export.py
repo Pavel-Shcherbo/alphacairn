@@ -91,7 +91,17 @@ def payloads(definition, report):
                 "currency",
                 "cash_after",
                 "position_after",
-            ],
+            ]
+            + (
+                [
+                    "settles_at",
+                    "settlement_date",
+                    "available_cash_after",
+                    "reserved_cash_after",
+                ]
+                if plan.definition["version"] == 5
+                else []
+            ),
         ),
         "orders.csv": csv_data(
             report["orders"],
