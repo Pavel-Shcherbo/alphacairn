@@ -39,20 +39,22 @@ def compile_execution(definition):
         "fx",
     }
     version = definition.get("version") if isinstance(definition, dict) else None
-    if type(version) is int and version in (2, 3, 4):
+    if type(version) is int and version in (2, 3, 4, 5):
         required |= {"calendar", "calendar_policy"}
-    if type(version) is int and version in (3, 4):
+    if type(version) is int and version in (3, 4, 5):
         required |= {"corporate_actions", "price_basis"}
-    if type(version) is int and version == 4:
+    if type(version) is int and version in (4, 5):
         required |= {"initial_lots", "initial_marks"}
+    if type(version) is int and version == 5:
+        required |= {"settlement"}
     if (
         not isinstance(definition, dict)
         or set(definition) != required
         or type(definition["version"]) is not int
-        or definition["version"] not in (1, 2, 3, 4)
+        or definition["version"] not in (1, 2, 3, 4, 5)
     ):
         raise ValueError(
-            "execution requires version 1, 2, 3 or 4 and explicit account/time/cost/data/command fields"
+            "execution requires version 1, 2, 3, 4 or 5 and explicit account/time/cost/data/command fields"
         )
     account = AccountSpec.compile(definition["account"])
     currencies = dict(account.currencies)
@@ -323,7 +325,7 @@ def compile_execution(definition):
         "commands": normalized_commands,
         "fx": sorted(normalized_fx, key=lambda row: (row["at"], row["currency"])),
     }
-    if version in (2, 3, 4):
+    if version in (2, 3, 4, 5):
         from .session_calendar import validate_execution_calendar
 
         result["calendar"] = copy.deepcopy(definition["calendar"])
@@ -332,7 +334,7 @@ def compile_execution(definition):
             validate_execution_calendar(result, account)
         elif result["calendar_policy"] is not None:
             raise ValueError("null calendar requires null calendar policy")
-    if version in (3, 4):
+    if version in (3, 4, 5):
         from .corporate_model import compile_actions
 
         if definition["price_basis"] != "unadjusted":
@@ -343,7 +345,7 @@ def compile_execution(definition):
         result["corporate_actions"] = compile_actions(
             definition["corporate_actions"], account, start, end, result["bars"]
         )
-    if version == 4:
+    if version in (4, 5):
         from .opening_positions import compile_opening
 
         result["initial_lots"], result["initial_marks"] = compile_opening(
@@ -351,5 +353,11 @@ def compile_execution(definition):
             definition["initial_marks"],
             account,
             result["starts_at"],
+        )
+    if version == 5:
+        from .settlement_clock import compile_settlement
+
+        result["settlement"] = compile_settlement(
+            definition["settlement"], account, result["bars"]
         )
     return ExecutionPlan(copy.deepcopy(result), account, digest(result))
