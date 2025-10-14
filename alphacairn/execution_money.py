@@ -59,7 +59,18 @@ def affordable_quantity(
         return quantity if notional > 0 else ZERO
 
 
-def marked_value(account, cash, positions, marks, fx, *, at, max_age, receivables=None):
+def marked_value(
+    account,
+    cash,
+    positions,
+    marks,
+    fx,
+    *,
+    at,
+    max_age,
+    receivables=None,
+    settlements=None,
+):
     when = timestamp(at)
     base_places = account.places(account.base_currency)
     totals = {}
@@ -71,9 +82,11 @@ def marked_value(account, cash, positions, marks, fx, *, at, max_age, receivable
             for code, value in cash.items()
             if value and code != account.base_currency
         }
+        pooled_cash = dict(cash)
         for code, value in cash.items():
             totals[code] = value
-            components.append((code, value))
+            if not settlements:
+                components.append((code, value))
         for receivable in (receivables or {}).values():
             currency = receivable["currency"]
             account.places(currency)
@@ -85,6 +98,21 @@ def marked_value(account, cash, positions, marks, fx, *, at, max_age, receivable
                 components.append((currency, amount))
                 if currency != account.base_currency:
                     required_fx.add(currency)
+        for item in (settlements or {}).values():
+            currency = item["currency"]
+            account.places(currency)
+            amount = decimal_value(item["amount"], "trade cash claim", nonnegative=True)
+            if item["kind"] not in ("receivable", "payable"):
+                raise ValueError("invalid trade cash direction")
+            if item["kind"] == "payable":
+                amount = -amount
+            if amount:
+                totals[currency] = totals.get(currency, ZERO) + amount
+                pooled_cash[currency] = pooled_cash.get(currency, ZERO) + amount
+                if currency != account.base_currency:
+                    required_fx.add(currency)
+        if settlements:
+            components.extend(pooled_cash.items())
         for name, quantity in positions.items():
             if not quantity:
                 continue
