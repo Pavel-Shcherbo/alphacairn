@@ -45,6 +45,15 @@ def normalize_event(event, spec):
         "opening_lot": {"instrument", "quantity", "basis", "acquired_at"},
         "withdraw": {"currency", "amount"},
         "trade": {"instrument", "side", "quantity", "price", "fee"},
+        "trade_pending": {
+            "instrument",
+            "side",
+            "quantity",
+            "price",
+            "fee",
+            "settles_at",
+        },
+        "trade_settlement": {"trade_id"},
         "split": {"instrument", "numerator", "denominator"},
         "dividend": {"instrument", "gross", "withholding"},
         "dividend_accrual": {"instrument", "gross", "withholding"},
@@ -78,17 +87,25 @@ def normalize_event(event, spec):
                 event["timestamp"],
             )
             result.update({key: value for key, value in lot.items() if key != "id"})
+        elif kind == "trade_settlement":
+            result["trade_id"] = identity(event.get("trade_id"), "settlement trade ID")
         elif kind == "dividend_payment":
             result["accrual_id"] = identity(
                 event.get("accrual_id"), "dividend accrual ID"
             )
-        elif kind in ("trade", "split", "dividend", "dividend_accrual"):
+        elif kind in (
+            "trade",
+            "trade_pending",
+            "split",
+            "dividend",
+            "dividend_accrual",
+        ):
             instrument = spec.instrument(event.get("instrument"))
             places = spec.places(instrument.quote_currency)
             result["instrument"] = instrument.id
-            if kind in ("trade", "split"):
+            if kind in ("trade", "trade_pending", "split"):
                 instrument.require_active(when)
-            if kind == "trade":
+            if kind in ("trade", "trade_pending"):
                 side = event.get("side")
                 if side not in ("buy", "sell"):
                     raise ValueError("trade side must be buy or sell")
@@ -105,6 +122,11 @@ def normalize_event(event, spec):
                     price=text(price.normalize()),
                     fee=text(fee),
                 )
+                if kind == "trade_pending":
+                    due = timestamp(event.get("settles_at"))
+                    if due < when:
+                        raise ValueError("trade settlement cannot precede trade time")
+                    result["settles_at"] = timestamp_text(due)
             elif kind == "split":
                 numerator, denominator = event.get("numerator"), event.get(
                     "denominator"
@@ -226,12 +248,33 @@ class Ledger:
         ).fetchone()
         return Decimal(row["balance"]) if row else ZERO
 
-    def _change_cash(self, db, currency, delta):
+    def _reserved_cash(self, db, currency):
+        from .settlement_accounts import PAYABLE
+
+        return -sum(
+            (
+                Decimal(row["amount"])
+                for row in db.execute(
+                    "SELECT amount FROM postings WHERE currency=? AND substr(account,1,?)=?",
+                    (currency, len(PAYABLE), PAYABLE),
+                )
+            ),
+            ZERO,
+        )
+
+    def _available_cash(self, db, currency):
+        return self._cash(db, currency) - self._reserved_cash(db, currency)
+
+    def _change_cash(self, db, currency, delta, released_reservation=ZERO):
         balance = exact_amount(
             self._cash(db, currency) + delta, self.spec.places(currency)
         )
         if balance < 0:
             raise ValueError("insufficient settled cash")
+        if balance - self._reserved_cash(db, currency) + released_reservation < 0:
+            raise ValueError(
+                "insufficient available cash; unsettled purchases reserve settled funds"
+            )
         db.execute(
             "INSERT INTO cash VALUES (?,?) ON CONFLICT(currency) DO UPDATE SET balance=excluded.balance",
             (currency, text(balance)),
@@ -324,6 +367,36 @@ class Ledger:
             )
             post(instrument.quote_currency, "inventory:" + instrument.id, basis)
             post(instrument.quote_currency, "external_capital", -basis)
+        elif kind == "trade_settlement":
+            from .settlement_accounts import PAYABLE, RECEIVABLE, SETTLED, trade_cash
+
+            parent = db.execute(
+                "SELECT payload FROM events WHERE event_id=? AND kind='trade_pending'",
+                (event["trade_id"],),
+            ).fetchone()
+            if parent is None:
+                raise ValueError("settlement requires an earlier pending trade")
+            trade = json.loads(parent["payload"])
+            if event["timestamp"] < trade["settles_at"]:
+                raise ValueError("settlement event precedes the declared due time")
+            marker = SETTLED + trade["id"]
+            if db.execute(
+                "SELECT 1 FROM postings WHERE account=? LIMIT 1", (marker,)
+            ).fetchone():
+                raise ValueError("trade has already settled")
+            instrument = self.spec.instrument(trade["instrument"])
+            currency = instrument.quote_currency
+            amount = trade_cash(trade, self.spec.places(currency))
+            self._change_cash(
+                db, currency, amount, released_reservation=max(-amount, ZERO)
+            )
+            post(currency, "cash", amount)
+            post(
+                currency,
+                (RECEIVABLE if amount >= 0 else PAYABLE) + trade["id"],
+                -amount,
+            )
+            post(currency, marker, ZERO)
         elif kind == "dividend_payment":
             parent = db.execute(
                 "SELECT payload FROM events WHERE event_id=? AND kind='dividend_accrual'",
@@ -407,7 +480,13 @@ class Ledger:
                     raise ValueError("trade notional rounds to zero")
                 if event["side"] == "buy":
                     basis = exact_amount(notional + fee, places)
-                    self._change_cash(db, currency, -basis)
+                    if kind == "trade_pending":
+                        if self._available_cash(db, currency) < basis:
+                            raise ValueError(
+                                "insufficient available cash for pending purchase"
+                            )
+                    else:
+                        self._change_cash(db, currency, -basis)
                     db.execute(
                         "INSERT INTO lots(event_seq,instrument,quantity,basis,acquired_at) VALUES (?,?,?,?,?)",
                         (
@@ -418,7 +497,15 @@ class Ledger:
                             event["timestamp"],
                         ),
                     )
-                    post(currency, "cash", -basis)
+                    post(
+                        currency,
+                        (
+                            "trade_payable:" + event["id"]
+                            if kind == "trade_pending"
+                            else "cash"
+                        ),
+                        -basis,
+                    )
                     post(currency, "inventory:" + instrument.id, basis)
                 else:
                     remaining, released_basis = quantity, ZERO
@@ -460,8 +547,23 @@ class Ledger:
                             }
                         )
                     proceeds = exact_amount(notional - fee, places)
-                    self._change_cash(db, currency, proceeds)
-                    post(currency, "cash", proceeds)
+                    if kind == "trade_pending":
+                        if (
+                            proceeds < 0
+                            and self._available_cash(db, currency) < -proceeds
+                        ):
+                            raise ValueError(
+                                "insufficient available cash for pending sale fee"
+                            )
+                        post(
+                            currency,
+                            ("trade_receivable:" if proceeds >= 0 else "trade_payable:")
+                            + event["id"],
+                            proceeds,
+                        )
+                    else:
+                        self._change_cash(db, currency, proceeds)
+                        post(currency, "cash", proceeds)
                     post(currency, "inventory:" + instrument.id, -released_basis)
                     post(
                         currency,
@@ -531,7 +633,7 @@ class Ledger:
         last = db.execute(
             "SELECT seq,timestamp FROM events ORDER BY seq DESC LIMIT 1"
         ).fetchone()
-        return {
+        result = {
             "account": self.spec.definition(),
             "cash": cash,
             "positions": positions,
@@ -540,6 +642,11 @@ class Ledger:
             "last_sequence": last["seq"] if last else 0,
             "latest_timestamp": last["timestamp"] if last else None,
         }
+        from .settlement_accounts import has_settlements, pending_state
+
+        if has_settlements(result):
+            result["settlement"] = pending_state(db, result, self.spec)
+        return result
 
     def state(self):
         with self._transaction(write=False) as db:
@@ -572,7 +679,8 @@ class Ledger:
     def reconcile(self, observed):
         if (
             not isinstance(observed, dict)
-            or set(observed) != {"cash", "positions"}
+            or not {"cash", "positions"} <= set(observed)
+            or set(observed) - {"cash", "positions", "settlements"}
             or not all(isinstance(observed[key], dict) for key in observed)
         ):
             raise ValueError("reconciliation requires cash and positions objects")
@@ -617,6 +725,9 @@ class Ledger:
                                 "difference": text(found - wanted),
                             }
                         )
+        from .settlement_accounts import statement_differences
+
+        differences.extend(statement_differences(state, observed, self.spec))
         return {
             "matched": not differences,
             "sequence": state["last_sequence"],
