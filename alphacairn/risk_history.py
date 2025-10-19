@@ -35,9 +35,10 @@ def factor_exposures(rows, spec):
         if key not in factors:
             factors[key] = item
         factors[key]["base_value"] += amount
-    if len(factors) > MAX_FACTORS:
+    active = [factors[key] for key in sorted(factors) if factors[key]["base_value"]]
+    if len(active) > MAX_FACTORS:
         raise ValueError("risk estimation supports at most 24 active asset/FX factors")
-    return [factors[key] for key in sorted(factors)]
+    return active
 
 
 def observation_returns(history, factors, configuration, spec):
