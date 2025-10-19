@@ -71,6 +71,18 @@ def exposures(state, valuation, spec):
                 "base_value": row["base_value"],
             }
         )
+    for row in valuation.get("trade_settlements", []):
+        result.append(
+            {
+                "id": "settlement:" + row["trade_id"],
+                "kind": "trade_" + row["kind"],
+                "instrument": None,
+                "currency": row["currency"],
+                "venue": None,
+                "asset_kind": "trade_" + row["kind"],
+                "base_value": row["base_value"],
+            }
+        )
     if sum((Fraction(row["base_value"]) for row in result), Fraction()) != Fraction(
         valuation["equity"]
     ):
@@ -114,7 +126,11 @@ def concentrations(rows, equity, limits):
         "complete": True,
         "groups": result,
         "breaches": breaches,
-        "denominator": "total marked equity including cash and dividend assets",
+        "denominator": (
+            "total marked equity including signed trade cash claims"
+            if any(row["kind"].startswith("trade_") for row in rows)
+            else "total marked equity including cash and dividend assets"
+        ),
     }
 
 
@@ -165,6 +181,7 @@ def stress_portfolio(state, quotes, configuration, baseline, spec):
             ("positions", "instrument"),
             ("cash", "currency"),
             ("dividend_receivables", "accrual_id"),
+            ("trade_settlements", "trade_id"),
         ]:
             before = {row[key]: row for row in baseline.get(section, [])}
             for row in valued.get(section, []):
@@ -190,6 +207,9 @@ def stress_portfolio(state, quotes, configuration, baseline, spec):
         currencies.update(spec.instrument(name).quote_currency for name in held)
         currencies.update(
             row["currency"] for row in baseline.get("dividend_receivables", [])
+        )
+        currencies.update(
+            row["currency"] for row in baseline.get("trade_settlements", [])
         )
         results.append(
             {
