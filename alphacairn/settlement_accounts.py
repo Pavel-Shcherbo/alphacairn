@@ -22,3 +22,36 @@ def trade_cash(event, places):
         return -(notional + fee) if event["side"] == "buy" else notional - fee
 
 
+def obligations(state, spec):
+    result = {}
+    with arithmetic():
+        for currency, accounts in state.get("accounts", {}).items():
+            for name, value in accounts.items():
+                prefix = (
+                    RECEIVABLE
+                    if name.startswith(RECEIVABLE)
+                    else PAYABLE if name.startswith(PAYABLE) else None
+                )
+                if prefix is None:
+                    continue
+                amount = exact_amount(
+                    value, spec.places(currency), "trade settlement account"
+                )
+                if prefix == PAYABLE:
+                    amount = -amount
+                if amount < 0:
+                    raise ValueError("trade settlement account has the wrong sign")
+                if amount:
+                    key = name[len(prefix) :]
+                    if key in result:
+                        raise ValueError(
+                            "one trade cannot have several outstanding settlement accounts"
+                        )
+                    result[key] = {
+                        "kind": "receivable" if prefix == RECEIVABLE else "payable",
+                        "currency": currency,
+                        "amount": text(amount),
+                    }
+    return result
+
+
