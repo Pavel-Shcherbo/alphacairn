@@ -55,3 +55,33 @@ def obligations(state, spec):
     return result
 
 
+def cash_summary(state, spec):
+    with arithmetic():
+        reserved = {currency: ZERO for currency, _ in spec.currencies}
+        for value in obligations(state, spec).values():
+            if value["kind"] == "payable":
+                reserved[value["currency"]] += Decimal(value["amount"])
+        rows = []
+        for currency, _ in spec.currencies:
+            settled = exact_amount(
+                state["cash"].get(currency, "0"),
+                spec.places(currency),
+                "settled cash",
+                nonnegative=True,
+            )
+            available = settled - reserved[currency]
+            if available < 0:
+                raise ValueError("settlement reservations exceed settled cash")
+            rows.append(
+                {
+                    "currency": currency,
+                    "settled": text(settled),
+                    "reserved": text(
+                        exact_amount(reserved[currency], spec.places(currency))
+                    ),
+                    "available": text(available),
+                }
+            )
+        return rows
+
+
