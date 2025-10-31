@@ -85,3 +85,11 @@ def cash_summary(state, spec):
         return rows
 
 
+def has_settlements(state):
+    return any(
+        name.startswith((RECEIVABLE, PAYABLE, SETTLED))
+        for accounts in state.get("accounts", {}).values()
+        for name in accounts
+    )
+
+
