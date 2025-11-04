@@ -93,3 +93,28 @@ def has_settlements(state):
     )
 
 
+def pending_state(db, state, spec):
+    pending = []
+    for row in db.execute(
+        "SELECT event_id,payload FROM events WHERE kind='trade_pending' ORDER BY seq"
+    ):
+
+        event = json.loads(row["payload"])
+        instrument = spec.instrument(event["instrument"])
+        accounts = state["accounts"].get(instrument.quote_currency, {})
+        if SETTLED + event["id"] in accounts:
+            continue
+        net = trade_cash(event, spec.places(instrument.quote_currency))
+        pending.append(
+            {
+                "trade_id": event["id"],
+                "instrument": instrument.id,
+                "currency": instrument.quote_currency,
+                "kind": "receivable" if net >= 0 else "payable",
+                "amount": text(abs(net)),
+                "settles_at": event["settles_at"],
+            }
+        )
+    return {"cash": cash_summary(state, spec), "pending": pending}
+
+
