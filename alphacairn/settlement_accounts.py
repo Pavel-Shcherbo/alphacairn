@@ -145,3 +145,35 @@ def statement_settlements(value, spec):
     return result
 
 
+def statement_differences(state, observed, spec):
+    pending = state.get("settlement", {}).get("pending", [])
+    expected = {
+        row["trade_id"]: {
+            k: v for k, v in row.items() if k not in ("trade_id", "instrument")
+        }
+        for row in pending
+    }
+    if "settlements" not in observed:
+        return (
+            [
+                {
+                    "kind": "settlements",
+                    "key": "coverage",
+                    "expected": "explicit pending-settlement statement",
+                    "observed": None,
+                }
+            ]
+            if expected
+            else []
+        )
+    actual = statement_settlements(observed["settlements"], spec)
+    return [
+        {
+            "kind": "settlements",
+            "key": key,
+            "expected": expected.get(key),
+            "observed": actual.get(key),
+        }
+        for key in sorted(expected.keys() | actual.keys())
+        if expected.get(key) != actual.get(key)
+    ]
