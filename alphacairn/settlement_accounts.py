@@ -118,3 +118,30 @@ def pending_state(db, state, spec):
     return {"cash": cash_summary(state, spec), "pending": pending}
 
 
+def statement_settlements(value, spec):
+    if not isinstance(value, dict) or len(value) > 10000:
+        raise ValueError("settlement statement requires at most 10,000 trade entries")
+    result = {}
+    for key, row in value.items():
+        identity(key, "statement trade ID")
+        if (
+            not isinstance(row, dict)
+            or set(row) != {"currency", "kind", "amount", "settles_at"}
+            or row["kind"] not in ("receivable", "payable")
+        ):
+            raise ValueError(
+                "settlement statement requires currency, kind, amount and settles_at"
+            )
+        result[key] = {
+            "currency": row["currency"],
+            "kind": row["kind"],
+            "amount": text(
+                exact_amount(
+                    row["amount"], spec.places(row["currency"]), nonnegative=True
+                )
+            ),
+            "settles_at": timestamp_text(timestamp(row["settles_at"])),
+        }
+    return result
+
+
