@@ -19,3 +19,8 @@ class SettlementBook:
         self.settled_cash = dict(book.cash)
         self.entries = {}
 
+    def append(self, event):
+        if len(self.book.ledger_events) >= 10000:
+            raise ValueError("settlement exceeds 10,000 journal events")
+        self.book.ledger_events.append(event)
+
