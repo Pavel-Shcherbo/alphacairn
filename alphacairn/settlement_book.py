@@ -62,3 +62,36 @@ class SettlementBook:
             self.settle(fill_id, at)
         return due
 
+    def settle(self, trade_id, at):
+        entry = self.entries[trade_id]
+        if entry["status"] != "pending" or timestamp(at) < timestamp(
+            entry["settles_at"]
+        ):
+            raise RuntimeError("invalid execution settlement transition")
+        currency = entry["currency"]
+        amount = Decimal(entry["amount"])
+        if entry["kind"] == "receivable":
+            self.settled_cash[currency] += amount
+            self.book.cash[currency] += amount
+        else:
+            self.settled_cash[currency] -= amount
+            if self.settled_cash[currency] < 0:
+                raise RuntimeError("settlement cash became negative")
+        self.append(
+            {
+                "id": "settle-" + trade_id,
+                "timestamp": at,
+                "kind": "trade_settlement",
+                "trade_id": trade_id,
+            }
+        )
+        entry.update(status="settled", settled_at=at)
+        self.book.emit(
+            "trade_settlement",
+            at,
+            trade_id=trade_id,
+            currency=currency,
+            amount=entry["amount"],
+            direction=entry["kind"],
+        )
+
