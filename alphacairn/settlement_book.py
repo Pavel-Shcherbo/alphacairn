@@ -95,3 +95,17 @@ class SettlementBook:
             direction=entry["kind"],
         )
 
+    def process(self, at):
+        if not self.enabled:
+            return False
+        count = 0
+        with arithmetic():
+            for entry in sorted(
+                self.entries.values(),
+                key=lambda item: (item["settles_at"], item["trade_id"]),
+            ):
+                if entry["status"] == "pending" and entry["settles_at"] <= at:
+                    self.settle(entry["trade_id"], at)
+                    count += 1
+        return bool(count)
+
