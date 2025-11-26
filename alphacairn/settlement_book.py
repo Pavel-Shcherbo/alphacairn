@@ -109,3 +109,7 @@ class SettlementBook:
                     count += 1
         return bool(count)
 
+    def external_credit(self, currency, amount):
+        if self.enabled:
+            self.settled_cash[currency] += amount
+
