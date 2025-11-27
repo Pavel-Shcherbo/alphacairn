@@ -113,3 +113,14 @@ class SettlementBook:
         if self.enabled:
             self.settled_cash[currency] += amount
 
+    def outstanding(self):
+        return {
+            key: {
+                "currency": row["currency"],
+                "kind": row["kind"],
+                "amount": row["amount"],
+            }
+            for key, row in self.entries.items()
+            if row["status"] == "pending" and Decimal(row["amount"])
+        }
+
