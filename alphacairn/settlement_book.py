@@ -124,3 +124,19 @@ class SettlementBook:
             if row["status"] == "pending" and Decimal(row["amount"])
         }
 
+    def summary(self):
+        with arithmetic():
+            return {
+                "cash": [
+                    {
+                        "currency": currency,
+                        "settled": text(value),
+                        "reserved": text(value - self.book.cash[currency]),
+                        "available": text(self.book.cash[currency]),
+                    }
+                    for currency, value in sorted(self.settled_cash.items())
+                ],
+                "entries": [dict(row) for row in self.entries.values()],
+                "outstanding": self.outstanding(),
+                "policy": "Positions change on trade date; outgoing cash is reserved immediately, incoming proceeds become spendable only on settlement. No borrowing, netting or securities-delivery restriction is inferred.",
+            }
