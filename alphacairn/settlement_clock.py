@@ -80,3 +80,34 @@ class SettlementClock:
             "rules": [self.rules[key] for key in sorted(self.rules)],
         }
 
+    def build_joint(self, calendars):
+        for name in calendars:
+            definition = self.calendar.calendars[name]
+            windows = list(definition["segments"])
+            for exception in definition["exceptions"]:
+                windows.extend(exception["segments"])
+            if any(
+                window[endpoint]["day_offset"] != 0
+                for window in windows
+                for endpoint in ("open", "close")
+            ):
+                raise ValueError(
+                    "settlement business windows must stay on their labeled local day"
+                )
+        common = set(self.calendar.open_labels[calendars[0]])
+        for name in calendars[1:]:
+            common.intersection_update(self.calendar.open_labels[name])
+        labels = sorted(common)
+        cutoffs = [
+            max(
+                timestamp(
+                    self.calendar.labels[name, label]["segments"][-1]["closes_at"]
+                )
+                for name in calendars
+            )
+            for label in labels
+        ]
+        if any(left >= right for left, right in zip(cutoffs, cutoffs[1:])):
+            raise ValueError("joint settlement cutoffs must increase")
+        return labels, cutoffs
+
