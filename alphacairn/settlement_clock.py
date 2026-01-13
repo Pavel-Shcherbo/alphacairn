@@ -111,3 +111,51 @@ class SettlementClock:
             raise ValueError("joint settlement cutoffs must increase")
         return labels, cutoffs
 
+    def due(self, instrument, at, session):
+        when = timestamp(at)
+        rule = self.rules[instrument]
+        if rule["mode"] == "immediate":
+            return {
+                "settles_at": timestamp_text(when),
+                "trade_date": None,
+                "settlement_date": None,
+                "calendar_sha256": None,
+                "rule": copy.deepcopy(rule),
+            }
+        primary = self.calendar.calendars[rule["calendars"][0]]
+        zone = self.calendar.zones[primary["timezone"]]
+        trade_date = (
+            when.astimezone(zone).date().isoformat()
+            if rule["trade_date_basis"] == "local_fill_date"
+            else day(session).isoformat()
+        )
+        if (
+            not self.calendar.definition["starts_on"]
+            <= trade_date
+            <= self.calendar.definition["ends_on"]
+        ):
+            raise ValueError("trade date is outside retained settlement coverage")
+        labels, cutoffs = self.joint[tuple(rule["calendars"])]
+        index = (
+            (bisect_right(labels, trade_date) + rule["lag"] - 1)
+            if rule["lag"]
+            else bisect_left(labels, trade_date)
+        )
+        if rule["lag"] == 0:
+            while index < len(labels) and cutoffs[index] < when:
+                index += 1
+        if index >= len(labels):
+            raise ValueError("retained settlement calendar does not cover the due date")
+        if cutoffs[index] < when:
+            raise ValueError(
+                "session label implies settlement before fill; review trade-date basis"
+            )
+        return {
+            "settles_at": timestamp_text(cutoffs[index]),
+            "trade_date": trade_date,
+            "settlement_date": labels[index],
+            "calendar_sha256": self.calendar.document["sha256"],
+            "rule": copy.deepcopy(rule),
+        }
+
+
