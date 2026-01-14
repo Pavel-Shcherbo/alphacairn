@@ -159,3 +159,11 @@ class SettlementClock:
         }
 
 
+def compile_settlement(value, account, bars):
+    clock = SettlementClock(value, account)
+    for bar in bars:
+        for endpoint in ("opened_at", "closed_at"):
+            clock.due(bar["instrument"], bar[endpoint], bar["session"])
+    return clock.definition
+
+
