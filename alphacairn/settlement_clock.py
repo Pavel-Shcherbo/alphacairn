@@ -167,3 +167,19 @@ def compile_settlement(value, account, bars):
     return clock.definition
 
 
+def settlement_instants(scenario):
+    if scenario["version"] != 5:
+        return []
+    clock = SettlementClock(
+        scenario["settlement"], AccountSpec.compile(scenario["account"])
+    )
+    dues = {
+        clock.due(bar["instrument"], bar[endpoint], bar["session"])["settles_at"]
+        for bar in scenario["bars"]
+        for endpoint in ("opened_at", "closed_at")
+    }
+    return [
+        (due, "settlement", 0)
+        for due in sorted(dues)
+        if scenario["starts_at"] <= due <= scenario["ends_at"]
+    ]
