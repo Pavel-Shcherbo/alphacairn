@@ -34,3 +34,13 @@ class SettlementService:
                 )
         return response
 
+    def receipt(self, key):
+        identity(key, "settlement request key")
+        with self.ledger._transaction(write=False) as db:
+            row = db.execute(
+                "SELECT * FROM settlement_requests WHERE request_key=?", (key,)
+            ).fetchone()
+            if row is None:
+                raise ValueError("settlement response receipt not found")
+            return self.saved(db, row)
+
