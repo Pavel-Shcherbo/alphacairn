@@ -12,3 +12,8 @@ from .settlement_clock import SettlementClock
 from .settlement_service import SettlementService
 
 
+def load(path):
+    with path.open("rb") as stream:
+        return parse_data(stream.read(8 * 1024 * 1024 + 1), 8 * 1024 * 1024)
+
+
