@@ -308,6 +308,7 @@ function loadPortfolioExample(example) {
   if (!portfolioRevision) {
     $("portfolio-events").value = JSON.stringify(example.events, null, 2);
     $("portfolio-quotes").value = JSON.stringify(example.quotes, null, 2);
+    $("portfolio-statement").value = JSON.stringify(example.statement, null, 2);
   }
   $("portfolio-run").disabled = false;
 }
@@ -327,10 +328,14 @@ function resetPortfolio(message) {
   ])
     $(id).textContent = "";
   clear($("portfolio-positions"));
+  clear($("portfolio-settlement-cash"));
+  clear($("portfolio-pending"));
+  $("portfolio-settlement").hidden = true;
 }
 for (const id of [
   "portfolio-events",
   "portfolio-quotes",
+  "portfolio-statement",
   "portfolio-missing",
   "portfolio-mismatch",
 ]) {
@@ -349,7 +354,7 @@ $("portfolio-run").onclick = async () => {
     const calculated = await evaluate({
       mode: "portfolio",
       account: portfolioExample.account,
-      statement: portfolioExample.statement,
+      statement: JSON.parse($("portfolio-statement").value),
       events: JSON.parse($("portfolio-events").value),
       quotes: JSON.parse($("portfolio-quotes").value),
       omit_crypto_mark: $("portfolio-missing").checked,
@@ -387,9 +392,13 @@ $("portfolio-run").onclick = async () => {
         (item) =>
           item.key +
           ": expected " +
-          item.expected +
+          (typeof item.expected === "object"
+            ? JSON.stringify(item.expected)
+            : item.expected) +
           ", observed " +
-          item.observed,
+          (typeof item.observed === "object"
+            ? JSON.stringify(item.observed)
+            : item.observed),
       ),
       ...calculated.audit.issues.map((item) => item.code),
     ];
@@ -411,6 +420,35 @@ $("portfolio-run").onclick = async () => {
         );
       }
       $("portfolio-positions").append(row);
+    }
+    if (calculated.state.settlement) {
+      $("portfolio-settlement").hidden = false;
+      for (const cash of calculated.state.settlement.cash) {
+        const row = element("tr");
+        for (const key of ["currency", "settled", "reserved", "available"])
+          row.append(element("td", cash[key]));
+        $("portfolio-settlement-cash").append(row);
+      }
+      for (const item of calculated.state.settlement.pending) {
+        const row = element("tr");
+        for (const key of [
+          "trade_id",
+          "instrument",
+          "kind",
+          "currency",
+          "amount",
+          "settles_at",
+        ])
+          row.append(element("td", item[key]));
+        $("portfolio-pending").append(row);
+      }
+      if (!calculated.state.settlement.pending.length) {
+        const row = element("tr");
+        const cell = element("td", "No pending cash settlements");
+        cell.colSpan = 6;
+        row.append(cell);
+        $("portfolio-pending").append(row);
+      }
     }
     $("portfolio-export").disabled = false;
   } catch (exception) {
