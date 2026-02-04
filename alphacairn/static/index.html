@@ -260,6 +260,22 @@
               </div>
             </div>
           </div>
+          <details class="panel portfolio-statement-editor">
+            <summary>Independent statement</summary>
+            <div class="panelbody">
+              <label for="portfolio-statement"
+                >Observed cash, positions and pending settlements</label
+              ><textarea
+                id="portfolio-statement"
+                rows="8"
+                spellcheck="false"
+              ></textarea>
+              <p class="notice">
+                Pending cash claims require an explicit settlements object. The
+                journal does not fill missing statement entries for you.
+              </p>
+            </div>
+          </details>
           <div class="portfolio-controls">
             <label
               ><input type="checkbox" id="portfolio-missing" /> Omit crypto
@@ -303,6 +319,43 @@
             </div>
             <div class="panelbody">
               <p id="portfolio-cash" class="secondary">No journal calculated</p>
+              <section id="portfolio-settlement" hidden>
+                <h3>Settled and available cash</h3>
+                <div class="tablewrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Currency</th>
+                        <th>Settled</th>
+                        <th>Reserved</th>
+                        <th>Available</th>
+                      </tr>
+                    </thead>
+                    <tbody id="portfolio-settlement-cash"></tbody>
+                  </table>
+                </div>
+                <h3>Pending cash settlements</h3>
+                <p class="notice">
+                  Positions use trade-date ownership. Receivables are included
+                  in equity but cannot fund another purchase; payables reserve
+                  existing cash.
+                </p>
+                <div class="tablewrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Trade</th>
+                        <th>Instrument</th>
+                        <th>Direction</th>
+                        <th>Currency</th>
+                        <th>Amount</th>
+                        <th>Due, UTC</th>
+                      </tr>
+                    </thead>
+                    <tbody id="portfolio-pending"></tbody>
+                  </table>
+                </div>
+              </section>
               <p id="portfolio-audit" class="notice">
                 Audit rebuilds events independently of saved balances
               </p>
