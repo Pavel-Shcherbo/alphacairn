@@ -57,6 +57,7 @@ def _simulate(prepared, should_cancel):
     evaluations = 0
     for at, groups in timeline_groups(plan.definition, extras):
         _cancelled(should_cancel)
+        book.settlements.process(at)
         if groups.get("instrument_end"):
             for order in book.orders.values():
                 expiry = order["definition"]["expires_at"]
@@ -178,18 +179,23 @@ def _simulate(prepared, should_cancel):
         or execution["ledger_events"] != book.ledger_events
         or execution["liquidity"] != book.bar_reports()
         or any(
-            Decimal(execution["cash"][code]) != value
+            Decimal(execution.get("available_cash", execution["cash"])[code]) != value
             for code, value in book.cash.items()
         )
     ):
         raise RuntimeError("strategy planning differs from full execution replay")
-    if plan.definition["version"] in (3, 4) and (
+    if plan.definition["version"] in (3, 4, 5) and (
         execution["corporate_actions"] != corporate.reports
         or execution["dividend_receivables"] != corporate.outstanding()
     ):
         raise RuntimeError(
             "strategy corporate actions differ from full execution replay"
         )
+    if (
+        book.settlements.enabled
+        and execution["settlement"] != book.settlements.summary()
+    ):
+        raise RuntimeError("strategy settlement decisions differ from execution replay")
     own_positions = {name: value for name, value in book.positions.items() if value}
     replay_positions = {
         name: Decimal(value["quantity"])
