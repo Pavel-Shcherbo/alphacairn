@@ -569,3 +569,19 @@ td:first-child {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.portfolio-statement-editor summary {
+  padding: 16px 24px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.portfolio-statement-editor textarea {
+  width: 100%;
+  resize: vertical;
+}
+#portfolio-settlement h3 {
+  margin-top: 24px;
+}
+#portfolio-settlement .tablewrap {
+  margin: 16px 0 24px;
+}
