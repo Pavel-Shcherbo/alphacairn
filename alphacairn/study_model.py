@@ -88,6 +88,27 @@ def trial_contract(family, inputs):
             "initial_marks",
         ):
             config["execution"].pop(field, None)
+        if config["execution"]["version"] == 5:
+            settlement = config["execution"]["settlement"]
+            calendar = settlement["calendar"]
+            settlement["calendar"] = (
+                None
+                if calendar is None
+                else {
+                    "source": calendar["definition"]["source"],
+                    "calendars": [
+                        {
+                            key: row[key]
+                            for key in ("id", "timezone", "weekdays", "segments")
+                        }
+                        for row in calendar["definition"]["calendars"]
+                    ],
+                    "zones": [
+                        {key: row[key] for key in ("key", "sha256")}
+                        for row in calendar["zones"]
+                    ],
+                }
+            )
         recipe = {"family": family, "configuration": config}
     else:
         raise ValueError("unknown study family")
