@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 from .corporate_accounts import dividend_assets
+from .settlement_accounts import obligations, cash_summary, has_settlements
 from .instruments import AccountSpec, timestamp, timestamp_text
 from .money import arithmetic, ZERO, decimal_value, rounded, text
 
@@ -94,6 +95,38 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
                     "base_value": text(converted) if converted is not None else None,
                 }
             )
+        trade_rows = []
+        for trade_id, item in sorted(obligations(state, spec).items()):
+            amount = Decimal(item["amount"]) * (-1 if item["kind"] == "payable" else 1)
+            rate = rate_for(item["currency"])
+            converted = (
+                rounded(amount * rate, base_places) if rate is not None else None
+            )
+            if converted is not None:
+                known += converted
+            trade_rows.append(
+                {
+                    "trade_id": trade_id,
+                    **item,
+                    "base_value": text(converted) if converted is not None else None,
+                }
+            )
+        cash_pools = {
+            currency: Decimal(amount) for currency, amount in state["cash"].items()
+        }
+        for row in trade_rows:
+            rate = rate_for(row["currency"])
+            if rate is not None:
+                prior = cash_pools.get(row["currency"], ZERO)
+                amount = Decimal(row["amount"]) * (
+                    -1 if row["kind"] == "payable" else 1
+                )
+                allocated = rounded((prior + amount) * rate, base_places) - rounded(
+                    prior * rate, base_places
+                )
+                known += allocated - Decimal(row["base_value"])
+                row["base_value"] = text(allocated)
+                cash_pools[row["currency"]] = prior + amount
         for name, position in sorted(state["positions"].items()):
             instrument = spec.instrument(name)
             quantity = decimal_value(
@@ -190,5 +223,14 @@ def value_portfolio(state, marks, fx, *, as_of, max_age_seconds=86400):
         )
         result["rounding_policy"] = (
             "half-even per cash, position and dividend-asset conversion to base currency"
+        )
+    if has_settlements(state):
+        result["trade_settlements"] = trade_rows
+        result["settlement_cash"] = cash_summary(state, spec)
+        result["scope"] = (
+            "Trade-date long-only cash-account valuation including signed settlement claims and dividend assets; no counterparty/default or tax model"
+        )
+        result["rounding_policy"] = (
+            "half-even per position/dividend asset and net cash-plus-trade-claims currency pool; claim conversions use deterministic trade-ID residual allocation"
         )
     return result
