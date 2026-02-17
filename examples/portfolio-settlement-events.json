@@ -1,0 +1,31 @@
+[
+  {
+    "id": "fund",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "deposit",
+    "currency": "USD",
+    "amount": "100"
+  },
+  {
+    "id": "buy-pending",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "trade_pending",
+    "instrument": "equity:demo-us",
+    "side": "buy",
+    "quantity": "2",
+    "price": "10",
+    "fee": "1",
+    "settles_at": "2026-01-05T17:00:00Z"
+  },
+  {
+    "id": "sell-pending",
+    "timestamp": "2026-01-02T12:00:00Z",
+    "kind": "trade_pending",
+    "instrument": "equity:demo-us",
+    "side": "sell",
+    "quantity": "1",
+    "price": "12",
+    "fee": "0",
+    "settles_at": "2026-01-06T17:00:00Z"
+  }
+]
