@@ -1,0 +1,11 @@
+{
+  "as_of": "2026-01-02T16:00:00Z",
+  "marks": {
+    "equity:demo-us": {
+      "price": "12",
+      "timestamp": "2026-01-02T16:00:00Z"
+    }
+  },
+  "fx": {},
+  "max_age_seconds": 86400
+}
