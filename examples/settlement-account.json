@@ -1,0 +1,27 @@
+{
+  "name": "synthetic-execution-control",
+  "base_currency": "USD",
+  "currencies": {
+    "USD": 2
+  },
+  "instruments": [
+    {
+      "id": "A",
+      "symbol": "A",
+      "venue": "SYNTHETIC",
+      "kind": "equity",
+      "quote_currency": "USD",
+      "quantity_step": "1",
+      "price_tick": "0.01"
+    },
+    {
+      "id": "B",
+      "symbol": "B",
+      "venue": "SYNTHETIC",
+      "kind": "equity",
+      "quote_currency": "USD",
+      "quantity_step": "1",
+      "price_tick": "0.01"
+    }
+  ]
+}
