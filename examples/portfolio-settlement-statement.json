@@ -1,0 +1,22 @@
+{
+  "cash": {
+    "USD": "100"
+  },
+  "positions": {
+    "equity:demo-us": "1"
+  },
+  "settlements": {
+    "buy-pending": {
+      "currency": "USD",
+      "kind": "payable",
+      "amount": "21",
+      "settles_at": "2026-01-05T17:00:00Z"
+    },
+    "sell-pending": {
+      "currency": "USD",
+      "kind": "receivable",
+      "amount": "12",
+      "settles_at": "2026-01-06T17:00:00Z"
+    }
+  }
+}
