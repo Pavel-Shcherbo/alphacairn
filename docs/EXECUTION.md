@@ -91,3 +91,5 @@ Input: 8 MiB, 10,000 bars, 2,000 commands, 1,000 submitted orders and 10,000 FX 
 Strategy-to-order generation, direct point-in-time catalog adapters, corporate-action-adjusted execution, trading/settlement calendars, initial holdings, stop/conditional orders, venue queue models, derivatives/funding/margin, browser execution controls and hosted/multi-user operation remain open. Full product scope and 20,000 useful production SLOC remain open.
 
 Version 4 adds explicit initial FIFO lots and opening marks, preserving the version-3 action/calendar contract. See [opening holdings](OPENING_HOLDINGS.md) for fields, sizing, basis and replay controls.
+
+[Cash settlement](SETTLEMENT.md) extends the model with explicit due calendars, backed reservations, pending cash claims and independently replayed execution/journal/risk controls. Older execution contracts retain immediate-cash behavior.
