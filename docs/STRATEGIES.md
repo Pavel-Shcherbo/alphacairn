@@ -76,3 +76,5 @@ Verification evidence: [installed study and independent arithmetic](strategy-ver
 The retained [workload measurement](strategy-benchmark.json) uses 10 synthetic instruments, 50 decisions, 510 execution bars, 560 snapshots and 14,260 retained observations. Inputs occupy 7,401,521 canonical bytes; 140 orders produced 140 fills. On the recorded macOS arm64/Python 3.14.6 process, capture/validation took 0.874 seconds, planning with accounting 0.328 seconds, export 0.329 seconds and offline replay 0.394 seconds. Process peak RSS was 206,585,856 bytes. This is one local observation, not a throughput guarantee. The report records source hashes and the retained local bundle path.
 
 Current verification: 25 strategy checks and 138 total Alphacairn checks passed, plus clean installed CLI/HTTP and independent CSV arithmetic. The strategy workflow is available through the CLI; a strategy browser screen remains open work.
+
+[Cash settlement](SETTLEMENT.md) extends the model with explicit due calendars, backed reservations, pending cash claims and independently replayed execution/journal/risk controls. Older execution contracts retain immediate-cash behavior.
