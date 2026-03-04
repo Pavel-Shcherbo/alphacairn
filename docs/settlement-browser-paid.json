@@ -1,0 +1,383 @@
+{
+  "mode": "portfolio",
+  "input_sha256": "f687a658e4933c076c03c27f2c2d0b4cf448164ac52f680c9812fd050b02c4b8",
+  "inputs": {
+    "account": {
+      "name": "synthetic-research",
+      "base_currency": "USD",
+      "currencies": {
+        "EUR": 2,
+        "USD": 2
+      },
+      "instruments": [
+        {
+          "id": "equity:demo-us",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-US",
+          "kind": "equity",
+          "quote_currency": "USD",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "equity:demo-eu",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-EU",
+          "kind": "equity",
+          "quote_currency": "EUR",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "crypto:demo",
+          "symbol": "DEMO-USD",
+          "venue": "SYNTHETIC-SPOT",
+          "kind": "crypto_spot",
+          "quote_currency": "USD",
+          "quantity_step": "0.00000001",
+          "price_tick": "0.01"
+        }
+      ]
+    },
+    "events": [
+      {
+        "id": "fund",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "deposit",
+        "currency": "USD",
+        "amount": "100.00"
+      },
+      {
+        "id": "buy-pending",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "trade_pending",
+        "instrument": "equity:demo-us",
+        "side": "buy",
+        "quantity": "2",
+        "price": "10",
+        "fee": "1.00",
+        "settles_at": "2026-01-05T17:00:00.000000Z"
+      },
+      {
+        "id": "sell-pending",
+        "timestamp": "2026-01-02T12:00:00.000000Z",
+        "kind": "trade_pending",
+        "instrument": "equity:demo-us",
+        "side": "sell",
+        "quantity": "1",
+        "price": "12",
+        "fee": "0.00",
+        "settles_at": "2026-01-06T17:00:00.000000Z"
+      },
+      {
+        "id": "paid-buy",
+        "timestamp": "2026-01-05T17:00:00.000000Z",
+        "kind": "trade_settlement",
+        "trade_id": "buy-pending"
+      },
+      {
+        "id": "paid-sale",
+        "timestamp": "2026-01-06T17:00:00.000000Z",
+        "kind": "trade_settlement",
+        "trade_id": "sell-pending"
+      }
+    ],
+    "quotes": {
+      "as_of": "2026-01-06T18:00:00Z",
+      "marks": {
+        "equity:demo-us": {
+          "price": "12",
+          "timestamp": "2026-01-06T18:00:00Z"
+        }
+      },
+      "fx": {},
+      "max_age_seconds": 86400
+    },
+    "statement": {
+      "cash": {
+        "USD": "91"
+      },
+      "positions": {
+        "equity:demo-us": "1"
+      },
+      "settlements": {}
+    }
+  },
+  "receipts": [
+    {
+      "sequence": 1,
+      "id": "fund",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "deposit",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "100.00"
+        },
+        {
+          "currency": "USD",
+          "account": "external_capital",
+          "amount": "-100.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 2,
+      "id": "buy-pending",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "trade_pending",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "trade_payable:buy-pending",
+          "amount": "-21.00"
+        },
+        {
+          "currency": "USD",
+          "account": "inventory:equity:demo-us",
+          "amount": "21.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 3,
+      "id": "sell-pending",
+      "timestamp": "2026-01-02T12:00:00.000000Z",
+      "kind": "trade_pending",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "trade_receivable:sell-pending",
+          "amount": "12.00"
+        },
+        {
+          "currency": "USD",
+          "account": "inventory:equity:demo-us",
+          "amount": "-10.50"
+        },
+        {
+          "currency": "USD",
+          "account": "realized_income:equity:demo-us",
+          "amount": "-1.50"
+        }
+      ],
+      "fifo_matches": [
+        {
+          "lot_id": 1,
+          "quantity": "1",
+          "basis": "10.50"
+        }
+      ],
+      "duplicate": false
+    },
+    {
+      "sequence": 4,
+      "id": "paid-buy",
+      "timestamp": "2026-01-05T17:00:00.000000Z",
+      "kind": "trade_settlement",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "-21.00"
+        },
+        {
+          "currency": "USD",
+          "account": "trade_payable:buy-pending",
+          "amount": "21.00"
+        },
+        {
+          "currency": "USD",
+          "account": "trade_settled:buy-pending",
+          "amount": "0.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    },
+    {
+      "sequence": 5,
+      "id": "paid-sale",
+      "timestamp": "2026-01-06T17:00:00.000000Z",
+      "kind": "trade_settlement",
+      "postings": [
+        {
+          "currency": "USD",
+          "account": "cash",
+          "amount": "12.00"
+        },
+        {
+          "currency": "USD",
+          "account": "trade_receivable:sell-pending",
+          "amount": "-12.00"
+        },
+        {
+          "currency": "USD",
+          "account": "trade_settled:sell-pending",
+          "amount": "0.00"
+        }
+      ],
+      "fifo_matches": [],
+      "duplicate": false
+    }
+  ],
+  "state": {
+    "account": {
+      "name": "synthetic-research",
+      "base_currency": "USD",
+      "currencies": {
+        "EUR": 2,
+        "USD": 2
+      },
+      "instruments": [
+        {
+          "id": "equity:demo-us",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-US",
+          "kind": "equity",
+          "quote_currency": "USD",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "equity:demo-eu",
+          "symbol": "DEMO",
+          "venue": "SYNTHETIC-EU",
+          "kind": "equity",
+          "quote_currency": "EUR",
+          "quantity_step": "1",
+          "price_tick": "0.01"
+        },
+        {
+          "id": "crypto:demo",
+          "symbol": "DEMO-USD",
+          "venue": "SYNTHETIC-SPOT",
+          "kind": "crypto_spot",
+          "quote_currency": "USD",
+          "quantity_step": "0.00000001",
+          "price_tick": "0.01"
+        }
+      ]
+    },
+    "cash": {
+      "USD": "91.00"
+    },
+    "positions": {
+      "equity:demo-us": {
+        "quantity": "1",
+        "basis": "10.50"
+      }
+    },
+    "lots": [
+      {
+        "id": 1,
+        "event_seq": 2,
+        "instrument": "equity:demo-us",
+        "quantity": "1",
+        "basis": "10.50",
+        "acquired_at": "2026-01-02T12:00:00.000000Z"
+      }
+    ],
+    "accounts": {
+      "USD": {
+        "cash": "91.00",
+        "external_capital": "-100.00",
+        "inventory:equity:demo-us": "10.50",
+        "realized_income:equity:demo-us": "-1.50",
+        "trade_payable:buy-pending": "0.00",
+        "trade_receivable:sell-pending": "0.00",
+        "trade_settled:buy-pending": "0.00",
+        "trade_settled:sell-pending": "0.00"
+      }
+    },
+    "last_sequence": 5,
+    "latest_timestamp": "2026-01-06T17:00:00.000000Z",
+    "settlement": {
+      "cash": [
+        {
+          "currency": "EUR",
+          "settled": "0.00",
+          "reserved": "0.00",
+          "available": "0.00"
+        },
+        {
+          "currency": "USD",
+          "settled": "91.00",
+          "reserved": "0.00",
+          "available": "91.00"
+        }
+      ],
+      "pending": []
+    }
+  },
+  "valuation": {
+    "complete": true,
+    "sequence": 5,
+    "as_of": "2026-01-06T18:00:00.000000Z",
+    "base_currency": "USD",
+    "equity": "103.00",
+    "known_base_value": "103.00",
+    "cash": [
+      {
+        "currency": "USD",
+        "amount": "91.00",
+        "base_value": "91.00"
+      }
+    ],
+    "positions": [
+      {
+        "instrument": "equity:demo-us",
+        "symbol": "DEMO",
+        "venue": "SYNTHETIC-US",
+        "quantity": "1",
+        "quote_currency": "USD",
+        "basis": "10.50",
+        "mark": "12",
+        "market_value": "12.00",
+        "unrealized_quote_pnl": "1.50",
+        "base_value": "12.00",
+        "weight_percent": "11.650485"
+      }
+    ],
+    "missing_inputs": [],
+    "warnings": [],
+    "max_age_seconds": 86400,
+    "fx_direction": "base currency units per one quote currency unit",
+    "rounding_policy": "half-even per position/dividend asset and net cash-plus-trade-claims currency pool; claim conversions use deterministic trade-ID residual allocation",
+    "scope": "Trade-date long-only cash-account valuation including signed settlement claims and dividend assets; no counterparty/default or tax model",
+    "trade_settlements": [],
+    "settlement_cash": [
+      {
+        "currency": "EUR",
+        "settled": "0.00",
+        "reserved": "0.00",
+        "available": "0.00"
+      },
+      {
+        "currency": "USD",
+        "settled": "91.00",
+        "reserved": "0.00",
+        "available": "91.00"
+      }
+    ]
+  },
+  "reconciliation": {
+    "matched": true,
+    "sequence": 5,
+    "differences": [],
+    "policy": "exact comparison; missing keys are zero; no automatic reconciliation entries"
+  },
+  "audit": {
+    "passed": true,
+    "sequence": 5,
+    "issues": [],
+    "scope": "journal hashes, balanced postings, cash and lot checks, full event replay; not external statement verification"
+  },
+  "passed": true,
+  "storage_policy": "disposable browser scenario; use the portfolio CLI for a persistent journal"
+}
