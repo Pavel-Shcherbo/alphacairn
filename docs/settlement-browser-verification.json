@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "scope": "Observed local portfolio browser and independently reproduced downloads; not broker/provider or full product qualification",
+  "pending_settled_cash": "100.00",
+  "reserved_cash": "21.00",
+  "spendable_cash": "79.00",
+  "pending_payable": "21.00",
+  "pending_receivable": "12.00",
+  "paid_cash": "91.00",
+  "independent_equity_before_and_after": "103.00",
+  "remaining_fifo_basis": "10.50",
+  "both_downloads_reproduced_exactly": true,
+  "missing_pending_statement_coverage_rejected": true,
+  "structured_statement_differences_readable": true,
+  "early_payment_rejected": true,
+  "statement_edits_invalidate_export": true,
+  "late_response_ignored_after_statement_change": true,
+  "stale_settlement_rows_cleared_on_edit": true,
+  "unexpected_page_errors": [],
+  "expected_console_errors": 1,
+  "visual_batches": 2,
+  "desktop": [
+    1440,
+    1000
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "document_overflow": false,
+  "screenshots_inspected": true,
+  "artifacts": {
+    "settlement-desktop.png": "dee76af0c30c7e7a005d62a5e1cc42a3b91ce02e6a0a1797a4ee08f6d381c2d2",
+    "settlement-mobile.png": "88d20f237af8bf2f3aaf09b6a1b70da1c30f6c9ef8bbc403f0cf5853faa59463",
+    "settlement-browser-pending.json": "abe689c7814a75324c32b39944000927fa436f0647cf1e0ce6f3e7eaee6ce682",
+    "settlement-browser-paid.json": "07c25292575f22ed737931f51a103c5fc9e2139b9f27897734fd7321a28732f0"
+  }
+}
