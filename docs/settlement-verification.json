@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "scope": "Synthetic clean installed settlement/calendar/portfolio/risk controls; not official market rules, broker accounting or counterparty certification",
+  "joint_calendar_due": {
+    "settles_at": "2020-01-08T17:00:00.000000Z",
+    "trade_date": "2020-01-03",
+    "settlement_date": "2020-01-08",
+    "calendar_sha256": "26a025a2c03ad250182fe11e63ca1e59d7c1566dbacc068a4a1e8a02959e887f",
+    "rule": {
+      "instrument": "A",
+      "mode": "business_days",
+      "lag": 2,
+      "calendars": [
+        "usd",
+        "joint"
+      ],
+      "trade_date_basis": "local_fill_date"
+    }
+  },
+  "independent_final_cash": "5.00",
+  "independent_fifo_basis": {
+    "A": "16.00",
+    "B": "24.50"
+  },
+  "independent_final_equity": "49.00",
+  "unsettled_purchase_keeps_settled_cash_29_50_available_5": true,
+  "persistent_reserved_cash": "21.00",
+  "pending_sale_proceeds_not_spendable": true,
+  "pending_statement_coverage_required": true,
+  "same_key_settlement_retry_does_not_move_cash_twice": true,
+  "different_inputs_same_request_key_rejected": true,
+  "persistent_final_cash": "91.00",
+  "risk_pending_equity": "103.00",
+  "risk_joint_price_stress_equity": "100.60",
+  "risk_exposures_include_signed_payable": true,
+  "risk_replay_after_journal_removal": {
+    "passed": true,
+    "complete": true,
+    "journal_replayed": true,
+    "numerical_replay_passed": true,
+    "inputs_sha256": "2d8a97ad995ada579d8e74cbd41ecdc76842c9846f7866c6ea43f299175f5723",
+    "report_sha256": "cac02bf064c92d8ab5de324434b9d0c7e4a77060a14e0fc0a41e4a6755991e33",
+    "source_authenticated": false,
+    "scope": "Fresh journal, valuation, stress and descriptive risk reconstruction; no authenticated external prices or forecast validation"
+  },
+  "execution_replay_without_source_calendar": {
+    "passed": true,
+    "replayed": true,
+    "scenario_sha256": "3000dfa00b9d149034352f554249c8c2325e2b081732d2d7e493b50b2b329cd5",
+    "report_sha256": "606e41d5c7e3283064d97f673a7eeb8960502d96f43b06303ed58003baf5c06b",
+    "fills": 2,
+    "open_orders": 0,
+    "accounting_reconciled": true,
+    "valuation_complete": true
+  },
+  "create_only_bundle_preserved": true,
+  "bundle_hashes": {
+    "equity.csv": "0d9a7584093f550760fd3951695465c6fc70ea35ff1b77a8cfc55309f970a90e",
+    "fills.csv": "e45e92d351b84eead9fb487a3ced9bc4088e14f5a48b2c6ee375c51b6427366d",
+    "ledger-events.json": "41e7b18185d2b1261385c0ae33dad0b9cd4a9c67b70ad1a822342c39d8ba9368",
+    "manifest.json": "aa9b242efe2f8501fa0000ada5d88023d1fd2ad2b1136dd37863ea952b25d7a6",
+    "orders.csv": "90283a5106a21596d31489a7d045b2e772d06bf9a28bee07a663c0a5c76b788d",
+    "report.json": "659e2ced45bb1dadbaab2b9f95cf5cf6dd644f14ba42e6f59f7f1624c5d07014",
+    "scenario.json": "636e26e6f17424b492d10812eaf3f12b5421bf9e5425336a86366ffc5df57b00"
+  },
+  "full_portfolio_acceptance": false
+}
