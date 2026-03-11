@@ -36,3 +36,7 @@ from test_corporate import split, dividend
 from test_strategy import load
 
 
+def control():
+    return load("settlement-execution.json")
+
+
