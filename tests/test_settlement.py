@@ -62,3 +62,13 @@ def purchase(
     }
 
 
+def funding(amount="100"):
+    return {
+        "id": "fund",
+        "timestamp": "2020-01-01T00:00:00Z",
+        "kind": "deposit",
+        "currency": "USD",
+        "amount": amount,
+    }
+
+
