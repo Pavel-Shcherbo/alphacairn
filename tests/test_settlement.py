@@ -40,3 +40,25 @@ def control():
     return load("settlement-execution.json")
 
 
+def purchase(
+    key="buy",
+    at="2020-01-01T00:00:00Z",
+    due="2020-01-03T17:00:00Z",
+    side="buy",
+    quantity="2",
+    price="10",
+    fee="1",
+):
+    return {
+        "id": key,
+        "timestamp": at,
+        "kind": "trade_pending",
+        "instrument": "A",
+        "side": side,
+        "quantity": quantity,
+        "price": price,
+        "fee": fee,
+        "settles_at": due,
+    }
+
+
