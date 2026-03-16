@@ -72,3 +72,9 @@ def funding(amount="100"):
     }
 
 
+def settlement(trade="buy", key="paid", at="2020-01-03T17:00:00Z"):
+    return {"id": key, "timestamp": at, "kind": "trade_settlement", "trade_id": trade}
+
+
+class SettlementTests(unittest.TestCase):
+    pass
