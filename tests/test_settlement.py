@@ -77,4 +77,10 @@ def settlement(trade="buy", key="paid", at="2020-01-03T17:00:00Z"):
 
 
 class SettlementTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.path = self.root / "journal.sqlite"
+        self.ledger = Ledger(self.path, control()["account"])
+
