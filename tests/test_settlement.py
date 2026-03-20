@@ -84,3 +84,16 @@ class SettlementTests(unittest.TestCase):
         self.path = self.root / "journal.sqlite"
         self.ledger = Ledger(self.path, control()["account"])
 
+    def test_joint_holiday_and_two_business_day_date_are_hand_calculated(self):
+        value = control()
+        clock = SettlementClock(
+            value["settlement"], AccountSpec.compile(value["account"])
+        )
+        due = clock.due("A", "2020-01-03T09:00:00Z", "2020-01-03")
+        self.assertEqual(due["settlement_date"], "2020-01-08")
+        self.assertEqual(due["settles_at"], "2020-01-08T17:00:00.000000Z")
+        self.assertEqual(
+            clock.due("B", "2020-01-03T09:00:00Z", "2020-01-03")["settlement_date"],
+            "2020-01-07",
+        )
+
