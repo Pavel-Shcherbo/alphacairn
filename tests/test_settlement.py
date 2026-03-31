@@ -97,3 +97,39 @@ class SettlementTests(unittest.TestCase):
             "2020-01-07",
         )
 
+    def test_sale_cannot_finance_purchase_before_cash_is_settled(self):
+        report = simulate_execution(control())
+        self.assertEqual(
+            [(r["instrument"], r["at"][:10]) for r in report["fills"]],
+            [("A", "2020-01-03"), ("B", "2020-01-09")],
+        )
+        self.assertEqual(report["orders"][1]["attempts"], 4)
+        self.assertEqual(report["cash"], {"USD": "5.00"})
+        self.assertEqual(report["available_cash"], {"USD": "5.00"})
+        self.assertEqual(
+            report["positions"],
+            {
+                "A": {"quantity": "2", "basis": "16.00"},
+                "B": {"quantity": "2", "basis": "24.50"},
+            },
+        )
+        self.assertEqual(report["valuation"]["equity"], "49.00")
+        self.assertEqual(
+            report["ledger_state"]["accounts"]["USD"]["realized_income:A"], "-5.50"
+        )
+        points = {p["at"][:10]: p for p in report["equity_curve"]}
+        self.assertEqual(points["2020-01-06"]["equity"], points["2020-01-08"]["equity"])
+        self.assertEqual(points["2020-01-09"]["equity"], points["2020-01-13"]["equity"])
+        self.assertEqual(
+            points["2020-01-09"]["settlement_cash"],
+            [
+                {
+                    "currency": "USD",
+                    "settled": "29.50",
+                    "reserved": "24.50",
+                    "available": "5.00",
+                }
+            ],
+        )
+        self.assertTrue(report["ledger_audit"]["passed"])
+
