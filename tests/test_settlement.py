@@ -133,3 +133,27 @@ class SettlementTests(unittest.TestCase):
         )
         self.assertTrue(report["ledger_audit"]["passed"])
 
+    def test_unpaid_purchase_is_reserved_and_liability_valued_before_horizon_end(self):
+        value = control()
+        value["ends_at"] = "2020-01-09T17:00:00Z"
+        report = simulate_execution(value)
+        self.assertEqual(report["cash"], {"USD": "29.50"})
+        self.assertEqual(report["available_cash"], {"USD": "5.00"})
+        self.assertEqual(report["valuation"]["equity"], "49.00")
+        self.assertEqual(
+            report["valuation"]["trade_settlements"],
+            [
+                {
+                    "trade_id": "simfill-000002",
+                    "kind": "payable",
+                    "currency": "USD",
+                    "amount": "24.50",
+                    "base_value": "-24.50",
+                }
+            ],
+        )
+        self.assertEqual(
+            report["ledger_state"]["settlement"]["pending"][0]["settles_at"],
+            "2020-01-13T17:00:00.000000Z",
+        )
+
