@@ -157,3 +157,16 @@ class SettlementTests(unittest.TestCase):
             "2020-01-13T17:00:00.000000Z",
         )
 
+    def test_receivable_is_an_asset_but_not_spendable_cash(self):
+        value = control()
+        value["ends_at"] = "2020-01-07T17:00:00Z"
+        value["bars"] = [b for b in value["bars"] if b["session"] <= "2020-01-07"]
+        report = simulate_execution(value)
+        self.assertEqual(report["cash"], {"USD": "0.00"})
+        self.assertEqual(report["available_cash"], {"USD": "0.00"})
+        self.assertEqual(report["valuation"]["equity"], "49.50")
+        self.assertEqual(
+            report["valuation"]["trade_settlements"][0]["kind"], "receivable"
+        )
+        self.assertEqual(len(report["fills"]), 1)
+
