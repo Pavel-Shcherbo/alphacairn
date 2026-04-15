@@ -170,3 +170,27 @@ class SettlementTests(unittest.TestCase):
         )
         self.assertEqual(len(report["fills"]), 1)
 
+    def test_pending_purchase_moves_inventory_without_debiting_settled_cash(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        state = self.ledger.state()
+        self.assertEqual(state["cash"], {"USD": "100.00"})
+        self.assertEqual(state["positions"]["A"], {"quantity": "2", "basis": "21.00"})
+        self.assertEqual(
+            state["settlement"]["cash"],
+            [
+                {
+                    "currency": "USD",
+                    "settled": "100.00",
+                    "reserved": "21.00",
+                    "available": "79.00",
+                }
+            ],
+        )
+        receipt = self.ledger.apply(settlement())
+        self.assertEqual(self.ledger.state()["cash"], {"USD": "79.00"})
+        self.assertEqual(self.ledger.apply(settlement())["duplicate"], True)
+        self.assertEqual(sum(Fraction(p["amount"]) for p in receipt["postings"]), 0)
+        with self.assertRaisesRegex(ValueError, "already settled"):
+            self.ledger.apply(settlement(key="again"))
+        self.assertTrue(self.ledger.audit()["passed"])
+
