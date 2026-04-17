@@ -194,3 +194,46 @@ class SettlementTests(unittest.TestCase):
             self.ledger.apply(settlement(key="again"))
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_withdraw_fx_and_legacy_trade_cannot_spend_reserved_funds(self):
+        account = control()["account"]
+        account["currencies"]["EUR"] = 2
+        ledger = Ledger(self.root / "other.sqlite", account)
+        ledger.apply_batch([funding("21"), purchase()])
+        attempts = [
+            {
+                "id": "withdraw",
+                "timestamp": "2020-01-02T00:00:00Z",
+                "kind": "withdraw",
+                "currency": "USD",
+                "amount": "1",
+            },
+            {
+                "id": "fx",
+                "timestamp": "2020-01-02T00:00:00Z",
+                "kind": "fx",
+                "from_currency": "USD",
+                "to_currency": "EUR",
+                "amount": "1",
+                "rate": "1",
+                "fee": "0",
+            },
+            {
+                "id": "other",
+                "timestamp": "2020-01-02T00:00:00Z",
+                "kind": "trade",
+                "instrument": "B",
+                "side": "buy",
+                "quantity": "1",
+                "price": "1",
+                "fee": "0",
+            },
+            purchase("another", quantity="1", price="1", fee="0"),
+        ]
+        for event in attempts:
+            with (
+                self.subTest(event=event["id"]),
+                self.assertRaisesRegex(ValueError, "available cash"),
+            ):
+                ledger.apply(event)
+        self.assertEqual(ledger.state()["last_sequence"], 2)
+
