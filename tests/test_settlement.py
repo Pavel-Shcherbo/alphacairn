@@ -237,3 +237,18 @@ class SettlementTests(unittest.TestCase):
                 ledger.apply(event)
         self.assertEqual(ledger.state()["last_sequence"], 2)
 
+    def test_early_missing_conflicting_settlement_and_invalid_due_rejected(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        for event in [
+            settlement(at="2020-01-02T17:00:00Z"),
+            settlement(trade="absent"),
+            purchase(
+                "wrong-due", at="2020-01-02T00:00:00Z", due="2020-01-01T00:00:00Z"
+            ),
+        ]:
+            with self.assertRaises(ValueError):
+                self.ledger.apply(event)
+        self.assertEqual(self.ledger.state()["last_sequence"], 2)
+        with self.assertRaisesRegex(ValueError, "conflicts"):
+            self.ledger.apply({**purchase(), "settles_at": "2020-01-04T00:00:00Z"})
+
