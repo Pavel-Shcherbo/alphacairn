@@ -252,3 +252,10 @@ class SettlementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "conflicts"):
             self.ledger.apply({**purchase(), "settles_at": "2020-01-04T00:00:00Z"})
 
+    def test_settlement_can_pay_after_instrument_active_interval(self):
+        account = control()["account"]
+        account["instruments"][0]["active_until"] = "2020-01-02T00:00:00Z"
+        ledger = Ledger(self.root / "ended.sqlite", account)
+        ledger.apply_batch([funding(), purchase(), settlement()])
+        self.assertEqual(ledger.state()["cash"]["USD"], "79.00")
+
