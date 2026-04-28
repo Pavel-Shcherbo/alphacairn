@@ -259,3 +259,28 @@ class SettlementTests(unittest.TestCase):
         ledger.apply_batch([funding(), purchase(), settlement()])
         self.assertEqual(ledger.state()["cash"]["USD"], "79.00")
 
+    def test_sale_with_fee_larger_than_proceeds_reserves_the_deficit(self):
+        opening = {
+            "id": "opening",
+            "timestamp": "2020-01-01T00:00:00Z",
+            "kind": "opening_lot",
+            "instrument": "A",
+            "quantity": "1",
+            "basis": "1",
+            "acquired_at": "2019-01-01T00:00:00Z",
+        }
+        self.ledger.apply_batch(
+            [
+                funding("2"),
+                opening,
+                purchase("loss", side="sell", quantity="1", price="1", fee="2"),
+            ]
+        )
+        state = self.ledger.state()
+        self.assertEqual(state["settlement"]["cash"][0]["reserved"], "1.00")
+        self.ledger.apply(settlement(trade="loss"))
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "1.00")
+        self.assertEqual(
+            self.ledger.state()["accounts"]["USD"]["realized_income:A"], "2.00"
+        )
+
