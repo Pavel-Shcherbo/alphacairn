@@ -284,3 +284,21 @@ class SettlementTests(unittest.TestCase):
             self.ledger.state()["accounts"]["USD"]["realized_income:A"], "2.00"
         )
 
+    def test_zero_net_sale_still_has_one_settlement_transition(self):
+        buy = purchase()
+        buy.update(kind="trade", quantity="1", price="1", fee="0")
+        buy.pop("settles_at")
+        self.ledger.apply_batch(
+            [
+                funding("10"),
+                buy,
+                purchase("zero", side="sell", quantity="1", price="1", fee="1"),
+            ]
+        )
+        self.assertEqual(
+            self.ledger.state()["settlement"]["pending"][0]["amount"], "0.00"
+        )
+        self.ledger.apply(settlement(trade="zero"))
+        self.assertEqual(self.ledger.state()["settlement"]["pending"], [])
+        self.assertTrue(self.ledger.audit()["passed"])
+
