@@ -302,3 +302,27 @@ class SettlementTests(unittest.TestCase):
         self.assertEqual(self.ledger.state()["settlement"]["pending"], [])
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_zero_day_rolls_after_cutoff_and_weekend_uses_joint_business_dates(self):
+        value = control()
+        value["settlement"]["rules"][0]["lag"] = 0
+        clock = SettlementClock(
+            value["settlement"], AccountSpec.compile(value["account"])
+        )
+        self.assertEqual(
+            clock.due("A", "2020-01-03T17:00:00Z", "2020-01-03")["settlement_date"],
+            "2020-01-03",
+        )
+        self.assertEqual(
+            clock.due("A", "2020-01-03T17:00:00.000001Z", "2020-01-03")[
+                "settlement_date"
+            ],
+            "2020-01-07",
+        )
+        value["settlement"]["rules"][0]["lag"] = 2
+        self.assertEqual(
+            SettlementClock(
+                value["settlement"], AccountSpec.compile(value["account"])
+            ).due("A", "2020-01-04T12:00:00Z", "2020-01-04")["settlement_date"],
+            "2020-01-08",
+        )
+
