@@ -326,3 +326,24 @@ class SettlementTests(unittest.TestCase):
             "2020-01-08",
         )
 
+    def test_local_fill_date_and_declared_session_basis_are_distinct(self):
+        value = control()
+        schedule = copy.deepcopy(value["settlement"]["calendar"]["definition"])
+        for row in schedule["calendars"]:
+            row["timezone"] = "America/New_York"
+        value["settlement"]["calendar"] = build_calendar(schedule)
+        clock = SettlementClock(
+            value["settlement"], AccountSpec.compile(value["account"])
+        )
+        self.assertEqual(
+            clock.due("A", "2020-01-07T02:00:00Z", "2020-01-07")["settlement_date"],
+            "2020-01-08",
+        )
+        value["settlement"]["rules"][0]["trade_date_basis"] = "session_label"
+        self.assertEqual(
+            SettlementClock(
+                value["settlement"], AccountSpec.compile(value["account"])
+            ).due("A", "2020-01-07T02:00:00Z", "2020-01-07")["settlement_date"],
+            "2020-01-09",
+        )
+
