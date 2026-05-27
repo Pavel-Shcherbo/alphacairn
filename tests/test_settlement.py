@@ -347,3 +347,20 @@ class SettlementTests(unittest.TestCase):
             "2020-01-09",
         )
 
+    def test_dst_cutoff_replays_without_host_timezone_lookup(self):
+        value = control()
+        schedule = value["settlement"]["calendar"]["definition"]
+        schedule.update(starts_on="2020-03-05", ends_on="2020-03-13")
+        for row in schedule["calendars"]:
+            row.update(timezone="America/New_York", exceptions=[])
+        value["settlement"]["calendar"] = build_calendar(schedule)
+        value["settlement"]["rules"][0]["lag"] = 1
+        with patch(
+            "alphacairn.session_zones.load_zone",
+            side_effect=ValueError("no host database"),
+        ):
+            due = SettlementClock(
+                value["settlement"], AccountSpec.compile(value["account"])
+            ).due("A", "2020-03-06T15:00:00Z", "2020-03-06")
+        self.assertEqual(due["settles_at"], "2020-03-09T21:00:00.000000Z")
+
