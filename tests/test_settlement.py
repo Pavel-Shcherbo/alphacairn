@@ -364,3 +364,21 @@ class SettlementTests(unittest.TestCase):
             ).due("A", "2020-03-06T15:00:00Z", "2020-03-06")
         self.assertEqual(due["settles_at"], "2020-03-09T21:00:00.000000Z")
 
+    def test_missing_rules_bad_lag_duplicate_calendar_and_corrupt_tzif_rejected(self):
+        changes = [
+            lambda p: p["rules"].pop(),
+            lambda p: p["rules"][0].update(lag=True),
+            lambda p: p["rules"][0].update(lag=11),
+            lambda p: p["rules"][0].update(calendars=["usd", "usd"]),
+            lambda p: p["rules"][0].update(calendars=["missing"]),
+            lambda p: p["calendar"]["zones"][0].update(sha256="0" * 64),
+        ]
+        for change in changes:
+            value = control()
+            change(value["settlement"])
+            with (
+                self.subTest(change=changes.index(change)),
+                self.assertRaises(ValueError),
+            ):
+                compile_execution(value)
+
