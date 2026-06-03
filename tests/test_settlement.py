@@ -382,3 +382,18 @@ class SettlementTests(unittest.TestCase):
             ):
                 compile_execution(value)
 
+    def test_settlement_horizon_cannot_be_silently_extrapolated(self):
+        value = control()
+        schedule = value["settlement"]["calendar"]["definition"]
+        schedule["ends_on"] = "2020-01-07"
+        value["settlement"]["calendar"] = build_calendar(schedule)
+        with self.assertRaisesRegex(ValueError, "due date"):
+            compile_execution(value)
+        value = control()
+        value["settlement"]["rules"][0]["trade_date_basis"] = "session_label"
+        clock = SettlementClock(
+            value["settlement"], AccountSpec.compile(value["account"])
+        )
+        with self.assertRaisesRegex(ValueError, "before fill"):
+            clock.due("A", "2020-01-09T12:00:00Z", "2020-01-01")
+
