@@ -397,3 +397,29 @@ class SettlementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "before fill"):
             clock.due("A", "2020-01-09T12:00:00Z", "2020-01-01")
 
+    def test_overnight_business_windows_rejected_and_immediate_crypto_supported(self):
+        value = control()
+        schedule = value["settlement"]["calendar"]["definition"]
+        for row in schedule["calendars"]:
+            row["segments"][0]["open"]["time"] = "20:00"
+            row["segments"][0]["close"].update(time="04:00", day_offset=1)
+        value["settlement"]["calendar"] = build_calendar(schedule)
+        with self.assertRaisesRegex(ValueError, "labeled local day"):
+            compile_execution(value)
+        value = control()
+        value["settlement"] = {
+            "version": 1,
+            "calendar": None,
+            "rules": [{"instrument": name, "mode": "immediate"} for name in ["A", "B"]],
+        }
+        value["account"]["instruments"][0]["kind"] = "crypto_spot"
+        report = simulate_execution(value)
+        self.assertEqual(
+            [f["at"][:10] for f in report["fills"]], ["2020-01-03", "2020-01-03"]
+        )
+        self.assertEqual(report["cash"]["USD"], "5.00")
+        self.assertEqual(report["available_cash"]["USD"], "5.00")
+        self.assertTrue(
+            all(e["status"] == "settled" for e in report["settlement"]["entries"])
+        )
+
