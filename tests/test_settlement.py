@@ -423,3 +423,24 @@ class SettlementTests(unittest.TestCase):
             all(e["status"] == "settled" for e in report["settlement"]["entries"])
         )
 
+    def test_same_time_settlement_funds_a_new_open_before_it_is_evaluated(self):
+        value = control()
+        value["bars"][-1]["opened_at"] = "2020-01-09T17:00:00Z"
+        value["bars"][-1]["closed_at"] = "2020-01-09T18:00:00Z"
+        # Sale settles Jan 8 at 17:00; moving the last purchase open onto it tests exact equality.
+        last = value["bars"].pop()
+        last.update(
+            session="2020-01-08",
+            opened_at="2020-01-08T17:00:00Z",
+            closed_at="2020-01-08T18:00:00Z",
+            liquidity_known_at="2020-01-08T16:00:00Z",
+        )
+        value["bars"] = [
+            b
+            for b in value["bars"]
+            if not (b["instrument"] == "B" and b["session"] == "2020-01-08")
+        ] + [last]
+        report = simulate_execution(value)
+        self.assertEqual(report["fills"][1]["at"], "2020-01-08T17:00:00.000000Z")
+        self.assertEqual(report["fills"][1]["available_cash_after"], "5.00")
+
