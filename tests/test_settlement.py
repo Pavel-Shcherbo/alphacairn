@@ -444,3 +444,20 @@ class SettlementTests(unittest.TestCase):
         self.assertEqual(report["fills"][1]["at"], "2020-01-08T17:00:00.000000Z")
         self.assertEqual(report["fills"][1]["available_cash_after"], "5.00")
 
+    def test_batch_service_same_key_concurrent_retry_has_one_cash_transition(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        service = SettlementService(self.path)
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            results = list(
+                pool.map(
+                    lambda _: service.settle_due("2020-01-03T17:00:00Z", "paid-batch"),
+                    range(3),
+                )
+            )
+        self.assertTrue(all(v == results[0] for v in results))
+        self.assertEqual(results[0]["settled_count"], 1)
+        self.assertEqual(service.receipt("paid-batch"), results[0])
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "79.00")
+        with self.assertRaisesRegex(ValueError, "different inputs"):
+            service.settle_due("2020-01-04T17:00:00Z", "paid-batch")
+
