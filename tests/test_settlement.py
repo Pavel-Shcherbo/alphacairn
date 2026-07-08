@@ -461,3 +461,15 @@ class SettlementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "different inputs"):
             service.settle_due("2020-01-04T17:00:00Z", "paid-batch")
 
+    def test_batch_service_limit_retains_remaining_due_and_zero_result_retry(self):
+        self.ledger.apply_batch([funding(), purchase("one"), purchase("two")])
+        service = SettlementService(self.path)
+        first = service.settle_due("2020-01-03T17:00:00Z", "first", limit=1)
+        self.assertEqual(first["remaining_due_count"], 1)
+        second = service.settle_due("2020-01-03T17:00:00Z", "second")
+        self.assertEqual(second["settled_count"], 1)
+        empty = service.settle_due("2020-01-03T17:00:00Z", "empty")
+        self.assertEqual(empty["settled_count"], 0)
+        self.assertEqual(service.settle_due("2020-01-03T17:00:00Z", "empty"), empty)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "58.00")
+
