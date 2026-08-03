@@ -473,3 +473,17 @@ class SettlementTests(unittest.TestCase):
         self.assertEqual(service.settle_due("2020-01-03T17:00:00Z", "empty"), empty)
         self.assertEqual(self.ledger.state()["cash"]["USD"], "58.00")
 
+    def test_batch_receipt_write_failure_rolls_back_cash_and_settlement_marker(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        service = SettlementService(self.path)
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute(
+                "CREATE TRIGGER fail_receipt BEFORE INSERT ON settlement_requests BEGIN SELECT RAISE(ABORT,'blocked receipt'); END"
+            )
+            db.commit()
+        with self.assertRaisesRegex(sqlite3.Error, "blocked receipt"):
+            service.settle_due("2020-01-03T17:00:00Z", "blocked")
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "100.00")
+        self.assertEqual(len(self.ledger.state()["settlement"]["pending"]), 1)
+        self.assertTrue(self.ledger.audit()["passed"])
+
