@@ -487,3 +487,26 @@ class SettlementTests(unittest.TestCase):
         self.assertEqual(len(self.ledger.state()["settlement"]["pending"]), 1)
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_killed_batch_process_leaves_no_partial_settlement(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        script = """
+import os,sys
+from alphacairn.settlement_service import SettlementService
+service=SettlementService(sys.argv[1]);original=service.ledger._apply
+def stop(*args):
+ original(*args);os._exit(17)
+service.ledger._apply=stop
+service.settle_due('2020-01-03T17:00:00Z','killed')
+"""
+        process = subprocess.run(
+            [sys.executable, "-c", script, str(self.path)],
+            capture_output=True,
+            timeout=10,
+        )
+        self.assertEqual(process.returncode, 17, process.stderr)
+        service = SettlementService(self.path)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "100.00")
+        self.assertEqual(
+            service.settle_due("2020-01-03T17:00:00Z", "killed")["settled_count"], 1
+        )
+
