@@ -510,3 +510,21 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
             service.settle_due("2020-01-03T17:00:00Z", "killed")["settled_count"], 1
         )
 
+    def test_pending_statement_requires_explicit_coverage_and_detects_differences(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        statement = {"cash": {"USD": "100"}, "positions": {"A": "2"}}
+        self.assertFalse(self.ledger.reconcile(statement)["matched"])
+        statement["settlements"] = {
+            "buy": {
+                "currency": "USD",
+                "kind": "payable",
+                "amount": "21",
+                "settles_at": "2020-01-03T17:00:00Z",
+            }
+        }
+        self.assertTrue(self.ledger.reconcile(statement)["matched"])
+        statement["settlements"]["buy"]["amount"] = "20"
+        self.assertEqual(
+            self.ledger.reconcile(statement)["differences"][0]["kind"], "settlements"
+        )
+
