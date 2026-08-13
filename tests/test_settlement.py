@@ -528,3 +528,28 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
             self.ledger.reconcile(statement)["differences"][0]["kind"], "settlements"
         )
 
+    def test_fx_cash_and_claim_pool_has_no_rounding_gain_when_settled(self):
+        account = control()["account"]
+        account["currencies"]["EUR"] = 2
+        account["instruments"][0]["quote_currency"] = "EUR"
+        ledger = Ledger(self.root / "fx.sqlite", account)
+        ledger.apply_batch(
+            [
+                {**funding("0.03"), "currency": "EUR"},
+                purchase(quantity="1", price="0.01", fee="0"),
+            ]
+        )
+        quotes = {"A": {"price": "0.01", "timestamp": "2020-01-03T17:00:00Z"}}
+        fx = {"EUR": {"rate": "0.5", "timestamp": "2020-01-03T17:00:00Z"}}
+        before = value_portfolio(
+            ledger.state(), quotes, fx, as_of="2020-01-03T17:00:00Z"
+        )
+        ledger.apply(settlement())
+        after = value_portfolio(
+            ledger.state(), quotes, fx, as_of="2020-01-03T17:00:00Z"
+        )
+        self.assertEqual(before["equity"], after["equity"])
+        self.assertEqual(before["equity"], "0.01")
+        rows = exposures(ledger.state(), after, ledger.spec)
+        self.assertEqual(sum(Fraction(r["base_value"]) for r in rows), Fraction("0.01"))
+
