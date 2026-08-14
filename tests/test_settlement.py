@@ -607,3 +607,17 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
             "79.00",
         )
 
+    def test_split_and_dividend_keep_trade_date_ownership_and_credit_spendable_cash(
+        self,
+    ):
+        value = control()
+        value["corporate_actions"] = [
+            split(at="2020-01-06T08:00:00Z"),
+            dividend(ex="2020-01-06T08:00:00Z", pay="2020-01-07T08:00:00Z"),
+        ]
+        report = simulate_execution(value)
+        self.assertEqual(report["corporate_actions"][1]["eligible_quantity"], "4")
+        self.assertEqual(report["cash"]["USD"], "9.00")
+        self.assertEqual(report["available_cash"]["USD"], "9.00")
+        self.assertTrue(report["corporate_replay_checks"][0]["passed"])
+
