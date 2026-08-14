@@ -553,3 +553,57 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         rows = exposures(ledger.state(), after, ledger.spec)
         self.assertEqual(sum(Fraction(r["base_value"]) for r in rows), Fraction("0.01"))
 
+    def test_payable_exposures_and_joint_fx_stress_reconcile_by_fraction(self):
+        account = control()["account"]
+        account["currencies"]["EUR"] = 2
+        account["instruments"][0]["quote_currency"] = "EUR"
+        ledger = Ledger(self.root / "risk.sqlite", account)
+        ledger.apply_batch([{**funding("100"), "currency": "EUR"}, purchase()])
+        quotes = {
+            "as_of": "2020-01-02T00:00:00Z",
+            "max_age_seconds": 86400,
+            "marks": {"A": {"price": "12", "timestamp": "2020-01-02T00:00:00Z"}},
+            "fx": {"EUR": {"rate": "1.1", "timestamp": "2020-01-02T00:00:00Z"}},
+        }
+        baseline = value_portfolio(
+            ledger.state(), quotes["marks"], quotes["fx"], as_of=quotes["as_of"]
+        )
+        rows = exposures(ledger.state(), baseline, ledger.spec)
+        self.assertEqual(
+            next(r["base_value"] for r in rows if r["kind"] == "trade_payable"),
+            "-23.10",
+        )
+        factors = factor_exposures(rows, ledger.spec)
+        self.assertEqual(
+            next(r["base_value"] for r in factors if r["id"] == "fx:EUR"),
+            Fraction("86.90"),
+        )
+        config = {
+            "as_of": quotes["as_of"],
+            "max_age_seconds": 86400,
+            "scenarios": [
+                {
+                    "id": "joint",
+                    "price_shocks": {"A": "-0.5"},
+                    "fx_shocks": {"EUR": "-0.1"},
+                }
+            ],
+        }
+        result = stress_portfolio(
+            ledger.state(), quotes, config, baseline, ledger.spec
+        )[0]
+        self.assertEqual(result["equity"], "90.09")
+        self.assertEqual(
+            sum(Fraction(r["pnl"]) for r in result["components"]),
+            Fraction(result["pnl"]),
+        )
+        capture = capture_journal(ledger.path)
+        self.assertEqual(
+            next(
+                row["available"]
+                for row in capture["state"]["settlement"]["cash"]
+                if row["currency"] == "EUR"
+            ),
+            "79.00",
+        )
+
