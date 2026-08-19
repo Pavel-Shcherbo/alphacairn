@@ -621,3 +621,13 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         self.assertEqual(report["available_cash"]["USD"], "9.00")
         self.assertTrue(report["corporate_replay_checks"][0]["passed"])
 
+    def test_portable_execution_replays_without_original_calendar_or_journal(self):
+        value = control()
+        report = simulate_execution(value)
+        bundle = self.root / "bundle"
+        write_execution(value, report, bundle)
+        value.clear()
+        self.path.unlink()
+        self.assertTrue(verify_execution_bundle(bundle)["passed"])
+        self.assertIn("settles_at", (bundle / "fills.csv").read_text().splitlines()[0])
+
