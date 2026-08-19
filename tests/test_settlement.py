@@ -631,3 +631,15 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         self.assertTrue(verify_execution_bundle(bundle)["passed"])
         self.assertIn("settles_at", (bundle / "fills.csv").read_text().splitlines()[0])
 
+    def test_hostile_decimal_context_and_mutated_policy_are_rejected(self):
+        with localcontext() as ctx:
+            ctx.prec = 3
+            ctx.traps[Inexact] = True
+            self.assertEqual(
+                simulate_execution(control())["valuation"]["equity"], "49.00"
+            )
+        plan = compile_execution(control())
+        plan.definition["settlement"]["rules"][0]["lag"] = 0
+        with self.assertRaisesRegex(ValueError, "mutated"):
+            simulate_execution(plan)
+
