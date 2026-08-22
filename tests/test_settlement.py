@@ -643,3 +643,13 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         with self.assertRaisesRegex(ValueError, "mutated"):
             simulate_execution(plan)
 
+    def test_old_execution_contracts_reject_settlement_fields(self):
+        value = control()
+        value["version"] = 4
+        with self.assertRaises(ValueError):
+            compile_execution(value)
+        value = control()
+        del value["settlement"]
+        with self.assertRaises(ValueError):
+            compile_execution(value)
+
