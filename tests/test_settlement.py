@@ -653,3 +653,51 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         with self.assertRaises(ValueError):
             compile_execution(value)
 
+    def test_strategy_planning_and_portable_replay_keep_settlement_constraints(self):
+        config = load("strategy-control.json")
+        template = config["execution"]
+        template.update(
+            version=5,
+            calendar=None,
+            calendar_policy=None,
+            price_basis="unadjusted",
+            corporate_actions=[],
+            initial_lots=[],
+            initial_marks=[],
+            settlement={
+                "version": 1,
+                "calendar": control()["settlement"]["calendar"],
+                "rules": [
+                    {
+                        "instrument": row["id"],
+                        "mode": "business_days",
+                        "lag": 2,
+                        "calendars": ["usd"],
+                        "trade_date_basis": "local_fill_date",
+                    }
+                    for row in template["account"]["instruments"]
+                ],
+            },
+        )
+        catalog = MarketCatalog(self.root / "market.sqlite", create=True)
+        for filename, kind in [
+            ("strategy-bars.json", "bar"),
+            ("strategy-universe.json", "membership"),
+        ]:
+            catalog.ingest(
+                config["source"], kind, canonical(load(filename)), request_key=kind
+            )
+        inputs = capture_strategy(catalog, config)
+        report = simulate_strategy(inputs)
+        self.assertTrue(report["planning_replayed"])
+        self.assertTrue(report["execution"]["ledger_audit"]["passed"])
+        write_strategy(inputs, report, self.root / "strategy")
+        catalog.path.unlink()
+        self.assertTrue(verify_strategy_bundle(self.root / "strategy")["passed"])
+        self.assertEqual(
+            trial_contract("strategy", inputs)["recipe"]["configuration"]["execution"][
+                "settlement"
+            ]["rules"],
+            template["settlement"]["rules"],
+        )
+
