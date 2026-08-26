@@ -701,3 +701,13 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
             template["settlement"]["rules"],
         )
 
+    def test_corrupted_response_and_accepted_event_link_are_detected(self):
+        self.ledger.apply_batch([funding(), purchase()])
+        service = SettlementService(self.path)
+        service.settle_due("2020-01-03T17:00:00Z", "receipt")
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute("update settlement_requests set response_sha='bad'")
+            db.commit()
+        with self.assertRaisesRegex(ValueError, "receipt identity"):
+            service.receipt("receipt")
+
