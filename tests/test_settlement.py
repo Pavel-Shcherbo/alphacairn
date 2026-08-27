@@ -711,3 +711,23 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         with self.assertRaisesRegex(ValueError, "receipt identity"):
             service.receipt("receipt")
 
+    def test_partial_sale_of_unsettled_purchase_releases_fifo_without_releasing_reservation(
+        self,
+    ):
+        self.ledger.apply_batch(
+            [
+                funding(),
+                purchase(),
+                purchase("sell", side="sell", quantity="1", price="12", fee="0"),
+            ]
+        )
+        state = self.ledger.state()
+        self.assertEqual(state["positions"]["A"]["basis"], "10.50")
+        self.assertEqual(state["settlement"]["cash"][0]["available"], "79.00")
+        self.assertEqual(len(state["settlement"]["pending"]), 2)
+        service = SettlementService(self.path)
+        result = service.settle_due("2020-01-03T17:00:00Z", "both")
+        self.assertEqual(result["settled_count"], 2)
+        self.assertEqual(self.ledger.state()["cash"]["USD"], "91.00")
+        self.assertTrue(self.ledger.audit()["passed"])
+
