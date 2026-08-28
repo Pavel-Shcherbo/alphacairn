@@ -731,3 +731,13 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         self.assertEqual(self.ledger.state()["cash"]["USD"], "91.00")
         self.assertTrue(self.ledger.audit()["passed"])
 
+    def test_joint_cutoff_uses_latest_utc_close_without_inferred_netting(self):
+        value = control()
+        schedule = value["settlement"]["calendar"]["definition"]
+        schedule["calendars"][0]["segments"][0]["close"]["time"] = "19:00"
+        value["settlement"]["calendar"] = build_calendar(schedule)
+        due = SettlementClock(
+            value["settlement"], AccountSpec.compile(value["account"])
+        ).due("A", "2020-01-03T09:00:00Z", "2020-01-03")
+        self.assertEqual(due["settles_at"], "2020-01-08T19:00:00.000000Z")
+
