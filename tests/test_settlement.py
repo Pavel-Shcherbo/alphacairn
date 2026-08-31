@@ -741,3 +741,32 @@ service.settle_due('2020-01-03T17:00:00Z','killed')
         ).due("A", "2020-01-03T09:00:00Z", "2020-01-03")
         self.assertEqual(due["settles_at"], "2020-01-08T19:00:00.000000Z")
 
+    def test_canceled_cash_fx_exposure_does_not_consume_an_active_factor_slot(self):
+        account = control()["account"]
+        account["currencies"]["EUR"] = 2
+        prototype = account["instruments"][0]
+        account["instruments"] = [
+            {
+                **prototype,
+                "id": f"ASSET-{i}",
+                "symbol": f"ASSET-{i}",
+                "quote_currency": "EUR",
+            }
+            for i in range(24)
+        ]
+        spec = AccountSpec.compile(account)
+        rows = [
+            {"instrument": r["id"], "currency": "EUR", "base_value": "1"}
+            for r in account["instruments"]
+        ]
+        rows.extend(
+            [
+                {"instrument": None, "currency": "EUR", "base_value": "100"},
+                {"instrument": None, "currency": "EUR", "base_value": "-100"},
+            ]
+        )
+        self.assertEqual(len(factor_exposures(rows, spec)), 24)
+
+
+if __name__ == "__main__":
+    unittest.main()
