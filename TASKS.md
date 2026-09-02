@@ -67,3 +67,17 @@ Verified opening-holdings increment: 25 new checks, 291 Alphacairn tests and 809
 Verified cash-settlement increment: 33 new checks, 324 Alphacairn tests and 869 portfolio tests passed. Version-5 execution/strategy studies retain explicit joint business-day calendars/TZif, per-instrument lag/cutoff policies, purchase reservations and delayed sale claims. Journal settlement events and explicit-clock batches are input-bound/idempotent; concurrent retries, killed-process and receipt-failure rollback passed. Signed claims reconcile valuation, risk/stress and FIFO/actions. Cash-plus-claim currency pooling prevents an FX rounding jump on payment; canceled net FX does not consume an active factor slot. Installed CLI/API controls reconciled USD 5 final cash, USD 49 equity, two FIFO bases, persistent available cash 79/settled cash 100/reservation 21 and USD 103 equity before/after payments. Frozen pending-claim risk replayed after journal removal; execution replayed without the original source scenario. Actual desktop/mobile controls checked explicit statement coverage, readable differences, early payment rejection, stale result invalidation and independently reproduced downloads. A retained 100-instrument/200-fill/200-settlement workload and three persistent batches produced identical journal state and independent final cash 10098. Evidence: docs/SETTLEMENT.md, docs/settlement-verification.json, docs/settlement-benchmark.json and docs/settlement-browser-verification.json. Current project-specific production source: 12914 SLOC. Provider-backed rules/notices, securities-delivery constraints, margin/derivatives, broader instruments and full product/20000 useful-SLOC scope remain open. No publication.
 
 | Explicit cash settlement and joint calendars | Verified local increment; 33 new checks, installed CLI/API, actual browser/downloads and 100-instrument workload | `docs/SETTLEMENT.md`, `docs/settlement-verification.json`, `docs/settlement-browser-verification.json` | Provider rules, securities delivery, margin/derivatives and full scope/size remain open |
+
+
+## Scope update — 2026-11-04
+
+Pavel withdrew the mandatory 20,000-SLOC threshold: it was indicative. Earlier
+size requirements in this log are superseded. Do not expand solely for line count.
+Prioritize useful verified behavior and meaningful reconstructed history. Existing
+verification evidence remains scoped to the versions it records; final acceptance
+and full history reconstruction remain open. No publication is authorized.
+
+History audit: actual local Git objects, ownership and nonempty stages were checked;
+implementation/tests/examples match the last verified source version. The proposed
+2019–2026 calendar remains a plan, not a completed activity record. The central
+planning register retains the actual commit/calendar audit and outstanding work.
