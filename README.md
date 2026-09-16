@@ -7,16 +7,21 @@ Compare trading hypotheses under explicit timing and execution assumptions.
 From a source checkout with Python 3.10 or later:
 
 ```sh
-python3 -m alphacairn.web
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install .
+python -m alphacairn.web
 ```
 
+The build uses setuptools; the application itself has no third-party runtime dependencies.
+
 Open http://127.0.0.1:8412. No third-party runtime packages are required.
-The workbench is a local development application, not a hosted multi-user service.
+The workbench is a local development application, not a hosted multi-user service. Process-execution controls are qualified on macOS arm64; Windows descendant termination is not qualified.
 Bundled examples are included in the wheel. Runtime state is stored outside the installed package.
 
 ## Workbench preview
 
-![Local workbench](docs/workbench.png)
+![Saved research and risk review](docs/research-desktop.png)
 
 ## Command line
 
@@ -45,7 +50,7 @@ A local catalog retains original JSON batches, exact decimal OHLCV observations,
 
 ## Boundaries
 
-The included data is a deterministic synthetic fixture, not exchange history. The simulator assumes fractional long-only positions, unlimited modeled liquidity and fixed costs. It does not yet handle dividends, splits, delistings, historical universes, funding or margin. No profitability or market-performance result is claimed. The final position is valued at the last close rather than forcibly sold.
+The bundled data is synthetic. The simple CSV moving-average backtest models fractional long-only positions, fixed costs and unlimited liquidity; it marks the final position at the last close. The separate multi-instrument execution engine models declared liquidity, partial fills, splits, dividends, opening holdings and cash settlement. Catalog-backed studies use explicit historical universe intervals and price revisions. These inputs are supplied by the operator; official provider feeds, live brokerage, margin, shorting and derivatives are not included. No profitability or market-performance result is claimed.
 
 
 ## Sequential research and risk
