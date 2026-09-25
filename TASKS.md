@@ -1,5 +1,16 @@
 # Tasks
 
+## Current local qualification — 2026-11-04
+
+Implemented scope: decision-time market vintages, exact FIFO accounting, corporate actions, retained sessions, opening holdings, cash settlement and saved risk/research replay. Full project suites passed on CPython
+3.10–3.14: 324 tests per version. Clean wheel installation and CLI/API controls
+passed on 3.10 and 3.14. [Current evidence](docs/VERIFICATION.md) supersedes old
+size requirements and historical test totals below. Final package identities are maintained in the central review register;
+no publication is authorized. Future provider/hosted/distributed
+features in the original roadmap remain optional backlog.
+
+---
+
 Updated: 2026-11-04. Actual status only; historical roadmap rows remain proposed.
 
 | Task | Status | Evidence | Remaining work |
