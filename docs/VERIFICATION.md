@@ -1,25 +1,50 @@
-# Initial-core verification
+# Verified local delivery
 
-Verified locally on 2026-11-04. This is not full product acceptance.
+This summary records the final local qualification on 2026-11-04. It covers
+decision-time market vintages, exact FIFO accounting, corporate actions, retained sessions, opening holdings, cash settlement and saved risk/research replay. Synthetic inputs and explicit model assumptions remain marked in the
+guides; no live provider, hosted service, market performance or deployment is claimed.
 
-- 266 current domain, integration and negative-path tests passed.
-- The documented CLI control scenario completed and its result was checked.
-- Local HTTP success/failure scenarios and foreign-Origin rejection were checked.
-- Desktop and mobile workbench screens were inspected; the review includes defect corrections.
-- Broader product scope and the 20,000 useful production-SLOC requirement remain incomplete.
+## Supported Python checks
 
-Run `python3 -m unittest discover -s tests -v` from this checkout. The examples and README describe supported behavior and limits. No remote publication or hosted deployment was performed.
+| CPython minor | Tests | Result |
+|---|---:|---|
+| 3.10 | 324 | Passed |
+| 3.11 | 324 | Passed |
+| 3.12 | 324 | Passed |
+| 3.13 | 324 | Passed |
+| 3.14 | 324 | Passed |
 
-Version 0.2 wheel installation was checked in an independent virtual environment from an unrelated working directory. Example export, CLI, static files and public workbench calculations passed. Installed code matched the source files, and runtime state remained outside the package. See installed-verification.json for the wheel identity.
+These are actual unit/integration runs on macOS arm64. Every version's log and
+runtime identity are retained in the central review evidence. The compact
+[compatibility record](python-compatibility.json) contains their hashes. Windows,
+other operating systems and future Python versions are not qualified by this matrix.
 
-Portfolio verification includes hand-calculated multi-currency balances, FIFO partial-sale basis, split neutrality, dividend withholding, fees above sale proceeds, zero-price marks, missing/stale/future quote handling, concurrent cash spending, duplicate delivery, atomic batch rollback, cache/receipt corruption detection, 100 seeded trades against an independent integer-cent/Fraction model and isolated Decimal contexts. Installed CLI initialization/import/value/reconcile/audit passed. Browser export was downloaded and independently reproduced; mobile width, missing data, statement discrepancies and a controlled delayed-response race passed. See portfolio-browser-verification.json and portfolio-export-verification.json.
+## Clean installed entry points
 
-Verified increment: explicit-source market catalog, immutable raw batches, publication/recording clocks, revision-aware historical universes, portable snapshots and per-decision feature windows. 22 new subsystem tests and 85 total Alphacairn tests passed. Clean installed ingestion, decision windows, snapshot verification and fixed-vintage research passed. Evidence: `docs/MARKET_DATA.md`, `docs/market-catalog-verification.json`. Remote data adapters, corporate-action normalization, catalog UI, multi-asset simulation and the 20,000 useful-SLOC requirement remain open.
+Wheels were installed outside the source checkouts under Python 3.10 and 3.14.
+Checks confirmed actual installed import paths, matching source bytes, bundled
+examples, refusal to overwrite an export destination, CLI results and HTTP controls.
+Independent accounting/state/control values and portable replay are checked by
+the retained subsystem verification. See
+[Python 3.10 installation](installed-verification-python-3.10.json) and
+[Python 3.14 installation](installed-verification-python-3.14.json).
 
-The market controls include a shuffled independent revision-timeline oracle, source separation, same-time conflicts, late corrections, retractions, half-open delisting intervals, overlapping-universe rejection, partial audits, raw/index tampering, concurrent ingestion and consistent read views. Browser evidence above applies to the existing strategy and portfolio screens; market catalog UI is not implemented.
+## Browser and workload evidence
 
-Verified increment: exact multi-instrument market/limit execution, known liquidity, partial fills, currency cash/position protection, per-fill fees, IOC/DAY/GTC, deferred cancellation/expiry, journal/FIFO/valuation reconciliation and deterministic replayable bundles. 28 new execution/export checks and 113 total Alphacairn tests passed. Installed CLI/export/replay and independent CSV Fraction accounting/final valuation passed. Evidence: `docs/EXECUTION.md`, `docs/execution-verification.json`. Strategy/catalog integration, calendars/actions, initial holdings, execution UI and ≥20,000 useful SLOC remain open.
+The subsystem guides retain actual desktop/mobile controls, delayed/lost-response
+checks, downloaded replay evidence and bounded synthetic workloads. Their detailed
+reports describe the version/increment originally exercised; old test totals in
+those reports are historical, not the current project total of 324.
+The final compatibility changes do not alter browser assets. No broad throughput,
+production capacity or remote identity claim follows from these local workloads.
 
-Execution controls include a seeded independent integer-cent/Fraction affordability model, tick/slippage limits, shared-cash and liquidity priority across instruments, step sizing, fees above sale proceeds, intrabar/expiry ambiguity, missing or stale FX/marks including near-zero foreign positions, future extensions, hostile ambient Decimal context, report/CSV tampering after rehash, no-overwrite bundles and full deterministic re-execution. Existing browser evidence applies to the strategy and portfolio screens; the execution engine is CLI/library only.
+## Reproduce source tests
 
-Verified research-workbench increment: 23 new checks, 266 Alphacairn tests and 735 portfolio tests passed. Scoped persistent studies expose complete development/holdout attempt comparisons, locked selection, frozen risk/strategy input import, exact stress results and explicit holdout access. Foreground registry changes and durable response receipts share one transaction; same-key retries preserve execution/access counts, a killed process leaves no partial result, and generation-fenced recovery handles expired CLI executions. Clean installed HTTP/CLI controls independently reconciled portfolio equity 10948.90, every declared stress component, two successful/one incomplete/one failed attempt and four distinct holdout accesses; exported evidence replayed after registry removal. Real desktop/390-pixel browser controls passed lost responses before/after commit, reload recovery, delayed old views, acknowledgement and downloaded replay. Corrected pending-input submission and long-hash mobile overflow. Evidence: docs/RESEARCH_WORKBENCH.md, docs/research-workbench-verification.json and docs/research-browser-verification.json. Current project-specific source: 11666 SLOC. Provider histories/actions, catalog/configuration editors, initial holdings, settlement, broader instruments/policies and full product/20,000 useful-SLOC scope remain open. No publication.
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+The [architecture](ARCHITECTURE.md) and subsystem guides describe the local trust,
+resource and model limits. Review histories have disclosed reconstructed dates;
+intermediate commits are not individually qualified releases. No upload, push or
+deployment was performed. Source-line volume is not an acceptance gate.
