@@ -12,13 +12,16 @@ Signal timing, unchanged historical decisions after appending future observation
 
 The workbench binds to loopback, validates the Host header, rejects foreign
 Origin values and requires a custom header for state-changing requests. Static
-files are served from an explicit allowlist. Request bodies are limited to 1 MiB.
+files are served from an explicit allowlist. The ordinary evaluation route limits request bodies to 1 MiB; the saved-research route permits up to 8 MiB.
 These measures support a local development tool; there is no production identity,
 authorization or organization model yet.
 
-## Next architectural increment
+## Remaining boundaries
 
-Expose the market catalog in management views, then add corporate-action-aware prices and session calendars before multi-asset execution evaluation.
+Official market/provider integrations, live brokerage, margin, shorting and
+additional instrument families are outside the current local implementation.
+Corporate actions, retained session calendars and multi-asset execution are
+implemented as described below; source data remains explicitly supplied.
 
 ## Portfolio journal
 
@@ -32,4 +35,49 @@ Expose the market catalog in management views, then add corporate-action-aware p
 
 ## Multi-instrument execution
 
-`execution_model` validates explicit bar clocks, pre-open liquidity knowledge, account/cost contracts and ordered instructions. `execution_book` allocates simultaneous cross-instrument fills by command priority under cash, holding, lot and shared-liquidity bounds. `execution_money` provides exact affordability and marked values; `execution_engine` processes expiry/close/command/open phases and independently reconciles funding/fills through the existing portfolio journal and valuation. `execution_export` publishes create-only deterministic bundles and verifies them by re-running the scenario; `execution` is the local operator CLI. Strategy generation and live execution are outside this boundary. See EXECUTION.md.
+`execution_model` validates explicit bar clocks, pre-open liquidity knowledge, account/cost contracts and ordered instructions. `execution_book` allocates simultaneous cross-instrument fills by command priority under cash, holding, lot and shared-liquidity bounds. `execution_money` provides exact affordability and marked values; `execution_engine` processes expiry/close/command/open phases and independently reconciles funding/fills through the existing portfolio journal and valuation. `execution_export` publishes create-only deterministic bundles and verifies them by re-running the scenario; `execution` is the local operator CLI. Strategy generation is a separate input-capture layer described below; live brokerage is absent. See EXECUTION.md.
+
+
+## Decision-time studies and retained sessions
+
+`strategy_inputs` freezes each decision's eligible universe and price revisions
+separately from realization bars. `strategy_engine` sizes target-inventory orders
+from actual prior fills and applies the declared missing/stale signal policy.
+`strategy_bundle` retains enough inputs for source-catalog-free replay. This
+separation prevents execution prices from silently becoming decision features.
+`session_calendar` and `session_zones` retain operator calendars and TZif rules;
+`session_model` checks explicit bar coverage, split/overnight sessions and local
+clock ambiguity. See [strategies](STRATEGIES.md) and [sessions](SESSIONS.md).
+
+## Corporate actions, inventory and settlement
+
+Declared unadjusted-price splits preserve FIFO basis and adjust/cancel working
+orders explicitly. Dividend ownership is fixed at the declared entitlement time;
+receivables and later payments remain separate events. Opening holdings retain
+acquisition dates and book basis independently of market marks. The execution
+engine and persistent journal reconcile the same quantities, cash and events.
+
+`settlement_clock` resolves per-instrument joint-calendar cash due times.
+`settlement_accounts` and `settlement_book` distinguish settled cash, purchase
+reservations and signed pending claims. `settlement_service` commits idempotent
+explicit-clock payment batches. Positions move at trade time; securities-delivery
+restrictions and borrowing are not modeled. Cash-plus-claim currency pooling
+avoids a rounding discontinuity when a claim becomes cash. See
+[corporate actions](CORPORATE_ACTIONS.md), [opening holdings](OPENING_HOLDINGS.md)
+and [cash settlement](SETTLEMENT.md).
+
+## Risk and saved research
+
+`risk_inputs` freezes a coherent journal capture with quotes, history and declared
+stress assumptions. `risk_positions` reconciles exposures and signed claims;
+`risk_matrix` and `risk_tail` calculate exact bounded descriptive diagnostics.
+Missing/stale inputs produce explicit incomplete outcomes. `risk_bundle` replays
+without the source journal; a covariance or tail estimate is not a forecast.
+
+`studies` retains study-local windows, every registered attempt, locked selections
+and explicit holdout accesses. `research_desk` runs scoped frozen inputs and
+commits results with durable response receipts. The saved-experiments page rejects
+stale responses and recovers a lost reply using the original request identity.
+Study-local access tracking does not prove global data blindness or authenticate
+remote users. See [risk](RISK.md), [registry](RESEARCH_REGISTRY.md) and
+[research workbench](RESEARCH_WORKBENCH.md).
