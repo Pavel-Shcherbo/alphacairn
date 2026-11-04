@@ -142,6 +142,7 @@ USD 79 available and a USD 12 receivable. After both cash payments it has USD 91
 and one share with USD 10.50 basis. At the USD 12 mark, equity is USD 103 before
 and after settlement.
 
+
 `settle-due` saves its selected events and input-bound response in the same SQLite
 transaction. Exact request retries return the original result; changed clock/limit
 under the same key is rejected. A batch defaults to 100 trades, can process 1–1000,
@@ -155,6 +156,67 @@ responses/64 MiB of response text. The journal's existing per-batch/JSON bounds
 remain. Retention/deletion and supervised service controls remain open. Invalid
 input/storage returns exit 2; successful pending/preview/settlement operations
 return 0. A journal reconcile discrepancy uses its existing exit 1.
+
+## Reproduce the cash and equity checks
+
+Use a fresh working directory with Alphacairn installed. Export the examples and
+initialize a new journal; do not reuse a journal from another walkthrough:
+
+```sh
+python3 -m alphacairn.resources ./cash-demo
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite init cash-demo/portfolio-account.json
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite apply cash-demo/portfolio-settlement-events.json
+```
+
+For this control, use one explicitly supplied USD 12 mark at a timestamp after
+both settlement cutoffs. The same snapshot is used on both states to isolate
+settlement from market-price changes. This is a synthetic state comparison, not
+an as-of trading decision or a claim about historical market prices. The bundled
+`portfolio-settlement-quotes.json` has an earlier timestamp and is not the final
+snapshot used here.
+
+```sh
+python3 - <<'PYTHON'
+import json
+from pathlib import Path
+Path("cash-demo/equity-check-quotes.json").write_text(json.dumps({
+    "as_of": "2026-01-06T18:00:00Z",
+    "marks": {"equity:demo-us": {
+        "price": "12", "timestamp": "2026-01-06T18:00:00Z"
+    }},
+    "fx": {}
+}))
+PYTHON
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite state
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite value cash-demo/equity-check-quotes.json
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite reconcile cash-demo/portfolio-settlement-statement.json
+python3 -m alphacairn.settlements settle-due --db ./equity-check.sqlite --at 2026-01-05T17:00:00Z --request-key purchase-paid
+python3 -m alphacairn.settlements settle-due --db ./equity-check.sqlite --at 2026-01-06T17:00:00Z --request-key sale-paid
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite state
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite value cash-demo/equity-check-quotes.json
+python3 -m alphacairn.portfolio --db ./equity-check.sqlite audit
+```
+
+Expected controls:
+
+| Output | Before payments | After both payments |
+| --- | --- | --- |
+| `settlement.cash`, USD settled | 100.00 | 91.00 |
+| USD reserved | 21.00 | 0.00 |
+| USD available | 79.00 | 91.00 |
+| Number of pending settlements | 2 | 0 |
+| `value` equity | 103.00 | 103.00 |
+
+The pre-payment statement returns `matched: true`; it describes pending claims
+and is checked before they are discharged. The final journal audit returns
+`passed: true`. Do not treat that pre-payment statement as a post-payment one.
+
+Before payment, equity is 100 cash minus 21 payable plus 12 receivable plus the
+remaining position marked at 12. Afterwards, it is 91 cash plus that same 12
+position. The release of reservations changes available funds; it does not
+create profit. Both the statement match and the audit are local controls on
+synthetic inputs, not evidence of live broker payment or production acceptance.
+
 
 ## Valuation, statements and risk
 

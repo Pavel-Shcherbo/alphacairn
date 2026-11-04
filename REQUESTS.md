@@ -134,3 +134,7 @@ Dates are illustrative labels; intermediate stages are not individually qualifie
 releases. Calendar/object/final-tree evidence and packaging status are maintained
 in the central planning register (P-047). Original main history is retained.
 Publication and final portfolio acceptance remain pending; no upload is authorized.
+
+## 2026-11-05 — Reproducible settlement equity walkthrough
+
+Pavel requested continued useful GitHub/community work. Add exact public commands for the installed-package USD 100/21/79 to 91/0/91 example, with one explicit post-cutoff mark, state outputs, pre-payment statement timing and constant equity derivation. Exact documented shell blocks executed from an installed package outside checkout: 11 commands passed, expected cash/pending/equity, statement and audit verified. Evidence: docs/settlement-walkthrough-verification.json. PR published: https://github.com/Pavel-Shcherbo/alphacairn/pull/4. Requested documentation and execution checks complete; merge state is tracked in the central portfolio publication record. Historical “no publication authorized” notes above describe earlier gates and do not override later authorized publication.
