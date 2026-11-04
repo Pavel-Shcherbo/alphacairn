@@ -1,5 +1,17 @@
 # Tasks
 
+## Public repository status — 2026-11-04
+
+Published with Pavel's explicit authorization at https://github.com/Pavel-Shcherbo/alphacairn.
+The initial remote main matched qualified snapshot 3f129374fcab40e81754a4a4eb4c22f67224e3c3.
+The implemented local scope is qualified as recorded in docs/VERIFICATION.md.
+This status supersedes earlier publication holds in the historical register below.
+Earlier dates are a disclosed reconstruction; this publication record uses its actual date.
+GitHub contribution-calendar rendering is checked separately and is not implied by a push.
+No remaining local delivery blocker; future scope remains backlog.
+
+---
+
 ## Current local qualification — 2026-11-04
 
 Implemented scope: decision-time market vintages, exact FIFO accounting, corporate actions, retained sessions, opening holdings, cash settlement and saved risk/research replay. Full project suites passed on CPython
