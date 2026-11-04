@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-05",
+  "source": "docs/SETTLEMENT.md",
+  "method": "Executed both exact shell blocks from Reproduce the cash and equity checks section using bash -e in temporary directory outside checkout",
+  "interpreter": "Installed CPython 3.14 environment",
+  "commands": 11,
+  "exit_code": 0,
+  "before_cash": {
+    "currency": "USD",
+    "settled": "100.00",
+    "reserved": "21.00",
+    "available": "79.00"
+  },
+  "after_cash": {
+    "currency": "USD",
+    "settled": "91.00",
+    "reserved": "0.00",
+    "available": "91.00"
+  },
+  "equity_before": "103.00",
+  "equity_after": "103.00",
+  "statement_match": true,
+  "audit_passed": true
+}
