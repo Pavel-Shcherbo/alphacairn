@@ -9,6 +9,16 @@ description = "Compare trading hypotheses under explicit timing and execution as
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+authors = [{name = "Pavel Shcherbo"}]
+license = {file = "LICENSE"}
+keywords = ["backtesting", "portfolio", "reproducible-research", "risk"]
+
+[project.urls]
+Homepage = "https://github.com/Pavel-Shcherbo/alphacairn"
+Repository = "https://github.com/Pavel-Shcherbo/alphacairn"
+Documentation = "https://github.com/Pavel-Shcherbo/alphacairn/blob/main/docs/README.md"
+Issues = "https://github.com/Pavel-Shcherbo/alphacairn/issues"
+Discussions = "https://github.com/Pavel-Shcherbo/alphacairn/discussions"
 
 [tool.setuptools]
 packages = ["alphacairn"]

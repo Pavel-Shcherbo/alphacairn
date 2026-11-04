@@ -1,3 +1,4 @@
+include LICENSE
 include _build.py
 include examples/synthetic.csv
 include examples/portfolio-account.json
