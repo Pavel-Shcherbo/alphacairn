@@ -1,8 +1,36 @@
 # Alphacairn
 
 Compare trading hypotheses under explicit timing and execution assumptions.
-[Quick start](#run-the-workbench) · [Guides](docs/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Contributing](CONTRIBUTING.md)
+[Quick start](#run-the-workbench) · [Screenshots](#screenshots) · [Guides](docs/README.md) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/VERIFICATION.md) · [Contributing](CONTRIBUTING.md)
 
+## Screenshots
+
+![Walk-forward study comparing strategy and baseline equity on synthetic bars](docs/workbench.png)
+
+A walk-forward example with explicit training windows, fees and a separate baseline. All market data shown here is synthetic. [Guide](docs/RESEARCH.md).
+
+<details>
+<summary>More screenshots: saved research, settlement and mobile</summary>
+
+### Saved research and holdout review
+
+![Retained research attempts, locked development selection and holdout access](docs/research-desktop.png)
+
+Compare successful, incomplete and rejected attempts without discarding their history. [Guide](docs/RESEARCH_WORKBENCH.md).
+
+### Cash settlement
+
+![Portfolio settlement showing reserved cash and pending obligations](docs/settlement-desktop.png)
+
+Distinguish portfolio equity, settled cash, reservations and pending settlements in a synthetic example. [Guide](docs/SETTLEMENT.md).
+
+### Mobile settlement review
+
+<img src="docs/settlement-mobile.png" alt="Mobile view of available cash and pending settlements" width="390">
+
+Review the same settlement controls on a narrow screen; wide tables scroll within their panels. [Guide](docs/SETTLEMENT.md).
+
+</details>
 
 ## Run the workbench
 
@@ -21,15 +49,6 @@ Open http://127.0.0.1:8412. No third-party runtime packages are required.
 Use `--port 0` to choose a free local port, or an explicit port from 1 to 65535. Invalid values are reported as command-line usage errors.
 The workbench is a local development application, not a hosted multi-user service. Process-execution controls are qualified on macOS arm64; Windows descendant termination is not qualified.
 Bundled examples are included in the wheel. Runtime state is stored outside the installed package.
-
-## Workbench preview
-
-<details>
-<summary>Open the workbench screenshot</summary>
-
-![Saved research and risk review](docs/research-desktop.png)
-
-</details>
 
 ## Command line
 
@@ -59,7 +78,6 @@ A local catalog retains original JSON batches, exact decimal OHLCV observations,
 ## Boundaries
 
 The bundled data is synthetic. The simple CSV moving-average backtest models fractional long-only positions, fixed costs and unlimited liquidity; it marks the final position at the last close. The separate multi-instrument execution engine models declared liquidity, partial fills, splits, dividends, opening holdings and cash settlement. Catalog-backed studies use explicit historical universe intervals and price revisions. These inputs are supplied by the operator; official provider feeds, live brokerage, margin, shorting and derivatives are not included. No profitability or market-performance result is claimed.
-
 
 ## Sequential research and risk
 
